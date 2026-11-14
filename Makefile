@@ -40,7 +40,7 @@ corpus:
 	testdata/mkcorpus.sh
 
 # docs: the SVG figures and the articles' PDFs; docs-pdf: only the PDFs
-# (pandoc with typst). The PDFs are git-ignored.
+# (pandoc with typst). The PDFs are committed.
 docs:
 	$(MAKE) -C docs
 

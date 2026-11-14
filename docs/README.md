@@ -20,13 +20,15 @@ the article PDFs; `make docs-pdf` only the PDFs.
 
 | File | What | Used for | Source |
 |---|---|---|---|
-| `DjVu3Spec.djvu` | Lizardtech DjVu v3 spec (2005) | IFF, INFO, DIRM, ZP coder (App. 3), BZZ (App. 4), JB2 (App. 2), IW44 (App. 1) | https://www.sndjvu.org/DjVu3Spec.djvu |
+| `DjVu3Spec.pdf` | Lizardtech DjVu v3 spec (2005) | IFF, INFO, DIRM, ZP coder (App. 3), BZZ (App. 4), JB2 (App. 2), IW44 (App. 1) | https://www.sndjvu.org/DjVu3Spec.djvu, converted by dejapdf |
 | `T-REC-T.88-200002.pdf` | ITU-T T.88 (02/2000), JBIG2 | MQ coder (Annex E), generic region, symbol dictionary, text region | https://www.itu.int/rec/T-REC-T.88-200002-S |
 | `T-REC-T.800-201906.pdf` | ITU-T T.800 (06/2019), JPEG 2000 Part 1 | `internal/jpx` encoder | https://www.itu.int/rec/T-REC-T.800-201906-S |
 | `PDF32000_2008.pdf` | ISO 32000-1:2008 (PDF 1.7), Adobe's free copy | PDF writer, JBIG2Decode, JPXDecode, image masks | https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/PDF32000_2008.pdf |
 
-Text of the DjVu spec: `djvutxt docs/DjVu3Spec.djvu`. Its figures (decoder
-pseudo-code) are images; render with `ddjvu -page=N`.
+`DjVu3Spec.pdf` is in the repository; the other three are downloaded and
+git-ignored. Text of the DjVu spec: `pdftotext docs/DjVu3Spec.pdf -`. Its
+figures (decoder pseudo-code) are images; render with
+`mutool draw -r 150 docs/DjVu3Spec.pdf N`.
 
 ## DjVu spec errata
 

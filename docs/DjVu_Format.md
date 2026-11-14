@@ -3,7 +3,7 @@
 What dejapdf's decoder must know about DjVu: the container, the documents,
 the ZP coder and BZZ, the JB2 mask, the IW44 images, the colour palette, the
 hidden text, annotations and outlines. Numbers in parentheses are sections of
-the Lizardtech DjVu v3 spec (2005), [DjVu3Spec.djvu](DjVu3Spec.djvu). The
+the Lizardtech DjVu v3 spec (2005), [DjVu3Spec.pdf](DjVu3Spec.pdf). The
 spec is old and partly wrong; [README.md](README.md) lists its errata. A
 claim marked *checked* was tested on `testdata/corpus` and real books against
 DjVuLibre's tools (`djvudump`, `djvused`, `ddjvu`). The PDF side is in

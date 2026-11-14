@@ -8,7 +8,7 @@ PANDOC ?= pandoc
 # The SVGs are kept in git so that GitHub shows them.
 FIGURES = $(patsubst %.py,%.svg,$(filter-out figures/svg.py,$(wildcard figures/*.py)))
 
-# Articles to PDF via pandoc and typst. The PDFs are git-ignored (docs/*.pdf);
+# Articles to PDF via pandoc and typst. The PDFs are committed (docs/*.pdf);
 # only these are made or removed, never the downloaded specs.
 ARTICLES = $(filter-out README.md,$(wildcard *.md))
 PDFS = $(patsubst %.md,%.pdf,$(ARTICLES))

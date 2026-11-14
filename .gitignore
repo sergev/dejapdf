@@ -1,4 +1,7 @@
 tmp/
 /dejapdf
-docs/*.pdf
 .DS_Store
+# Downloaded specs, not redistributed
+docs/T-REC-T.88-200002.pdf
+docs/T-REC-T.800-201906.pdf
+docs/PDF32000_2008.pdf
