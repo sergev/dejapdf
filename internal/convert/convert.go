@@ -167,6 +167,7 @@ type pageBuilder struct {
 	shared  *sharedDicts
 	font    bool       // the content uses the hidden-text font
 	annots  []pdf.Dict // pageNum values refer to pages
+	pat     pdf.Dict   // pattern name to local
 	text    int        // compressed size of the text operators, if counted
 }
 
@@ -237,6 +238,10 @@ func (b *pageBuilder) emit(p *pdf.Writer, r pdf.Ref, pages []pdf.Ref, font *text
 	if b.font {
 		res["Font"] = pdf.Dict{"Tx": font.get(p)}
 	}
+	if len(b.pat) > 0 {
+		resolve(b.pat)
+		res["Pattern"] = b.pat
+	}
 	var annots pdf.Array
 	for _, a := range b.annots {
 		resolve(a)
@@ -250,12 +255,17 @@ func (b *pageBuilder) emit(p *pdf.Writer, r pdf.Ref, pages []pdf.Ref, font *text
 // A layer reduced k times is ⌈W/k⌉×⌈H/k⌉ and anchored at the bottom left,
 // so it may stick out at the top and right; other sizes fill the page.
 func (b *pageBuilder) draw(name string, iw, ih int) {
-	w, h := b.w, b.h
+	w, h := b.area(iw, ih)
+	b.content = fmt.Appendf(b.content, "q %s 0 0 %s 0 0 cm /%s Do Q\n", num(w), num(h), name)
+}
+
+// area is the size in points that a layer of iw×ih pixels covers.
+func (b *pageBuilder) area(iw, ih int) (float64, float64) {
 	if k := reduction(b.in.Width, b.in.Height, iw, ih); k > 0 {
 		s := float64(k) * 72 / float64(b.in.DPI)
-		w, h = float64(iw)*s, float64(ih)*s
+		return float64(iw) * s, float64(ih) * s
 	}
-	b.content = fmt.Appendf(b.content, "q %s 0 0 %s 0 0 cm /%s Do Q\n", num(w), num(h), name)
+	return b.w, b.h
 }
 
 // reduction returns k if iw×ih is the page reduced k times, else 0.
@@ -404,13 +414,7 @@ func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) er
 		if err != nil {
 			return fmt.Errorf("FGjp: %w", err)
 		}
-		mw, mh := layerSize(b, mask, w, h)
-		md, mdata := b.maskImage(mask, mw, mh, nil)
-		if md == nil {
-			return nil
-		}
-		d["Mask"] = b.obj(md, mdata)
-		b.draw(b.add("Fg", b.obj(d, c.Data)), w, h)
+		b.fgPattern(mask, b.obj(d, c.Data), w, h)
 		return nil
 	}
 	fg, err := pg.Foreground()
@@ -421,9 +425,8 @@ func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) er
 		whole(black, nil)
 		return nil
 	}
-	mw, mh := layerSize(b, mask, fg.W, fg.H)
 	if k := reduction(b.in.Width, b.in.Height, fg.W, fg.H); k > 0 {
-		fillUnused(fg, mask.RenderSome(mw, mh, nil), k)
+		fillUnused(fg, mask.RenderSome(k*fg.W, k*fg.H, nil), k)
 	}
 	if c, ok := uniform(fg); ok {
 		whole(c, nil)
@@ -433,22 +436,32 @@ func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) er
 	if err != nil {
 		return fmt.Errorf("FG44: %w", err)
 	}
-	md, mdata := b.maskImage(mask, mw, mh, nil)
-	if md == nil {
-		return nil
-	}
-	d["Mask"] = b.obj(md, mdata)
-	b.draw(b.add("Fg", b.obj(d, data)), fg.W, fg.H)
+	b.fgPattern(mask, b.obj(d, data), fg.W, fg.H)
 	return nil
 }
 
-// layerSize is the size of the mask over the same area as a layer of
-// iw×ih pixels: padded at the top and right to k·iw × k·ih.
-func layerSize(b *pageBuilder, mask *jb2.Image, iw, ih int) (int, int) {
-	if k := reduction(b.in.Width, b.in.Height, iw, ih); k > 0 {
-		return k * iw, k * ih
+// fgPattern paints the mask in the colours of img, an iw×ih foreground
+// layer: the stencil filled with a tiling pattern whose one cell is the
+// image. An image with the stencil as /Mask (or /SMask) would be simpler,
+// but Poppler blends such an image into the background along the mask's
+// edges (docs/Portable_Document_Format.md §8).
+func (b *pageBuilder) fgPattern(mask *jb2.Image, img local, iw, ih int) {
+	sd, sdata := b.maskImage(mask, mask.W, mask.H, nil)
+	if sd == nil {
+		return
 	}
-	return mask.W, mask.H
+	w, h := b.area(iw, ih)
+	cell := fmt.Appendf(nil, "q %s 0 0 %s 0 0 cm /Fg Do Q", num(w), num(h))
+	pat := b.obj(pdf.Dict{"Type": pdf.Name("Pattern"), "PatternType": 1, "PaintType": 1, "TilingType": 1,
+		"BBox": pdf.Array{0, 0, w, h}, "XStep": w, "YStep": h,
+		"Resources": pdf.Dict{"XObject": pdf.Dict{"Fg": img}}}, cell)
+	if b.pat == nil {
+		b.pat = pdf.Dict{}
+	}
+	name := fmt.Sprintf("P%d", len(b.pat))
+	b.pat[name] = pat
+	b.content = fmt.Appendf(b.content, "/Pattern cs /%s scn\n", name)
+	b.draw(b.add("Sm", b.obj(sd, sdata)), mask.W, mask.H)
 }
 
 // uniform reports whether a layer is one colour, within ±2.

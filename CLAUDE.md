@@ -52,7 +52,8 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   - background JPX stretched to the page;
   - mask as a stencil (`/ImageMask true`; JBIG2 decodes black as 0, so no
     `/Decode`; a raw 1 = black mask needs `/Decode [1 0]`);
-  - FG44 as a JPX with the stencil as its `/Mask`;
+  - FG44 (and FGjp) as the stencil filled with a pattern whose cell is the
+    JPX image (`/Mask` renders badly in Poppler);
   - one stencil per FGbz palette colour;
   - TXTz as invisible text, NAVM as outlines, ANTz as links.
 - BGjp/FGjp layers (already JPEG) pass through unchanged as DCTDecode.

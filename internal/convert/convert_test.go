@@ -126,6 +126,8 @@ func TestCorpusColour(t *testing.T) {
 			t.Skip("no " + tool)
 		}
 	}
+	_, err := exec.LookPath("pdftoppm")
+	poppler := err == nil
 	files, _ := filepath.Glob(filepath.Join(corpus, "*.djvu"))
 	dir := t.TempDir()
 	for _, f := range files {
@@ -163,9 +165,24 @@ func TestCorpusColour(t *testing.T) {
 				continue
 			}
 			if v := psnr(a, b); v < 28 {
-				t.Errorf("%s page %s: %.1f dB from ddjvu", name, pg, v)
+				t.Errorf("%s page %s: MuPDF %.1f dB from ddjvu", name, pg, v)
 			} else {
-				t.Logf("%s page %s: %.1f dB", name, pg, v)
+				t.Logf("%s page %s: MuPDF %.1f dB", name, pg, v)
+			}
+			if !poppler {
+				continue
+			}
+			pp := filepath.Join(dir, "p")
+			if b, err := exec.Command("pdftoppm", "-f", pg, "-l", pg, "-singlefile",
+				"-scale-to-x", fmt.Sprint(w), "-scale-to-y", fmt.Sprint(h), out, pp).CombinedOutput(); err != nil {
+				t.Fatalf("pdftoppm: %v\n%s", err, b)
+			}
+			if _, _, c := readPNM(t, pp+".ppm"); len(c) == len(a) {
+				if v := psnr(a, c); v < 28 {
+					t.Errorf("%s page %s: Poppler %.1f dB from ddjvu", name, pg, v)
+				} else {
+					t.Logf("%s page %s: Poppler %.1f dB", name, pg, v)
+				}
 			}
 		}
 	}

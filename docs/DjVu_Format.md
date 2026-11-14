@@ -528,8 +528,9 @@ mask.
 ## 10. Foreground colour
 
 With FG44, the foreground is an ordinary IW44 image, usually at 1/12 scale.
-dejapdf paints it through the mask: a JPX image with the JBIG2 stencil as its
-`/Mask`.
+dejapdf paints it through the mask: the JBIG2 stencil filled with a pattern
+whose cell is the JPX image. ddjvu upscales FG44 by pixel replication
+(*checked*: identical on every mask pixel).
 
 With FGbz, every *blit* of the mask (every shape placed on the page) gets one
 colour from a palette (8.3.10). The layout (*checked*, `palette.djvu`):
@@ -579,8 +580,7 @@ blit, so it goes the way of a JB2 mask: palettes, FG44 with the mask as
 `/Mask`, page selection. The mask is coded as one JBIG2 generic region,
 38% smaller than the G4 data on the corpus pages. Passing the G4 data
 through as CCITTFaxDecode, as dejapdf first did, works only for an
-unstriped mask under a single colour. The FG44 `/Mask` needs the stencil
-padded to the layer's size, which G4 data cannot be. Corpus files:
+unstriped mask under a single colour. Corpus files:
 `mmr.djvu` (one G4 stream), `mmr-striped.djvu` (132 stripes of 25 rows)
 and `mmr-compound.djvu` (G4 mask, FG44 and BG44). All three masks are
 identical to `ddjvu -mode=mask`.

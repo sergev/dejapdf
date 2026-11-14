@@ -15,7 +15,7 @@ How DjVu maps to PDF, in one table:
 | page, INFO size and dpi | page object, MediaBox in points (§6) |
 | BG44 background | image XObject, JPXDecode (§11), stretched to the page |
 | Sjbz mask, Djbz dictionary | stencil image, JBIG2Decode (§10); Djbz → JBIG2Globals |
-| FG44 foreground | JPXDecode image whose /Mask is the stencil (§8) |
+| FG44 foreground | the stencil filled with a pattern of the JPXDecode image (§8) |
 | FGbz palette | one stencil per colour (§9) |
 | BGjp, FGjp | DCTDecode, passed through (§3) |
 | Smmr mask | decoded, then a JBIG2 generic region (§10) |
@@ -274,6 +274,40 @@ Unreliable with lossy JPX; not used.
 Partial transparency; we need only on/off, so the explicit mask is enough.
 JPX can also carry alpha (`SMaskInData`); not used.
 
+**Pattern fill** (8.7.3): a stencil can also be painted in a tiling pattern,
+`/Pattern cs /P0 scn`, instead of a colour. A coloured pattern (`/PaintType
+1`) whose one cell is the page-sized foreground image, drawn through the
+stencil, gives the same picture as the image with the stencil as `/Mask`.
+dejapdf uses it for FG44 and FGjp because Poppler mishandles explicit masks:
+it blends the masked image into the background along the mask's edges, which
+on thin text strokes is most of the mask. On the corpus compound page,
+Poppler's render was 27.5 dB from ddjvu with `/Mask` (17.4 on mask pixels,
+30.9 off them). It is 36.9 dB with the pattern (24.9 and 46.1). `/SMask` and
+switching off Poppler's anti-aliasing change nothing; MuPDF, Ghostscript and
+pdf.js render both constructions alike (*checked*). The cost is one small
+pattern object a page, 0.1% of a book with FG44 on most pages. The stencil
+also no longer needs padding to the layer's size.
+
+**What remains: upscaling.** ddjvu shows each FG44 sample as a solid k × k
+block (*checked*: identical on all mask pixels to the decoded FG44 upscaled
+by pixel replication). Viewers interpolate an image upscaled 12 times, so
+colours blend across sample boundaries; MuPDF on the corpus compound page is
+17.3 dB from ddjvu on mask pixels. Two causes, measured with MuPDF:
+
+- JPX loss: the FG44 layer uncompressed gives 24.8 dB on mask pixels. A
+  larger FG budget helps Poppler a lot (pattern, budget 2×: 31.9 dB; 4×: 41
+  dB) but MuPDF little (17.9 dB), and on a real book with FG44 on 14 pages
+  2× costs 11% of the file.
+- Interpolation: the layer uncompressed *and* replicated to page resolution
+  makes MuPDF exact, at 7× the size. Replicating 2–4× before JPX coding at
+  the same budget makes both viewers worse: JPX codes the block edges badly.
+  `/Interpolate false` changes nothing.
+
+So dejapdf keeps the FG budget at `-q` × the FG44 size; `-q` raises it for
+all colour layers. On that book's pages the FG pixels are 27–30 dB from ddjvu
+in MuPDF and 30–33 dB in Poppler (16.7–18.8 before the pattern), the
+background 42–46 dB in both.
+
 **Polarity, checked.** JBIG2Decode delivers *black as 0*, the PDF convention:
 a JBIG2 image used as a DeviceGray image or as a stencil with the *default*
 Decode renders identical to `jbig2dec` in both MuPDF and Poppler; with
@@ -290,7 +324,8 @@ The content stream of a compound page (W × H in points):
 
 ```
 q W 0 0 H 0 0 cm /Bg0 Do Q         % background, JPX
-q W 0 0 H 0 0 cm /Fg1 Do Q         % foreground JPX with /Mask = stencil
+/Pattern cs /P0 scn                % foreground: a pattern cell holding
+q W 0 0 H 0 0 cm /Sm1 Do Q         %   the JPX image, through the stencil
 BT 3 Tr ... ET                     % hidden text (§12)
 ```
 
@@ -303,9 +338,8 @@ content: they are in `/Annots`. What `internal/convert` adds:
 - **Layer geometry.** A layer reduced k times is ⌈W/k⌉ × ⌈H/k⌉ pixels, each
   covering k × k page pixels from the bottom left, so its image is drawn
   k·⌈W/k⌉ by k·⌈H/k⌉ pixels large and sticks out at the top and right; the
-  MediaBox clips it. The stencil used as FG44's `/Mask` is padded to the same
-  size, since an explicit mask fills the image's unit square. A layer whose
-  size is no reduction of the page is stretched to it.
+  MediaBox clips it. A layer whose size is no reduction of the page is
+  stretched to it. The FG pattern cell covers the same area.
 - **Uniform layers.** A layer whose samples all lie within ±2 is painted as
   one colour: a filled rectangle for the background (nothing if white), the
   stencil in that colour for the foreground. Most book pages are white with

@@ -18,7 +18,7 @@ What goes through JPEG 2000:
 | DjVu layer | Pixels | PDF |
 |:---|:---|:---|
 | BG44 background | colour or grey, at its own resolution (often 1/3 of the page) | JPX image stretched over the page |
-| FG44 foreground colour | colour, usually 1/12 of the page | JPX image with the JBIG2 stencil as `/Mask` |
+| FG44 foreground colour | colour, usually 1/12 of the page | JPX image in a pattern that fills the JBIG2 stencil |
 | photo page (BG44 only) | full resolution | JPX image |
 | BGjp, FGjp | already JPEG | passed through as DCTDecode, not re-encoded |
 
@@ -329,9 +329,10 @@ What follows for dejapdf:
   `/DeviceGray` also works (*checked*: RGB and grey JP2, with and without
   `/ColorSpace`, render in MuPDF and Poppler; `qpdf --check` passes).
 - JPXDecode needs PDF 1.5 or later in the header.
-- FG44: the JPX image gets `/Mask` pointing to the JBIG2 stencil, which has
-  the page's full resolution (see [PDF article
-  §8](Portable_Document_Format.md#8-masks)).
+- FG44: the JPX image is the cell of a tiling pattern that fills the JBIG2
+  stencil, which has the page's full resolution (see [PDF article
+  §8](Portable_Document_Format.md#8-masks); `/Mask` renders badly in
+  Poppler).
 - No `/SMaskInData`: there is no alpha channel. Encoders that take an RGBA
   image may add a fourth component; go-jpeg2000 does for `image.RGBA`
   (*checked*), so `internal/jpx` should take planar component data instead.

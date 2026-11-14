@@ -14,7 +14,7 @@ supports natively, keeping the layers separate. Target size: **1–1.5× the DjV
 | `Sjbz` text mask (JB2) | JBIG2 stencil mask (`/ImageMask true`, `/Decode [1 0]`) |
 | `Djbz` shared shape dictionary | `/JBIG2Globals`, shared across pages |
 | `BG44` background (IW44) | JPEG 2000 image (`JPXDecode`), stretched to the page |
-| `FG44` foreground colour (IW44) | JPEG 2000 image with the JBIG2 mask attached via `/Mask` |
+| `FG44` foreground colour (IW44) | JBIG2 stencil filled with a pattern of the JPEG 2000 image |
 | `FGbz` colour palette | one stencil mask per colour |
 | `TXTz` hidden text | invisible text — the PDF stays searchable |
 | `NAVM` table of contents | PDF bookmarks (outlines) |

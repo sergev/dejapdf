@@ -44,19 +44,10 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
 
-## P16. Viewer fidelity
-
-- [ ] FG layers in viewers: MuPDF and Poppler interpolate a 12× upscaled FG44, blending
-      neighbouring colours into the shapes (ddjvu does not); consider upsampling small FG
-      layers or other mitigation
-- [ ] Check rendering in Acrobat (pdf.js, MuPDF, Poppler and Ghostscript done)
-
-Done when: compound corpus pages render within a few dB of ddjvu in MuPDF and Poppler at
-no more than a few percent size cost.
-
 ## P17. Release
 
 - [ ] CI (build, vet, test with the oracle tools installed)
+- [ ] Check rendering in Acrobat by hand (pdf.js, MuPDF, Poppler and Ghostscript done)
 - [ ] README with real usage and results
 
 Done when: CI passes on GitHub; the README shows the options and the book size table.
