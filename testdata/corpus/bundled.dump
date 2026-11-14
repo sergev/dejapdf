@@ -1,0 +1,31 @@
+  FORM:DJVM [54470] 
+    DIRM [100]        Document directory (bundled, 5 files 4 pages)
+    NAVM [59] 
+    FORM:DJVU [5423] {bilevel.djvu} [P1]
+      INFO [10]         DjVu 2550x3300, v24, 300 dpi, gamma=2.2
+      INCL [15]         Indirection chunk --> {shared_anno.iff}
+      Sjbz [5174]       JB2 bilevel data
+      ANTz [98]         Page annotation (hyperlinks, etc.)
+      TXTz [81]         Hidden text (text, etc.)
+    FORM:DJVI [57] {shared_anno.iff} [S]
+      ANTz [45]         Page annotation (hyperlinks, etc.)
+    FORM:DJVU [16608] {photo.djvu} [P2]
+      INFO [10]         DjVu 850x1100, v24, 100 dpi, gamma=2.2
+      INCL [15]         Indirection chunk --> {shared_anno.iff}
+      BG44 [3917]       IW4 data #1, 74 slices, v1.2 (color), 850x1100
+      BG44 [5057]       IW4 data #2, 15 slices
+      BG44 [7562]       IW4 data #3, 10 slices
+    FORM:DJVU [4997] {palette.djvu} [P3]
+      INFO [10]         DjVu 2550x3300, v24, 300 dpi, gamma=2.2
+      INCL [15]         Indirection chunk --> {shared_anno.iff}
+      Sjbz [4795]       JB2 bilevel data
+      FGbz [32]         JB2 colors data, v0, 4 colors
+      BG44 [99]         IW4 data #1, 97 slices, v1.2 (color), 213x275
+    FORM:DJVU [27162] {compound.djvu} [P4]
+      INFO [10]         DjVu 2550x3300, v24, 300 dpi, gamma=2.2
+      INCL [15]         Indirection chunk --> {shared_anno.iff}
+      Sjbz [5174]       JB2 bilevel data
+      FG44 [5364]       IW4 data #1, 74 slices, v1.2 (color), 213x275
+      BG44 [3917]       IW4 data #1, 74 slices, v1.2 (color), 850x1100
+      BG44 [5057]       IW4 data #2, 15 slices
+      BG44 [7562]       IW4 data #3, 10 slices

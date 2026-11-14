@@ -1,0 +1,83 @@
+%!PS-Adobe-3.0
+%%Title: dejapdf test corpus source
+%%Pages: 4
+%%BoundingBox: 0 0 612 792
+%%EndComments
+
+% Synthetic test pages, US Letter. Rendered by mkcorpus.sh.
+% 1: black text   2: smooth background   3: coloured text   4: more black text
+
+/lines [
+  (The quick brown fox jumps over the lazy dog. 0123456789)
+  (Pack my box with five dozen liquor jugs! How vexingly quick)
+  (daft zebras jump; sphinx of black quartz, judge my vow.)
+  (DjVu stores the text mask once per symbol and reuses shapes.)
+  (JBIG2 symbol dictionaries can carry the same structure to PDF.)
+] def
+
+% n y0 textblock: draw n lines starting at y0, 14pt leading
+/textblock {
+  /y exch def
+  /n exch def
+  0 1 n 1 sub {
+    lines exch lines length mod get
+    72 y moveto show
+    /y y 14 sub def
+  } for
+} def
+
+/pdfmark where { pop } { userdict /pdfmark /cleartomark load put } ifelse
+[ /Title (Text) /Page 1 /OUT pdfmark
+[ /Title (Pictures) /Count 2 /Page 2 /OUT pdfmark
+[ /Title (Background) /Page 2 /OUT pdfmark
+[ /Title (Coloured text) /Page 3 /OUT pdfmark
+[ /Title (More text) /Page 4 /OUT pdfmark
+
+%%Page: 1 1
+/Times-Roman findfont 12 scalefont setfont
+0 setgray
+/Times-Bold findfont 20 scalefont setfont
+72 730 moveto (Page One: Bilevel Text) show
+/Times-Roman findfont 12 scalefont setfont
+45 700 textblock
+72 60 moveto (Link: https://example.com/) show
+[ /Rect [72 55 240 72] /Border [0 0 0]
+  /Action << /Subtype /URI /URI (https://example.com/) >>
+  /Subtype /Link /ANN pdfmark
+[ /Rect [300 55 400 72] /Border [0 0 0] /Page 3 /View [/XYZ null null null]
+  /Subtype /Link /ANN pdfmark
+300 60 moveto (Go to page 3) show
+showpage
+
+%%Page: 2 2
+% Smooth diagonal gradient with soft shapes.
+<< /ShadingType 2 /ColorSpace /DeviceRGB /Coords [0 0 612 792]
+   /Function << /FunctionType 2 /Domain [0 1] /C0 [0.95 0.85 0.6] /C1 [0.4 0.6 0.9] /N 1 >>
+   /Extend [true true] >> shfill
+0.9 0.4 0.3 setrgbcolor 200 500 120 0 360 arc fill
+0.3 0.7 0.4 setrgbcolor 420 250 90 0 360 arc fill
+0.2 0.2 0.5 setrgbcolor 80 80 moveto 532 80 lineto 306 300 lineto closepath fill
+showpage
+
+%%Page: 3 3
+/Times-Bold findfont 24 scalefont setfont
+0.8 0 0 setrgbcolor
+72 720 moveto (Page Three: Coloured Text) show
+/Times-Roman findfont 12 scalefont setfont
+0 0 0.7 setrgbcolor
+20 680 textblock
+0 0.5 0 setrgbcolor
+20 380 textblock
+showpage
+
+%%Page: 4 4
+/Times-Bold findfont 20 scalefont setfont
+0 setgray
+72 730 moveto (Page Four: More Text) show
+/Times-Italic findfont 12 scalefont setfont
+20 700 textblock
+/Times-Roman findfont 12 scalefont setfont
+20 400 textblock
+showpage
+
+%%EOF

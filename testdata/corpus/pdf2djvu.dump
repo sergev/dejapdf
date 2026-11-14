@@ -1,0 +1,29 @@
+  FORM:DJVM [45970] 
+    DIRM [87]         Document directory (bundled, 5 files 4 pages)
+    NAVM [73] 
+    FORM:DJVI [985] {shared_anno.iff} [S]
+      ANTz [973]        Page annotation (hyperlinks, etc.)
+    FORM:DJVU [6526] {p0001.djvu} [P1] (1)
+      INFO [10]         DjVu 2550x3300, v24, 300 dpi, gamma=2.2
+      INCL [15]         Indirection chunk --> {shared_anno.iff}
+      Sjbz [5359]       JB2 bilevel data
+      ANTz [87]         Page annotation (hyperlinks, etc.)
+      TXTz [1008]       Hidden text (text, etc.)
+    FORM:DJVU [24651] {p0002.djvu} [P2] (2)
+      INFO [10]         DjVu 2550x3300, v24, 300 dpi, gamma=2.2
+      INCL [15]         Indirection chunk --> {shared_anno.iff}
+      Sjbz [24072]      JB2 bilevel data
+      FGbz [421]        JB2 colors data, v0, 67 colors
+      BG44 [87]         IW4 data #1, 97 slices, v1.2 (b&w), 213x275
+    FORM:DJVU [6058] {p0003.djvu} [P3] (3)
+      INFO [10]         DjVu 2550x3300, v24, 300 dpi, gamma=2.2
+      INCL [15]         Indirection chunk --> {shared_anno.iff}
+      Sjbz [4945]       JB2 bilevel data
+      FGbz [29]         JB2 colors data, v0, 3 colors
+      BG44 [87]         IW4 data #1, 97 slices, v1.2 (b&w), 213x275
+      TXTz [916]        Hidden text (text, etc.)
+    FORM:DJVU [7526] {p0004.djvu} [P4] (4)
+      INFO [10]         DjVu 2550x3300, v24, 300 dpi, gamma=2.2
+      INCL [15]         Indirection chunk --> {shared_anno.iff}
+      Sjbz [6275]       JB2 bilevel data
+      TXTz [1188]       Hidden text (text, etc.)

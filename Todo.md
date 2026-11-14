@@ -37,14 +37,18 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
 
 ## 0. Setup
 
-- [ ] `go mod init github.com/sergev/dejapdf`
-- [ ] Layout: `cmd/dejapdf`, `internal/{iff,zp,bzz,jb2,iw44,djvu,mq,jbig2,jpx,pdf,convert}`
-- [ ] `NOTICE` file crediting borrowed Apache-2.0 code
-- [ ] Makefile: `build`, `test`, `lint`
-- [ ] Install oracles: `djvulibre-bin` (ddjvu, djvudump, djvused, cjb2, c44, cpaldjvu, djvm), `jbig2dec`, `qpdf`
-- [ ] Test corpus in `testdata/`: generated with `cjb2`, `c44`, `cpaldjvu`, `djvm`
-      (bilevel, photo, compound, palette, bundled, indirect, shared Djbz)
-      plus a few public-domain scanned books
+- [x] `go mod init github.com/sergev/dejapdf`
+- [x] Layout: `cmd/dejapdf`, `internal/{iff,zp,bzz,jb2,iw44,djvu,mq,jbig2,jpx,pdf,convert}`
+- [x] `NOTICE` file crediting borrowed Apache-2.0 code
+- [x] Makefile: `build`, `test`, `lint`
+- [x] Install oracles: `djvulibre-bin` (ddjvu, djvudump, djvused, cjb2, c44, cpaldjvu, djvm), `pdf2djvu`, `jbig2dec`, `qpdf`
+- [x] Corpus source `testdata/src/pages.ps` (own content: text, gradient, colour text, outline, links)
+      and generator `testdata/mkcorpus.sh` (`make corpus`)
+- [x] Run `make corpus`; commit `testdata/corpus` (bilevel, lossy, photo, gray, palette, compound,
+      bundled + text/outline/annotations, indirect, pdf2djvu) with djvudump/djvused goldens
+- [ ] Shared `Djbz` sample: Debian's pdf2djvu lacks `--pages-per-dict` (no minidjvu);
+      need a real multi-page scan with Djbz, or build minidjvu as an external tool
+- [ ] A few public-domain scanned books (kept outside git, for size measurements)
 
 Done when: `go build ./...` and `go test ./...` pass on an empty skeleton.
 

@@ -1,0 +1,14 @@
+dejapdf
+Copyright (c) 2026 Serge Vakulenko
+Licensed under the MIT License, see LICENSE.
+
+This product includes software derived from the following projects,
+licensed under the Apache License, Version 2.0
+(http://www.apache.org/licenses/LICENSE-2.0).
+Modified files carry a notice stating the changes.
+
+* go-jpeg2000 (https://github.com/mrjoshuak/go-jpeg2000)
+  Used in: internal/jpx
+
+* JBIG2 by XIAO QI DUN (https://github.com/xiaoqidun/jbig2)
+  Used in: internal/mq, internal/jbig2
