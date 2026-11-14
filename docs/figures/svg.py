@@ -13,6 +13,8 @@ from xml.sax.saxutils import escape
 # Figures print at about 0.55 of their pixel size (17 cm text width); text
 # sizes in the scripts are multiplied by this so they print near 8.5 pt.
 SCALE = 1.3
+# Larger text, for figures that print small; the layout must leave room.
+LARGE = 1.7
 
 SANS = "Helvetica, Arial, sans-serif"
 MONO = "DejaVu Sans Mono, Menlo, Consolas, monospace"
@@ -37,8 +39,10 @@ def fmt(v):
 
 
 class Figure:
-    def __init__(self, width, height):
+    def __init__(self, width, height, scale=SCALE):
+        """scale multiplies every text size; see SCALE."""
         self.w, self.h = width, height
+        self.scale = scale
         self.items = []
 
     def _add(self, s):
@@ -55,7 +59,7 @@ class Figure:
         self.rect(x, y, w, h, fill=colour[0], stroke=colour[1], width=1.2, rx=3)
         if label is not None:
             lines = label.split("\n")
-            k = size * SCALE
+            k = size * self.scale
             y0 = y + h / 2 - (len(lines) - 1) * k * 0.6 + k * 0.35
             for i, s in enumerate(lines):
                 self.text(x + w / 2, y0 + i * k * 1.2, s, size, mono=mono, weight=weight)
@@ -74,8 +78,8 @@ class Figure:
         self._add(f'<path d="{d}" fill="{fill}" stroke="{stroke}" stroke-width="{fmt(width)}"{extra}/>')
 
     def text(self, x, y, s, size=13, fill=INK, anchor="middle", weight="normal", mono=False, italic=False):
-        """Text with its baseline at y; size is multiplied by SCALE."""
-        size *= SCALE
+        """Text with its baseline at y; size is multiplied by the figure scale."""
+        size *= self.scale
         extra = f' font-weight="{weight}"' if weight != "normal" else ""
         extra += ' font-style="italic"' if italic else ""
         self._add(f'<text x="{fmt(x)}" y="{fmt(y)}" font-family="{MONO if mono else SANS}" '
@@ -83,7 +87,7 @@ class Figure:
 
     def lines(self, x, y, strings, size=13, fill=INK, anchor="middle", mono=False, spacing=1.25):
         for i, s in enumerate(strings):
-            self.text(x, y + i * size * SCALE * spacing, s, size, fill, anchor, mono=mono)
+            self.text(x, y + i * size * self.scale * spacing, s, size, fill, anchor, mono=mono)
 
     def head(self, x, y, angle, colour, size=7):
         a, b = angle + math.pi - 0.4, angle + math.pi + 0.4

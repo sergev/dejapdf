@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="470" viewBox="0 0 940 470">
+<rect width="940" height="470" fill="white"/>
+<text x="165" y="26" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="middle" font-weight="bold">Djbz (shared, in a DJVI)</text>
+<rect x="20" y="40" width="290" height="26" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="28" y="58" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="start" font-weight="bold">0</text>
+<text x="58" y="58" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">start</text>
+<rect x="20" y="70" width="290" height="26" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="28" y="88" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="start" font-weight="bold">2</text>
+<text x="58" y="88" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">new shape → library only</text>
+<rect x="20" y="100" width="290" height="26" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="28" y="118" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="start" font-weight="bold">2</text>
+<text x="58" y="118" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">new shape → library only</text>
+<rect x="20" y="130" width="290" height="26" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="28" y="148" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="start" font-weight="bold">11</text>
+<text x="58" y="148" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">end of data</text>
+<text x="165" y="220" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="middle" font-weight="bold">Sjbz (the page)</text>
+<rect x="20" y="234" width="290" height="26" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="28" y="252" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="start" font-weight="bold">9</text>
+<text x="58" y="252" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">dictionary size 2 (from INCL)</text>
+<rect x="20" y="264" width="290" height="26" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="28" y="282" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="start" font-weight="bold">0</text>
+<text x="58" y="282" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">start: page width, height</text>
+<rect x="20" y="294" width="290" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="28" y="312" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="start" font-weight="bold">1</text>
+<text x="58" y="312" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">new shape → library and page</text>
+<rect x="20" y="324" width="290" height="26" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="28" y="342" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="start" font-weight="bold">7</text>
+<text x="58" y="342" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">copy shape #1 to page</text>
+<rect x="20" y="354" width="290" height="26" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="28" y="372" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="start" font-weight="bold">7</text>
+<text x="58" y="372" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">copy shape #0 to page</text>
+<rect x="20" y="384" width="290" height="26" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.2" rx="3"/>
+<text x="28" y="402" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="start" font-weight="bold">3</text>
+<text x="58" y="402" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">new shape → page only</text>
+<rect x="20" y="414" width="290" height="26" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="28" y="432" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="start" font-weight="bold">11</text>
+<text x="58" y="432" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">end of data</text>
+<text x="420" y="52" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="middle" font-weight="bold">library</text>
+<rect x="360" y="70" width="44" height="44" fill="white" stroke="#808080" stroke-width="1"/>
+<rect x="375" y="80" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="380" y="80" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="385" y="80" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="390" y="85" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="375" y="90" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="380" y="90" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="385" y="90" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="390" y="90" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="370" y="95" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="390" y="95" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="375" y="100" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="380" y="100" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="385" y="100" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="390" y="100" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="414" y="90" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">#0</text>
+<text x="414" y="108" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">Djbz</text>
+<rect x="360" y="126" width="44" height="44" fill="white" stroke="#808080" stroke-width="1"/>
+<rect x="375" y="136" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="380" y="136" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="385" y="136" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="370" y="141" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="390" y="141" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="370" y="146" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="375" y="146" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="380" y="146" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="385" y="146" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="390" y="146" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="370" y="151" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="375" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="380" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="385" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="414" y="146" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">#1</text>
+<text x="414" y="164" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">Djbz</text>
+<rect x="360" y="182" width="44" height="44" fill="white" stroke="#808080" stroke-width="1"/>
+<rect x="370" y="192" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="375" y="192" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="380" y="192" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="385" y="192" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="370" y="197" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="390" y="197" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="370" y="202" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="390" y="202" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="370" y="207" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="390" y="207" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="370" y="212" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="390" y="212" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="414" y="202" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">#2</text>
+<text x="414" y="220" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">Sjbz</text>
+<line x1="312" y1="83" x2="350.61" y2="90.9" stroke="#9673a6" stroke-width="1.2"/>
+<polygon points="356,92 349.14,93.38 350.23,88.04" fill="#9673a6" stroke="none" stroke-width="1"/>
+<line x1="312" y1="113" x2="351.7" y2="144.58" stroke="#9673a6" stroke-width="1.2"/>
+<polygon points="356,148 349.26,146.12 352.65,141.85" fill="#9673a6" stroke="none" stroke-width="1"/>
+<line x1="312" y1="307" x2="353.84" y2="209.06" stroke="#6c8ebf" stroke-width="1.2"/>
+<polygon points="356,204 355.97,211 350.96,208.86" fill="#6c8ebf" stroke="none" stroke-width="1"/>
+<text x="410" y="260" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">#3, #4, …</text>
+<text x="410" y="280.19" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">would follow</text>
+<text x="705" y="52" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="middle" font-weight="bold">page (blits)</text>
+<rect x="480" y="66" width="450" height="170" fill="white" stroke="#808080" stroke-width="1"/>
+<rect x="630" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="635" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="640" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="645" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="630" y="161" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="650" y="161" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="630" y="166" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="650" y="166" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="630" y="171" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="650" y="171" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="630" y="176" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="650" y="176" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="677" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="682" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="687" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="672" y="161" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="692" y="161" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="672" y="166" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="677" y="166" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="682" y="166" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="687" y="166" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="692" y="166" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="672" y="171" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="677" y="176" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="682" y="176" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="687" y="176" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="719" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="724" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="729" y="156" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="734" y="161" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="719" y="166" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="724" y="166" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="729" y="166" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="734" y="166" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="714" y="171" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="734" y="171" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="719" y="176" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="724" y="176" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="729" y="176" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="734" y="176" width="5" height="5" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="761" y="156" width="5" height="5" fill="#d79b00" stroke="none" stroke-width="1"/>
+<rect x="756" y="161" width="5" height="5" fill="#d79b00" stroke="none" stroke-width="1"/>
+<rect x="761" y="161" width="5" height="5" fill="#d79b00" stroke="none" stroke-width="1"/>
+<rect x="766" y="161" width="5" height="5" fill="#d79b00" stroke="none" stroke-width="1"/>
+<rect x="771" y="161" width="5" height="5" fill="#d79b00" stroke="none" stroke-width="1"/>
+<rect x="761" y="166" width="5" height="5" fill="#d79b00" stroke="none" stroke-width="1"/>
+<rect x="761" y="171" width="5" height="5" fill="#d79b00" stroke="none" stroke-width="1"/>
+<rect x="766" y="176" width="5" height="5" fill="#d79b00" stroke="none" stroke-width="1"/>
+<rect x="771" y="176" width="5" height="5" fill="#d79b00" stroke="none" stroke-width="1"/>
+<text x="705" y="222" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="middle">blit: shape index + position</text>
+<text x="705" y="270" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">A line's first shape is placed from the previous</text>
+<text x="705" y="291.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">line's first shape; the next ones from the previous</text>
+<text x="705" y="312.5" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">shape's right edge and the baseline. Pixels are OR'ed.</text>
+<rect x="480" y="340" width="450" height="62" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="705" y="364" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">In PDF: library → JBIG2 symbol dictionary,</text>
+<text x="705" y="385.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">blits → text region; Djbz → JBIG2Globals</text>
+</svg>

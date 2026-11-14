@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="470" viewBox="0 0 940 470">
+<rect width="940" height="470" fill="white"/>
+<text x="210" y="26" font-family="Helvetica, Arial, sans-serif" font-size="25.5" fill="#333333" text-anchor="middle" font-weight="bold">Bundled: one file</text>
+<rect x="20" y="40" width="380" height="360" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="32" y="62" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="20.4" fill="#333333" text-anchor="start" font-weight="bold">FORM:DJVM</text>
+<rect x="40" y="74" width="340" height="50" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="210" y="94.75" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">DIRM  bundled, 4 files</text>
+<text x="210" y="115.15" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">offsets 0x54, 0xE02, …</text>
+<rect x="40" y="136" width="340" height="30" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="210" y="156.95" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">NAVM  outline (optional)</text>
+<rect x="100" y="180" width="290" height="44" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="245" y="199" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">FORM:DJVI {dict.iff}</text>
+<text x="245" y="217" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">Djbz, shared ANTz</text>
+<line x1="56" y1="124" x2="56" y2="196.5" stroke="#808080" stroke-width="1.2"/>
+<polygon points="56,202 53.27,195.55 58.73,195.55" fill="#808080" stroke="none" stroke-width="1"/>
+<line x1="56" y1="202" x2="92.5" y2="202" stroke="#808080" stroke-width="1.2"/>
+<polygon points="98,202 91.55,204.73 91.55,199.27" fill="#808080" stroke="none" stroke-width="1"/>
+<rect x="100" y="234" width="290" height="44" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="245" y="253" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">FORM:DJVU {p0001.djvu}</text>
+<text x="245" y="271" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">INCL dict.iff, Sjbz</text>
+<line x1="56" y1="202" x2="56" y2="256" stroke="#808080" stroke-width="1"/>
+<line x1="56" y1="256" x2="92.5" y2="256" stroke="#808080" stroke-width="1.2"/>
+<polygon points="98,256 91.55,258.73 91.55,253.27" fill="#808080" stroke="none" stroke-width="1"/>
+<rect x="100" y="288" width="290" height="44" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="245" y="307" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">FORM:DJVU {p0002.djvu}</text>
+<text x="245" y="325" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">INCL dict.iff, Sjbz</text>
+<line x1="56" y1="256" x2="56" y2="310" stroke="#808080" stroke-width="1"/>
+<line x1="56" y1="310" x2="92.5" y2="310" stroke="#808080" stroke-width="1.2"/>
+<polygon points="98,310 91.55,312.73 91.55,307.27" fill="#808080" stroke="none" stroke-width="1"/>
+<rect x="100" y="342" width="290" height="44" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="245" y="361" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">FORM:THUM {p0001.thumb}</text>
+<text x="245" y="379" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">TH44 per page</text>
+<line x1="56" y1="310" x2="56" y2="364" stroke="#808080" stroke-width="1"/>
+<line x1="56" y1="364" x2="92.5" y2="364" stroke="#808080" stroke-width="1.2"/>
+<polygon points="98,364 91.55,366.73 91.55,361.27" fill="#808080" stroke="none" stroke-width="1"/>
+<path d="M392,256 C412,256 412,202 392,202" fill="none" stroke="#9673a6" stroke-width="1.2" stroke-dasharray="4 3"/>
+<polygon points="392,202 398.45,199.27 398.45,204.73" fill="#9673a6" stroke="none" stroke-width="1"/>
+<path d="M392,310 C412,310 412,202 392,202" fill="none" stroke="#9673a6" stroke-width="1.2" stroke-dasharray="4 3"/>
+<polygon points="392,202 398.45,199.27 398.45,204.73" fill="#9673a6" stroke="none" stroke-width="1"/>
+<text x="416" y="256" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#9673a6" text-anchor="start">INCL</text>
+<text x="710" y="26" font-family="Helvetica, Arial, sans-serif" font-size="25.5" fill="#333333" text-anchor="middle" font-weight="bold">Indirect: one file per component</text>
+<rect x="500" y="40" width="420" height="96" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="512" y="62" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="20.4" fill="#333333" text-anchor="start" font-weight="bold">index.djvu  FORM:DJVM</text>
+<rect x="520" y="74" width="380" height="50" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="710" y="94.75" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">DIRM  indirect, no offsets</text>
+<text x="710" y="115.15" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">ids = file names</text>
+<rect x="640" y="186" width="250" height="50" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="765" y="207" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="20.4" fill="#333333" text-anchor="middle" font-weight="bold">dict.iff</text>
+<text x="765" y="226" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#808080" text-anchor="middle">FORM:DJVI</text>
+<path d="M560,124 C560,211 590,211 638,211" fill="none" stroke="#808080" stroke-width="1.2"/>
+<polygon points="638,211 631.55,213.73 631.55,208.27" fill="#808080" stroke="none" stroke-width="1"/>
+<rect x="640" y="260" width="250" height="50" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="765" y="281" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="20.4" fill="#333333" text-anchor="middle" font-weight="bold">p0001.djvu</text>
+<text x="765" y="300" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#808080" text-anchor="middle">FORM:DJVU</text>
+<path d="M560,124 C560,285 590,285 638,285" fill="none" stroke="#808080" stroke-width="1.2"/>
+<polygon points="638,285 631.55,287.73 631.55,282.27" fill="#808080" stroke="none" stroke-width="1"/>
+<rect x="640" y="334" width="250" height="50" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="765" y="355" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="20.4" fill="#333333" text-anchor="middle" font-weight="bold">p0002.djvu</text>
+<text x="765" y="374" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#808080" text-anchor="middle">FORM:DJVU</text>
+<path d="M560,124 C560,359 590,359 638,359" fill="none" stroke="#808080" stroke-width="1.2"/>
+<polygon points="638,359 631.55,361.73 631.55,356.27" fill="#808080" stroke="none" stroke-width="1"/>
+<text x="554" y="300" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="end">name</text>
+<path d="M892,285 C920,285 920,211 892,211" fill="none" stroke="#9673a6" stroke-width="1.2" stroke-dasharray="4 3"/>
+<polygon points="892,211 898.45,208.27 898.45,213.73" fill="#9673a6" stroke="none" stroke-width="1"/>
+<path d="M892,359 C920,359 920,211 892,211" fill="none" stroke="#9673a6" stroke-width="1.2" stroke-dasharray="4 3"/>
+<polygon points="892,211 898.45,208.27 898.45,213.73" fill="#9673a6" stroke="none" stroke-width="1"/>
+<text x="710" y="430" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="middle">each component is a valid IFF file;</text>
+<text x="710" y="452.31" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="middle">a lone FORM:DJVU is a one-page document</text>
+</svg>

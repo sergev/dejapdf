@@ -2,9 +2,13 @@
 
 Articles:
 
+- [DjVu_Format.md](DjVu_Format.md): the parts of DjVu that dejapdf
+  decodes, from the container to JB2, IW44, text and annotations.
 - [Portable_Document_Format.md](Portable_Document_Format.md): the parts of
-  PDF that dejapdf writes, with figures from `figures/*.py`. `make docs`
-  regenerates the figures and the PDF; `make docs-pdf` only the PDF.
+  PDF that dejapdf writes.
+
+Figures come from `figures/*.py`. `make docs` regenerates the figures and
+the article PDFs; `make docs-pdf` only the PDFs.
 
 # Specifications
 
@@ -37,3 +41,23 @@ Appendix 3, ZP coder:
 
 Appendix 4, BZZ: the estimation speed is one pass-through bit, plus a second
 one only if the first is 1.
+
+Found by comparing our parsing with `djvudump` and `djvused` on the corpus
+and on real books:
+
+- 8.3.2 DIRM: component type 3 (bits 0–5 of the flags) is a DJVI of shared
+  annotations; djvudump shows it as `[S]`.
+- 8.3.10 FGbz: the 3-byte blit count is raw, before the BZZ data; the BZZ
+  data holds only the 2-byte indices.
+- 8.3.5 TXTz: the 2-byte text start is not unused. Like x, y, w and h it is
+  biased by 0x8000 and is a gap after the previous sibling's text (0 in all
+  files seen). The text length is in bytes.
+- 8.3.5 TXTz: a second or later *region* is placed from the previous
+  sibling's lower-right corner, y up, like columns, words and characters.
+  The spec lists only column, word and character. Checked with a
+  `djvused set-txt` file holding all seven zone types.
+- 8.3.4 ANTz: strings use C escapes such as `\n`, not only `\"`.
+- 10.6.4 IW44: the full prediction step is printed like the lifting step,
+  `c[k] -= (… + 16) >> 5`; an interpolating (4,4) filter needs
+  `c[k] += (9*(c[k-1] + c[k+1]) - (c[k-3] + c[k+3]) + 8) >> 4`.
+  Unconfirmed until the IW44 decoder (P6).
