@@ -8,9 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 layers separate instead of rasterizing each page, so the PDF stays 1–1.5× the
 DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 
-**Status:** [Todo.md](Todo.md) is the roadmap: phases P2–P12, each ending with a
-"Done when" check. Work through them in order and tick the checkboxes as you go;
-finished phases are removed from it. The original design brief is
+**Status:** complete. All roadmap phases are done and Todo.md was removed (see
+git history). Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
+(TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`.
 
 ## Commands
@@ -27,12 +27,13 @@ make fuzz FUZZTIME=60s                    # all targets, capped memory
 go vet ./...
 ```
 
-## Architecture (planned, see Todo.md)
+## Architecture
 
 Data flows from DjVu decoding through re-encoding to the PDF writer:
 
 - `internal/iff` → `internal/djvu`: IFF85 chunks; bundled (DJVM) and indirect
   documents; DIRM; INCL; INFO (size, dpi, rotation).
+- `internal/ccitt`: G4 decoder for `Smmr` masks (copied from golang.org/x/image).
 - `internal/zp`: the ZP arithmetic decoder, used by BZZ, JB2 and IW44.
 - `internal/bzz`: decompresses DIRM, TXTz, ANTz and NAVM.
 - `internal/jb2`: decodes to **structure** (shape dictionary + blits of shape
@@ -67,6 +68,17 @@ the mask), `docs/JPEG_2000_Image_Coding.md` (how we encode the colour layers)
 and `docs/Portable_Document_Format.md` (what we write). Figures are `docs/figures/NAME.py` scripts
 printing `NAME.svg` via `docs/figures/svg.py`; `make docs` regenerates them
 and formats the articles to PDF (pandoc + typst; `make docs-pdf` for the PDFs only).
+
+## Test data
+
+- `testdata/corpus`: made by `make corpus` from `testdata/src/pages.ps`, with
+  djvudump/djvused goldens; committed, so regenerating is rarely needed. Needs
+  `pdf2djvu` (not in Homebrew) and `minidjvu` (for `shared-dict.djvu`).
+- Real scanned books in `~/Documents` (not redistributable, never committed)
+  for size measurements and `DJVU_BOOKS='glob' go test ./internal/djvu -run TestBooks`.
+- On macOS, Acrobat can be driven by AppleScript `do script` (Acrobat
+  JavaScript) to read the outline, links and hidden text; it cannot export
+  PostScript or images, so TestAcrobat stays Linux-only.
 
 ## Rules
 

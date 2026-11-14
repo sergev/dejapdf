@@ -79,8 +79,8 @@ introduced. Shapes that JB2 refines from another shape of the same size stay
 refinements; the rest are coded directly, because Adobe Reader fails on
 size-changing refinements ([docs/JBIG2_Coding.md](docs/JBIG2_Coding.md) §8).
 
-The PDFs are checked in MuPDF, Poppler, pdf.js, Ghostscript and Adobe
-Reader 9.
+The PDFs are checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe
+Reader 9 and Adobe Acrobat 26.
 
 ## Build
 
@@ -105,6 +105,7 @@ external tools; a test skips when its tool is missing.
 | `pdftoppm` | tests | `poppler-utils` | `poppler` |
 | `opj_decompress` | tests | `libopenjp2-tools` | `openjpeg` |
 | `gs` | tests, corpus | `ghostscript` | `ghostscript` |
+| `pdf2djvu`, `minidjvu` | corpus | `pdf2djvu`, `minidjvu` | `minidjvu` (no `pdf2djvu`) |
 | `python3`, `pandoc`, `typst` | `make docs` | `python3`, `pandoc`, `typst` | `python`, `pandoc`, `typst` |
 
 Debian/Ubuntu:
@@ -129,6 +130,9 @@ brew install pandoc typst                  # for make docs
 `acroread` (Adobe Reader 9.5.5) exists only for Linux (i386); on macOS that
 check is skipped.
 
+The corpus in `testdata/corpus` is committed; `make corpus` regenerates it and
+needs `pdf2djvu`, which Homebrew lacks, so regenerate it on Linux.
+
 ## Testing
 
 `go test ./...` runs the unit tests and checks the output against external
@@ -138,6 +142,13 @@ tools, which are run but never linked: `ddjvu`, `djvused`, `djvudump`
 when its tool is missing. Masks must be pixel-identical to
 `ddjvu -mode=mask`, and the JBIG2 streams must decode bit-exact with
 `jbig2dec`. `make fuzz` runs the fuzz targets of the decoders.
+
+To check the hidden text, annotations and outline of your own books against
+`djvused`, name them in `DJVU_BOOKS`:
+
+```
+DJVU_BOOKS='/path/to/books/*.djvu' go test ./internal/djvu -run TestBooks -v
+```
 
 ## Documentation
 
