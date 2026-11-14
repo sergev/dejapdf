@@ -70,6 +70,21 @@ func DjVuSize(doc *djvu.Document, pages []int) int64 {
 	return n
 }
 
+// chunkSize is the size of c in the file, header and padding included.
+func chunkSize(c *iff.Chunk) int64 {
+	if c == nil {
+		return 0
+	}
+	if !c.Composite() {
+		return int64(8 + len(c.Data) + len(c.Data)&1)
+	}
+	n := int64(12)
+	for _, k := range c.Children {
+		n += chunkSize(k)
+	}
+	return n
+}
+
 // djvuSizes counts the chunks of the selected pages, each shared chunk
 // once, and the document-level chunks (DIRM, NAVM) as other.
 func djvuSizes(doc *djvu.Document, sel []int, s *Stats) {

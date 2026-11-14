@@ -19,7 +19,8 @@ dejapdf -dump input.djvu
 |---|---|
 | `-p 1-10,15` | pages to convert (default all) |
 | `-q 1.2` | colour layer size as a multiple of its DjVu size (default 1.2) |
-| `-v` | show progress and a size report by layer |
+| `-v` | show a size report by layer |
+| `-quiet` | print nothing but warnings and errors |
 | `-dump` | print the chunk tree, like `djvudump` |
 | `-version` | print the version |
 
@@ -38,7 +39,9 @@ total         1438254      1568031   1.09
 book.pdf: 1531 kbytes, 1.09x in 0.5s
 ```
 
-Without `-v`, only the last line is printed.
+Without `-v`, only the last line is printed. While converting, when the
+output is a terminal, a progress line shows the pages done and the PDF
+size so far; the summary line replaces it.
 
 ## Results
 

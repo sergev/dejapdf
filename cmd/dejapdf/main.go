@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -30,7 +31,8 @@ func main() {
 	dump := flag.Bool("dump", false, "print the chunk tree, like djvudump")
 	quality := flag.Float64("q", convert.DefaultQuality, "colour layer size as a multiple of the DjVu size")
 	pages := flag.String("p", "", "pages to convert, like 1-10,15 (default all)")
-	verbose := flag.Bool("v", false, "show progress and a size report by layer")
+	verbose := flag.Bool("v", false, "show a size report by layer")
+	quiet := flag.Bool("quiet", false, "print nothing but warnings and errors")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -53,28 +55,40 @@ func main() {
 		usage()
 		os.Exit(2)
 	}
-	if err := convertFile(flag.Arg(0), flag.Arg(1), *quality, *pages, *verbose); err != nil {
+	if err := convertFile(flag.Arg(0), flag.Arg(1), *quality, *pages, *verbose, *quiet); err != nil {
 		fmt.Fprintln(os.Stderr, "dejapdf:", err)
 		os.Exit(1)
 	}
 }
 
-func convertFile(in, out string, quality float64, pages string, verbose bool) error {
+func convertFile(in, out string, quality float64, pages string, verbose, quiet bool) error {
 	start := time.Now()
 	doc, err := djvu.Open(in)
 	if err != nil {
 		return err
 	}
+	var pr *progress
+	if !quiet {
+		pr = newProgress(filepath.Base(out))
+	}
+	defer pr.clear()
 	opt := convert.Options{
 		Producer: "dejapdf " + version,
 		Quality:  quality,
 		Warn: func(page int, err error) {
-			if page < 0 {
-				fmt.Fprintf(os.Stderr, "dejapdf: warning: %v\n", err)
-				return
+			msg := fmt.Sprintf("dejapdf: warning: %v", err)
+			if page >= 0 {
+				msg = fmt.Sprintf("dejapdf: page %d: %v", page+1, err)
 			}
-			fmt.Fprintf(os.Stderr, "dejapdf: page %d: %v\n", page+1, err)
+			if pr != nil {
+				pr.warn(msg)
+			} else {
+				fmt.Fprintln(os.Stderr, msg)
+			}
 		},
+	}
+	if pr != nil {
+		opt.Progress = pr.update
 	}
 	if pages != "" {
 		if opt.Pages, err = parsePages(pages, len(doc.Pages)); err != nil {
@@ -83,12 +97,6 @@ func convertFile(in, out string, quality float64, pages string, verbose bool) er
 	}
 	if verbose {
 		opt.Stats = &convert.Stats{}
-		opt.Progress = func(done, total int) {
-			fmt.Fprintf(os.Stderr, "\rpage %d/%d", done, total)
-			if done == total {
-				fmt.Fprintln(os.Stderr)
-			}
-		}
 	}
 	f, err := os.Create(out)
 	if err != nil {
@@ -102,11 +110,12 @@ func convertFile(in, out string, quality float64, pages string, verbose bool) er
 		os.Remove(out)
 		return err
 	}
+	pr.clear()
 	if verbose {
 		opt.Stats.Report(os.Stderr)
 	}
-	if fi, err := os.Stat(out); err == nil {
-		fmt.Println(summary(out, fi.Size(), convert.DjVuSize(doc, opt.Pages), time.Since(start)))
+	if fi, err := os.Stat(out); err == nil && !quiet {
+		fmt.Println(summary(filepath.Base(out), fi.Size(), convert.DjVuSize(doc, opt.Pages), time.Since(start)))
 	}
 	return nil
 }

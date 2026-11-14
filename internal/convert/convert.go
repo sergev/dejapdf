@@ -33,9 +33,16 @@ type Options struct {
 	// which is then left out; if nil, that is an error.
 	Warn func(page int, err error)
 	// Progress, if not nil, is called after each page is written.
-	Progress func(done, total int)
+	Progress func(Progress)
 	// Stats, if not nil, receives sizes by layer.
 	Stats *Stats
+}
+
+// Progress tells how far a conversion is.
+type Progress struct {
+	Page, Pages int   // pages written, pages to write
+	Done, Total int64 // DjVu bytes of the pages written, of all pages to write
+	Written     int64 // PDF bytes written
 }
 
 // Convert writes doc as PDF to w.
@@ -101,6 +108,15 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		}
 	}()
 	var err error
+	var pr Progress
+	weight := make([]int64, len(sel))
+	if opt.Progress != nil {
+		pr.Pages = len(sel)
+		for k, i := range sel {
+			weight[k] = chunkSize(doc.Pages[i].Form)
+			pr.Total += weight[k]
+		}
+	}
 	for k, i := range sel {
 		r := <-results[k]
 		if err == nil && r.err != nil {
@@ -109,7 +125,8 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		if err == nil {
 			r.b.emit(p, pages[i], pages, font, opt.Stats)
 			if opt.Progress != nil {
-				opt.Progress(k+1, len(sel))
+				pr.Page, pr.Done, pr.Written = k+1, pr.Done+weight[k], cw.n
+				opt.Progress(pr)
 			}
 		}
 		<-window
