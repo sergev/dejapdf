@@ -33,6 +33,7 @@ cjb2 -dpi 300 p1.pbm "$out/bilevel.djvu"
 cjb2 -dpi 300 -losslevel 100 p4.pbm "$out/bilevel-lossy.djvu"
 c44 -dpi 100 bg2.ppm "$out/photo.djvu"
 c44 -dpi 100 gray2.pgm "$out/gray.djvu"
+c44 -dpi 100 -crcbhalf bg2.ppm "$out/photo-half.djvu"
 cpaldjvu -dpi 300 -colors 4 p3.ppm "$out/palette.djvu"
 
 # Compound page assembled by hand: Sjbz + FG44 + BG44.
@@ -103,4 +104,24 @@ for f in *.djvu; do
         rm -f "$work/mask.pbm"
     done
 done > masks.sha256
+# SHA-256 of each IW44 layer as ddjvu renders it at its own size (PPM):
+# BG44 directly, FG44 rewrapped as the background of a page its size.
+for f in *.djvu; do
+    n=$(djvused "$f" -e n)
+    for p in $(seq 1 "$n"); do
+        d=$(djvused "$f" -e "select $p; dump")
+        sz=$(echo "$d" | grep -m1 'BG44.*#1' | grep -o '[0-9]*x[0-9]*') || true
+        if [ -n "$sz" ]; then
+            ddjvu -mode=background -aspect=no -size="$sz" -page="$p" -format=ppm "$f" "$work/l.ppm"
+            echo "$(sha256sum < "$work/l.ppm" | cut -c1-64) $f $p BG44"
+        fi
+        sz=$(echo "$d" | grep -m1 'FG44' | grep -o '[0-9]*x[0-9]*') || true
+        if [ -n "$sz" ]; then
+            djvuextract -page="$p" "$f" FG44="$work/fg.iw" >/dev/null 2>&1
+            djvumake "$work/fg.djvu" INFO="${sz%x*},${sz#*x},300" BG44="$work/fg.iw"
+            ddjvu -format=ppm "$work/fg.djvu" "$work/l.ppm"
+            echo "$(sha256sum < "$work/l.ppm" | cut -c1-64) $f $p FG44"
+        fi
+    done
+done > iw44.sha256
 ls -l "$out"
