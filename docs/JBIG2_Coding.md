@@ -75,8 +75,11 @@ part.](figures/jbig2_segment.svg)
 More than four references take a long form (7.2.4): the count as 4 bytes with
 the top 3 bits set to 7, then retain bits, one per reference rounded up to
 bytes. A segment may refer only to lower-numbered segments. The retain bits
-only let a decoder free memory early; viewers ignore them (*checked*: the PDF
-spec's own example sets them all to 0).
+let a decoder free segments early: bit 0 must be 1 if any later segment
+refers to this one, and bit k must be 1 if a later segment refers to the k-th
+again (7.2.4). dejapdf sets bit 0 on every symbol dictionary, and the
+references' bits on a refinement dictionary, whose inputs the text region
+uses too.
 
 The segment types dejapdf writes (7.3):
 
@@ -278,7 +281,8 @@ must be coded afresh.
 
 JB2 refines a lot in scanned books: of the shapes coded anew, 83% are
 refinements in one book and 79% in another (*checked*, counting record
-types). dejapdf keeps them as refinements, in a dictionary with SDREFAGG = 1
+types). dejapdf keeps those that keep their reference's size as refinements
+(see below), in a dictionary with SDREFAGG = 1
 where every symbol is REFAGGNINST = 1 (6.5.8.2.2): IAAI 1, then IAID the
 reference (SBSYMCODELEN = ⌈log2(inputs + new symbols)⌉ bits, the same for
 the whole dictionary), IARDX and IARDY its offset, then the bitmap by generic
@@ -299,6 +303,18 @@ GRTEMPLATE 0's reference pixels include all 7 of JB2's, and it codes 1–2%
 smaller than template 1 on the scanned books. A refinement dictionary
 starts with cold contexts: with fewer than 100 refined shapes (a typeset
 book has ~10 a page), coding them directly is smaller, and dejapdf does.
+
+**Acrobat.** Adobe Reader 9 fails a whole page (no output, or a hang) when a
+refinement dictionary has a symbol whose size differs from its reference's,
+even with DX = DY = 0. `jbig2dec` (MuPDF) and Poppler decode the same stream
+pixel-exact. Same-size refinements, with any offsets, work everywhere
+(*checked*: corpus and a book through `acroread -toPostScript`; T.88's
+SerenityOS refinement samples pass too). The usual spec readings of the
+offset for a size change, ⌊ΔW/2⌋ either way and rounded up or down, all
+fail in Reader too, so dejapdf codes a size-changing shape directly. In
+four books 78–82% of JB2's refinements change the size (*checked*): on
+the Дао book the PDF grows 3% (1.15× → 1.18× the DjVu), against 4% with no
+refinement at all.
 
 ## 9. Text region
 
@@ -389,8 +405,8 @@ those blits use.
 
 What `internal/convert` writes, for the globals and for each image stream
 alike: a dictionary of the directly coded shapes, sorted by height then
-width; a refinement dictionary of the refined ones (§8), when there are 100
-or more; then, in an image stream, the text region referring to all of
+width; a refinement dictionary of the refined ones that keep their
+reference's size (§8), when there are 100 or more; then, in an image stream, the text region referring to all of
 them, the globals first. Empty shapes are left out; their blits draw nothing.
 A shape is refined only from a shape the stream defines anyway; otherwise it
 is coded directly, so no undrawn reference is pulled in. Symbol numbers
@@ -398,7 +414,7 @@ follow the dictionaries' export order, which is why the shapes are renumbered.
 
 *Checked*: every corpus mask and sample pages of the books render
 pixel-identical to `ddjvu -mode=mask` in MuPDF and Poppler; 14 books pass
-`qpdf --check`. Masks are 1.04–1.13× the size of their JB2 data (Sjbz plus
+`qpdf --check`. Masks are 1.06–1.15× the size of their JB2 data (Sjbz plus
 Djbz): one generic region per page was 1.0–4.6× the whole DjVu; symbols
 without refinement gave 1.04–1.23×.
 
@@ -410,6 +426,7 @@ without refinement gave 1.04–1.23×.
 | `mutool draw`, `pdftoppm` | the same segments inside a PDF, with JBIG2Globals |
 | `qpdf --check` | PDF structure |
 | `ddjvu -mode=mask` | the reference mask, to compare pixel for pixel |
+| `acroread -toPostScript`, `gs` | Adobe's decoder (Reader 9): it prints the page, or nothing |
 | Annex H.2 test sequence | the MQ encoder, byte for byte |
 
 The prototype that checked this article was a few hundred lines of Python,

@@ -22,6 +22,9 @@ type Segment struct {
 	Refs   []uint32 // referred-to segments, lower numbered
 	Page   uint32   // page association, 0 for globals
 	Data   []byte
+	// Retain bits (7.2.4): a later segment refers to this one (Retain),
+	// or to the ones this one refers to (KeepRefs).
+	Retain, KeepRefs bool
 }
 
 // Append appends the segment, header then data (7.2).
@@ -32,12 +35,22 @@ func (s *Segment) Append(b []byte) []byte {
 		flags |= 0x40
 	}
 	b = append(b, flags)
-	if n := len(s.Refs); n <= 4 {
-		b = append(b, byte(n<<5))
+	n := len(s.Refs)
+	bits := make([]byte, (n+8)/8) // bit 0 this segment, bit k reference k
+	if s.Retain {
+		bits[0] |= 1
+	}
+	if s.KeepRefs {
+		for k := 1; k <= n; k++ {
+			bits[k/8] |= 1 << (k % 8)
+		}
+	}
+	if n <= 4 {
+		b = append(b, byte(n<<5)|bits[0])
 	} else {
-		// Long form (7.2.4): count, then one retain bit per reference.
+		// Long form: count, then the retain bits.
 		b = binary.BigEndian.AppendUint32(b, 7<<29|uint32(n))
-		b = append(b, make([]byte, (n+8)/8)...)
+		b = append(b, bits...)
 	}
 	for _, r := range s.Refs {
 		switch {

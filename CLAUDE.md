@@ -87,6 +87,8 @@ and formats the articles to PDF (pandoc + typst; `make docs-pdf` for the PDFs on
 - Test oracles are external command-line tools, run but never linked:
   - `ddjvu`, `djvudump`, `djvused` (from djvulibre-bin)
   - `jbig2dec`, `qpdf`, `mutool`, `pdftoppm`
+  - `acroread` (Adobe Reader 9.5.5 for Linux, i386): `-toPostScript` prints
+    without a window; its JBIG2 decoder is stricter than the others
 
   Typical checks:
   - masks are pixel-identical to `ddjvu -mode=mask`;

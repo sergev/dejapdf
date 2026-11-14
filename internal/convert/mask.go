@@ -19,8 +19,9 @@ const (
 	sbDSOffset = 3
 )
 
-// minRefined is the fewest refined shapes worth a refinement dictionary.
-const minRefined = 100
+// minRefined is the fewest refined shapes worth a refinement dictionary;
+// tests lower it.
+var minRefined = 100
 
 // shared is a Djbz dictionary coded once as a JBIG2Globals stream.
 type shared struct {
@@ -88,9 +89,15 @@ func codeShapes(want []int, shape func(int) *jb2.Bitmap, ref func(int) jb2.Ref,
 	for _, i := range want {
 		in[i] = true
 	}
+	// Only refinements that keep the reference's size: Acrobat 9 fails
+	// on the others (docs/JBIG2_Coding.md §8).
 	refined := func(i int) bool {
 		r := ref(i)
-		return r.Shape >= 0 && (in[r.Shape] || ext != nil && r.Shape >= 0 && ext(r.Shape) >= 0)
+		if r.Shape < 0 || !in[r.Shape] && (ext == nil || ext(r.Shape) < 0) {
+			return false
+		}
+		s, t := shape(i), shape(r.Shape)
+		return s.W == t.W && s.H == t.H
 	}
 	var direct, refd []int
 	for _, i := range want {
@@ -118,7 +125,7 @@ func codeShapes(want []int, shape func(int) *jb2.Bitmap, ref func(int) jb2.Ref,
 			set.ids[i] = base + ids[k]
 			set.syms[base+ids[k]] = bms[k]
 		}
-		seg := jbig2.Segment{Number: n, Type: jbig2.TypeSymbolDict, Page: page, Data: data}
+		seg := jbig2.Segment{Number: n, Type: jbig2.TypeSymbolDict, Page: page, Data: data, Retain: true}
 		set.segs = seg.Append(set.segs)
 		set.refs = append(set.refs, n)
 		n++
@@ -139,7 +146,9 @@ func codeShapes(want []int, shape func(int) *jb2.Bitmap, ref func(int) jb2.Ref,
 		}
 		data := jbig2.RefineDict(bms, refs, inputs)
 		set.syms = append(append([]*jbig2.Bitmap(nil), inputs...), bms...)
-		seg := jbig2.Segment{Number: n, Type: jbig2.TypeSymbolDict, Refs: set.refs, Page: page, Data: data}
+		// The text region refers to the inputs too.
+		seg := jbig2.Segment{Number: n, Type: jbig2.TypeSymbolDict, Refs: set.refs, Page: page, Data: data,
+			Retain: true, KeepRefs: true}
 		set.segs = seg.Append(set.segs)
 		set.refs = append(set.refs, n)
 		n++

@@ -361,7 +361,9 @@ Sample pages of the books: text pages identical, colour pages 39–47 dB.
 
 All 15 books convert and pass `qpdf --check`, in 0.5–14 s on 16 threads.
 With hidden text, bookmarks and links, and the colour layers at the default
-`-q 1.2`, the PDFs are 1.06–1.17× the DjVu size; at `-q 1`, 0.99–1.11×. One
+`-q 1.2`, the PDFs are 1.06–1.17× the DjVu size; at `-q 1`, 0.99–1.11×.
+Refining only same-size shapes, for Acrobat (JBIG2_Coding.md §8), later
+added 0–7% to the masks: the nine books re-measured are 1.06–1.18×. One
 scanned book stands out at 1.29× (1.22× at `-q 1`). Its FGbz palettes average
 about six grey shades a page, and each shade is a stencil. That costs about
 210 bytes of image dictionary, segment headers and page information per
@@ -378,7 +380,7 @@ exactly everywhere, so they stay.
 Writing no space before a delimiter (`/Subtype/Image`, `[1 0 R/XYZ]`, 7.2.2)
 saves 4 bytes a stencil, and 0.1% of that book. Before symbol
 dictionaries they were 1.9–13.6× with Flate masks, 1.04–4.6× with one JBIG2
-generic region a page. The masks are 1.04–1.13× their JB2 data, the colour
+generic region a page. The masks are 1.06–1.15× their JB2 data, the colour
 layers 0.65–1.00× their IW44 data, the hidden text 0.90–1.08× its TXTz.
 
 ## 10. JBIG2Decode
