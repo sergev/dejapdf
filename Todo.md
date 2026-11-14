@@ -1,6 +1,6 @@
 # dejapdf — Todo
 
-Sequential plan. Each phase (P8, P9, …) builds on the previous one and ends with a testable
+Sequential plan. Each phase (P9, P10, …) builds on the previous one and ends with a testable
 "Done when" criterion.
 
 ## Ground rules
@@ -43,15 +43,6 @@ Sequential plan. Each phase (P8, P9, …) builds on the previous one and ends wi
 - Real scanned books in `~/Documents` (not redistributable, never committed) for size
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
-
-## P8. MQ encoder + JBIG2 generic region
-
-- [x] MQ arithmetic encoder (T.88 Annex E): `internal/mq`, from `tmp/jbig2`, done in P7
-- [ ] Generic region encoding, template 0, TPGDON, from `tmp/jbig2/jbig2_grd_encoder.go`
-- [ ] Segment headers; PDF-embedded format (no file header, no end-of-file segment)
-- [ ] Replace Flate masks with JBIG2 generic regions (`/JBIG2Decode`)
-
-Done when: output decodes bit-exact with `jbig2dec` and renders correctly in `mutool`.
 
 ## P9. JBIG2 symbol dictionary + text region
 

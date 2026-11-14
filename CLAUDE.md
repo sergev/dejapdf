@@ -72,7 +72,7 @@ and formats the articles to PDF (pandoc + typst; `make docs-pdf` for the PDFs on
   The aim is a `go.mod` with the standard library only.
 - `tmp/` is git-ignored and holds upstream clones to borrow from:
   - `tmp/go-jpeg2000` (Apache-2.0) → `internal/jpx` packet writer and tag tree
-  - `tmp/jbig2` (Apache-2.0) → `internal/mq` MQ encoder; generic-region encoder
+  - `tmp/jbig2` (Apache-2.0) → `internal/mq` MQ encoder; `internal/jbig2` generic region
   - `tmp/gobig2` (Apache-2.0) → reference for how symbol dictionaries and text
     regions decode
   - `tmp/openjpeg` (BSD-2) → reference for JPEG 2000 encoder details

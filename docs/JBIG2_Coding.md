@@ -145,8 +145,10 @@ Points that matter for bit-exact output:
   the marker itself still decodes, but `jbig2dec` warns about it
   (*checked*); dejapdf keeps it, as T.88's own test output does.
 
-*Checked*: the prototype encodes the test sequence of Annex H.2 (32 bytes of
-decisions, one context) into exactly the 30 bytes given there.
+*Checked*: `internal/mq` encodes the test sequence of Annex H.2 (32 bytes of
+decisions, one context) into exactly the 30 bytes given there
+(`TestAnnexH2`). The same encoder serves JPEG 2000, which differs only in
+the flush: no marker, and a final 0xFF is dropped (T.800 C.2.9).
 
 Contexts are reset (all I and MPS to 0) at the start of every generic
 region, text region and symbol dictionary segment (E.3.7). The exception is
@@ -218,7 +220,12 @@ templates.
 The generic region segment (7.4.6): region info (17 bytes); a flags byte
 (bit 0 MMR = 0, bits 1–2 GBTEMPLATE, bit 3 TPGDON); the AT positions as
 signed bytes (8 for template 0, else 2); then the MQ data. dejapdf uses
-template 0 with nominal AT pixels.
+template 0 with nominal AT pixels and TPGDON (`internal/jbig2`, from
+`tmp/jbig2`). With the AT pixels in place, the context is three contiguous
+windows: bits 0–3 the four pixels to the left, bits 4–10 the row above from
+x+3 to x−3, bits 11–15 the row before that from x+2 to x−2; this is the spec's
+order, so SLTP's context is 0x9B25 (*checked*: bitmaps from 1×1 to 2550×300
+decode bit-exact in `jbig2dec`).
 
 ## 7. Symbol dictionary
 
@@ -366,6 +373,9 @@ those blits use.
 | `ddjvu -mode=mask` | the reference mask, to compare pixel for pixel |
 | Annex H.2 test sequence | the MQ encoder, byte for byte |
 
-The prototype that checked this article is a few hundred lines of Python. It
-is not part of the repository: `internal/mq` and `internal/jbig2` will carry
-the same tests as Go unit tests.
+The prototype that checked this article was a few hundred lines of Python,
+not kept in the repository; `internal/mq` and `internal/jbig2` carry the
+checks as Go tests, with `jbig2dec` as the oracle.
+
+Generic regions alone (P8), one per mask: the books' PDFs went from 1.9–13.6×
+to 1.04–4.6× the DjVu size, masks still pixel-exact in MuPDF and Poppler.

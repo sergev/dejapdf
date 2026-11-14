@@ -11,6 +11,7 @@ import (
 	"github.com/sergev/dejapdf/internal/djvu"
 	"github.com/sergev/dejapdf/internal/iw44"
 	"github.com/sergev/dejapdf/internal/jb2"
+	"github.com/sergev/dejapdf/internal/jbig2"
 	jpxenc "github.com/sergev/dejapdf/internal/jpx"
 	"github.com/sergev/dejapdf/internal/pdf"
 )
@@ -370,13 +371,13 @@ func jpx(im *iw44.Image, budget int) (pdf.Dict, []byte, error) {
 	return d, data, nil
 }
 
-// stencil makes a Flate-coded image mask that paints a bitmap's black
-// pixels.
+// stencil makes a JBIG2-coded image mask that paints a bitmap's black
+// pixels: JBIG2Decode gives black as 0, which a stencil paints with the
+// default Decode.
 func stencil(b *jb2.Bitmap) (pdf.Dict, []byte) {
-	stride := (b.W + 7) / 8
-	data := make([]byte, stride*b.H)
+	m := jbig2.NewBitmap(b.W, b.H)
 	for r := range b.H {
-		row := data[r*stride:]
+		row := m.Pix[r*m.Stride:]
 		for c, v := range b.Pix[r*b.W : (r+1)*b.W] {
 			row[c>>3] |= v << (7 - c&7)
 		}
@@ -388,9 +389,8 @@ func stencil(b *jb2.Bitmap) (pdf.Dict, []byte) {
 		"Height":           b.H,
 		"ImageMask":        true,
 		"BitsPerComponent": 1,
-		"Decode":           pdf.Array{1, 0}, // 1 = black paints
-		"Filter":           pdf.Name("FlateDecode"),
-	}, pdf.Flate(data)
+		"Filter":           pdf.Name("JBIG2Decode"),
+	}, jbig2.GenericPage(m, 0)
 }
 
 // num formats a coordinate.

@@ -316,9 +316,9 @@ photo pages 45–54 dB (the JPX at 1×); compound pages 29.5 dB, the JPEG page
 interpolate an FG layer upscaled 12 times, ddjvu takes the nearest sample.
 Sample pages of the books: text pages identical, colour pages 39–47 dB.
 
-All 14 books convert and pass `qpdf --check`, in 0.6–23 s on 16 threads. With
-masks still Flate-coded the PDFs are 1.9–13.6× the DjVu size; JBIG2 (P8, P9)
-is what brings them down.
+All 14 books convert and pass `qpdf --check`, in 1–25 s on 16 threads. With
+each mask one JBIG2 generic region (P8) the PDFs are 1.04–4.6× the DjVu size
+(1.9–13.6× with Flate masks); symbol dictionaries (P9) are the next step.
 
 ## 10. JBIG2Decode
 
