@@ -37,7 +37,9 @@ func readDsed(b []byte) dsed {
 		case cmd != "":
 			buf.WriteString(l + "\n")
 		case strings.HasPrefix(l, `select "`):
-			id = l[8:strings.LastIndexByte(l, '"')]
+			// The ID is a quoted string with octal escapes for non-ASCII.
+			q := l[7 : strings.LastIndexByte(l, '"')+1]
+			id = ParseSexps([]byte("(s " + q + ")"))[0].List[1].Atom
 		case l == "set-ant" || l == "set-txt":
 			cmd = l
 		}
@@ -59,7 +61,10 @@ func zoneSexp(z *Zone) *Sexp {
 		s.List = append(s.List, &Sexp{Atom: strconv.Itoa(v)})
 	}
 	if len(z.Children) == 0 {
-		s.List = append(s.List, str(strings.TrimRight(z.Text, " \n")))
+		// djvused drops trailing separators of the zone's own level only.
+		sep := map[ZoneType]string{ZPage: "\f", ZColumn: "\v", ZRegion: "\x1d",
+			ZParagraph: "\x1f", ZLine: "\n", ZWord: " "}[z.Type]
+		s.List = append(s.List, str(strings.TrimRight(z.Text, sep)))
 	}
 	for _, k := range z.Children {
 		s.List = append(s.List, zoneSexp(k))
