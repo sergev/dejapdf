@@ -401,8 +401,10 @@ the globals have page association 0 or 1.
 For FGbz pages, each palette colour is a separate stencil image, so each
 colour gets its own image stream (sharing one stencil among the colours by
 clipping fails in MuPDF and Poppler; see Portable_Document_Format.md §9).
-Each stream holds the page information, a text region with that colour's
-blits, and a dictionary of only the shapes those blits use. An Smmr mask,
+The stencil is cropped to the bounding box of that colour's blits; its page
+information gives the box's size, and the text region places the blits
+relative to it. Each stream holds the page information, a text region with
+that colour's blits, and a dictionary of only the shapes those blits use. An Smmr mask,
 decoded, is one generic region (§6) the size of the stencil.
 
 What `internal/convert` writes, for the globals and for each image stream

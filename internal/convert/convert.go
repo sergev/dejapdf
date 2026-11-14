@@ -276,6 +276,19 @@ func (b *pageBuilder) draw(name string, iw, ih int) {
 	b.content = fmt.Appendf(b.content, "q %s 0 0 %s 0 0 cm /%s Do Q\n", num(w), num(h), name)
 }
 
+// drawAt paints XObject name over the w×h page pixels at (x, y) from the
+// bottom left, inset by a hair on every side. Viewers snap image edges
+// to pixels: MuPDF truncates the low edges, Poppler floors both and adds
+// one to the high edges, so an edge that float error puts just past a
+// pixel boundary stretches the image by a pixel. Edges strictly inside
+// their pixels snap exactly (docs/Portable_Document_Format.md §8).
+func (b *pageBuilder) drawAt(name string, x, y, w, h int) {
+	const inset = 0.002 // points
+	s := 72 / float64(b.in.DPI)
+	b.content = fmt.Appendf(b.content, "q %s 0 0 %s %s %s cm /%s Do Q\n",
+		num(float64(w)*s-2*inset), num(float64(h)*s-2*inset), num(float64(x)*s+inset), num(float64(y)*s+inset), name)
+}
+
 // area is the size in points that a layer of iw×ih pixels covers.
 func (b *pageBuilder) area(iw, ih int) (float64, float64) {
 	if k := reduction(b.in.Width, b.in.Height, iw, ih); k > 0 {
@@ -393,7 +406,7 @@ func background(b *pageBuilder, pg *djvu.Page, opt *Options) error {
 // FGjp, or in black.
 func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) error {
 	whole := func(c [3]byte, keep func(int) bool) {
-		if d, data := b.maskImage(mask, mask.W, mask.H, keep); d != nil {
+		if d, data := b.maskImage(mask, 0, 0, mask.W, mask.H, keep); d != nil {
 			b.fill(c)
 			b.draw(b.add("Sm", b.obj(d, data)), mask.W, mask.H)
 		}
@@ -415,13 +428,34 @@ func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) er
 		if len(pal.Index) != len(mask.Blits) {
 			return fmt.Errorf("FGbz: %d colours for %d blits", len(pal.Index), len(mask.Blits))
 		}
-		used := make([]bool, len(pal.Colors))
-		for _, k := range pal.Index {
-			used[k] = true
+		// One stencil per colour, cropped to its blits: a full-page
+		// stencil for each of many colours renders slowly.
+		box := make([][4]int, len(pal.Colors)) // x0, y0, x1, y1
+		for k := range box {
+			box[k] = [4]int{mask.W, mask.H, 0, 0}
+		}
+		for i, bl := range mask.Blits {
+			s := mask.Shape(bl.Shape)
+			if s.W == 0 || s.H == 0 {
+				continue
+			}
+			r := &box[pal.Index[i]]
+			r[0], r[1] = min(r[0], max(bl.X, 0)), min(r[1], max(bl.Y, 0))
+			r[2], r[3] = max(r[2], min(bl.X+s.W, mask.W)), max(r[3], min(bl.Y+s.H, mask.H))
 		}
 		for k, c := range pal.Colors {
-			if used[k] {
-				whole(c, func(i int) bool { return pal.Index[i] == k })
+			r := box[k]
+			if r[2] <= r[0] || r[3] <= r[1] {
+				continue
+			}
+			keep := func(i int) bool { return pal.Index[i] == k }
+			if mask.W != b.in.Width || mask.H != b.in.Height {
+				whole(c, keep)
+				continue
+			}
+			if d, data := b.maskImage(mask, r[0], r[1], r[2]-r[0], r[3]-r[1], keep); d != nil {
+				b.fill(c)
+				b.drawAt(b.add("Sm", b.obj(d, data)), r[0], r[1], r[2]-r[0], r[3]-r[1])
 			}
 		}
 		return nil
@@ -463,7 +497,7 @@ func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) er
 // but Poppler blends such an image into the background along the mask's
 // edges (docs/Portable_Document_Format.md §8).
 func (b *pageBuilder) fgPattern(mask *jb2.Image, img local, iw, ih int) {
-	sd, sdata := b.maskImage(mask, mask.W, mask.H, nil)
+	sd, sdata := b.maskImage(mask, 0, 0, mask.W, mask.H, nil)
 	if sd == nil {
 		return
 	}

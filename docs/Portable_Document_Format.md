@@ -309,6 +309,18 @@ So dejapdf keeps the FG budget at `-q` × the FG44 size; `-q` raises it for
 all colour layers. On that book's pages the FG pixels are 27–30 dB from ddjvu
 in MuPDF and 30–33 dB in Poppler, the background 42–46 dB in both.
 
+**Image edges.** Viewers snap an image's edges to device pixels, each its
+own way. MuPDF truncates the left and top edges and rounds the width up;
+Poppler floors the low edges and takes floor + 1 for the high ones. An
+image whose edges fall exactly on pixel boundaries is therefore fragile:
+float error that puts an edge just past a boundary stretches the image by
+a pixel, and it is resampled (*checked*: a stencil at 72.24 pt drawn half
+a pixel off in MuPDF; MuPDF works in single precision). An image that
+fills the page is safe, its low edges being exactly 0. dejapdf insets a
+cropped stencil by 0.002 pt on every side: each edge then lies strictly
+inside its pixel, and both viewers place it exactly at the page's
+resolution.
+
 **Polarity, checked.** JBIG2Decode delivers *black as 0*, the PDF convention:
 a JBIG2 image used as a DeviceGray image or as a stencil with the *default*
 Decode renders identical to `jbig2dec` in both MuPDF and Poppler; with
@@ -331,8 +343,9 @@ BT 3 Tr ... ET                     % hidden text (§12)
 ```
 
 Without FG44, step two is `0 g q W 0 0 H 0 0 cm /Sm1 Do Q`: the stencil in
-black. With an FGbz palette, the blits are split by colour, one stencil each:
-`r g b rg q W 0 0 H 0 0 cm /Sm1 Do Q`, then the next. Bitonal pages have only
+black. With an FGbz palette, the blits are split by colour, one stencil each,
+cropped to the bounding box of that colour's blits: `r g b rg q w 0 0 h x y
+cm /Sm1 Do Q`, then the next. Bitonal pages have only
 the stencil; photo pages only the background. Annotations are not in the
 content: they are in `/Annots`. What `internal/convert` adds:
 
@@ -368,6 +381,13 @@ text 0.90–1.08× its TXTz. A book with many FGbz colours costs more: one
 with about six grey shades a page is about 1.3×, since each shade is a
 stencil with about 210 bytes of image dictionary, segment headers and page
 information, 0.6 MB in a 7.5 MB book.
+
+**Why cropped stencils.** Each viewer scales a stencil over the whole area
+it covers, so a full-page stencil per colour costs a full page of work per
+colour. A figure with anti-aliased colours can have over 150 palette colours
+on one page, most of them used by one blit: page 21 of the DjVu spec
+took 4.3 s in MuPDF and 6.3 s in Poppler with full-page stencils, and
+0.08 s cropped, rendering identically.
 
 **Why one stencil per colour.** A page's colours could share one stencil:
 each colour cropped to its blits' bounding box, the boxes stacked, and the

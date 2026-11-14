@@ -170,11 +170,11 @@ func pack(b *jb2.Bitmap) *jbig2.Bitmap {
 }
 
 // maskImage returns the blits i with keep(i) (all if keep is nil) as a
-// w×h JBIG2 stencil, its bottom-left corner the mask's: dictionary and
-// data, or nil if nothing would be drawn. Shapes of a Djbz go to its
-// shared globals; the page's own shapes, and those they refine, go to
-// page dictionaries (docs/JBIG2_Coding.md §10).
-func (b *pageBuilder) maskImage(mask *jb2.Image, w, h int, keep func(int) bool) (pdf.Dict, []byte) {
+// w×h JBIG2 stencil whose bottom-left corner is mask pixel (x0, y0):
+// dictionary and data, or nil if nothing would be drawn. Shapes of a Djbz
+// go to its shared globals; the page's own shapes, and those they refine,
+// go to page dictionaries (docs/JBIG2_Coding.md §10).
+func (b *pageBuilder) maskImage(mask *jb2.Image, x0, y0, w, h int, keep func(int) bool) (pdf.Dict, []byte) {
 	empty := func(i int) bool { s := mask.Shape(i); return s.W == 0 || s.H == 0 }
 	var blits []int
 	useGlob := false
@@ -192,7 +192,7 @@ func (b *pageBuilder) maskImage(mask *jb2.Image, w, h int, keep func(int) bool) 
 	if len(blits) == 0 {
 		return nil, nil
 	}
-	if mask.Dict == nil && len(mask.Shapes) == 1 && len(mask.Blits) == 1 {
+	if mask.Dict == nil && len(mask.Shapes) == 1 && len(mask.Blits) == 1 && x0 == 0 && y0 == 0 {
 		// One bitmap (an Smmr mask): a generic region.
 		return maskDict(w, h), jbig2.GenericPage(pack(mask.RenderSome(w, h, nil)), 0)
 	}
@@ -231,7 +231,7 @@ func (b *pageBuilder) maskImage(mask *jb2.Image, w, h int, keep func(int) bool) 
 		if !ok {
 			id = glob.ids[bl.Shape]
 		}
-		ins[j] = jbig2.Instance{ID: id, S: bl.X, T: h - 1 - bl.Y, W: mask.Shape(bl.Shape).W}
+		ins[j] = jbig2.Instance{ID: id, S: bl.X - x0, T: h - 1 - (bl.Y - y0), W: mask.Shape(bl.Shape).W}
 	}
 	tr := jbig2.Segment{Number: n + 1 + uint32(set.nsegs), Type: jbig2.TypeTextRegion, Refs: set.refs, Page: 1,
 		Data: jbig2.TextRegion(w, h, ins, len(set.syms), sbStrips, sbDSOffset)}

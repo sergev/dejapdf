@@ -96,6 +96,8 @@ The article PDFs are committed: regenerate them after editing an article.
     regions decode
   - `tmp/openjpeg` (BSD-2) → reference for JPEG 2000 encoder details
   - `tmp/djvu-rs` (MIT) → reference where the DjVu spec is wrong
+  - `tmp/mupdf` (AGPL), `tmp/poppler` (GPL) → read only, to understand how
+    the viewers render (e.g. how they snap image edges); never copy from them
 - Borrowed code keeps its upstream copyright header and is credited in `NOTICE`.
 - Do not use JPEG for re-encoded images; use JPEG 2000.
 - Test oracles are external command-line tools, run but never linked:
