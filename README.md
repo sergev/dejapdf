@@ -6,7 +6,7 @@ Most converters (`ddjvu -format=pdf`, `djvu2pdf`) render each page into one
 full-resolution bitmap, so the PDF comes out 10–100× larger than the DjVu.
 `dejapdf` instead decodes each DjVu layer and re-encodes it into a format PDF
 supports natively, keeping the layers separate. The PDF comes out
-**1.06–1.18× the DjVu size** on the books below.
+**1.06–1.18× the DjVu size** on scanned books.
 
 ## Usage
 
@@ -27,7 +27,7 @@ dejapdf -dump input.djvu
 the mask and text are lossless and do not depend on it.
 
 ```
-$ dejapdf -v Алгол-Брудно.djvu Алгол-Брудно.pdf
+$ dejapdf -v book.djvu book.pdf
 page 84/84
 layer            djvu          pdf  ratio
 mask          1155792      1268745   1.10
@@ -39,23 +39,10 @@ total         1438254      1568031   1.09
 
 ## Results
 
-Scanned books, converted with the default options. Every PDF passes
-`qpdf --check`.
-
-| Book | Pages | DjVu, MB | PDF, MB | PDF / DjVu | Time, s |
-|---|--:|--:|--:|--:|--:|
-| algol-68-russian | 537 | 22.97 | 26.40 | 1.150 | 10.2 |
-| Алгол-60, пересмотренное сообщение | 81 | 1.07 | 1.19 | 1.107 | 1.0 |
-| Алгол (Брудно) | 84 | 1.44 | 1.57 | 1.090 | 0.5 |
-| Криминалистический анализ файловых систем | 482 | 7.65 | 8.15 | 1.066 | 2.0 |
-| Куліш, Чорна рада | 185 | 3.40 | 3.83 | 1.128 | 0.7 |
-| Программирование ЕС ЭВМ | 266 | 6.44 | 7.05 | 1.096 | 2.3 |
-| Гнеденко и др., Элементы программирования | 349 | 6.06 | 6.40 | 1.056 | 2.6 |
-| Юный кибернетик | 451 | 23.38 | 26.78 | 1.146 | 12.2 |
-| 20 уроков мудрости Дао (colour) | 14 | 3.64 | 4.31 | 1.184 | 5.5 |
-
-For comparison, `ddjvu -format=pdf` makes 15.8 MB of Алгол (Брудно) (11×),
-10.5 MB of Алгол-60 (9.8×) and 352 MB of Дао (97×).
+Nine scanned books (14–537 pages, 1–23 MB, bilevel and colour), converted
+with the default options, come out 1.06–1.18× the DjVu size, in 0.5–12 s
+each. Every PDF passes `qpdf --check`. For comparison, `ddjvu -format=pdf`
+makes 9.8–97× the DjVu size on the same books.
 
 ## How a page maps to PDF
 
@@ -88,7 +75,9 @@ Reader 9 and Adobe Acrobat 26.
 go install github.com/sergev/dejapdf/cmd/dejapdf@latest
 ```
 
-or, in a clone, `make build`. Go 1.27 or later.
+or, in a clone, `make build`, and `make install` to copy the binary to
+`~/.local/bin` (`make install BINDIR=...` for another directory).
+Go 1.27 or later.
 
 ## Prerequisites
 

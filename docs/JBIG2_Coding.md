@@ -313,7 +313,7 @@ SerenityOS refinement samples pass too). The usual spec readings of the
 offset for a size change, ⌊ΔW/2⌋ either way and rounded up or down, all
 fail in Reader too, so dejapdf codes a size-changing shape directly. In
 four books 78–82% of JB2's refinements change the size (*checked*): on
-the Дао book the PDF grows 3% (1.15× → 1.18× the DjVu), against 4% with no
+a colour book the PDF grows 3% (1.15× → 1.18× the DjVu), against 4% with no
 refinement at all.
 
 ## 9. Text region

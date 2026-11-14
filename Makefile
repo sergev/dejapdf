@@ -1,12 +1,18 @@
 # Copyright (c) 2026 Serge Vakulenko
 # SPDX-License-Identifier: MIT
 
-.PHONY: all build test lint fuzz corpus docs docs-pdf clean
+.PHONY: all build install test lint fuzz corpus docs docs-pdf clean
+
+BINDIR ?= $(HOME)/.local/bin
 
 all: build
 
 build:
 	go build -o dejapdf ./cmd/dejapdf
+
+install: build
+	install -d $(BINDIR)
+	install -m 755 dejapdf $(BINDIR)/dejapdf
 
 test:
 	go test ./...
