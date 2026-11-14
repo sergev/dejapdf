@@ -118,16 +118,23 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		return err
 	}
 	info := pdf.Dict{}
+	cat := pdf.Dict{}
 	for _, pg := range doc.Pages {
 		if pg.Err == nil {
 			metadata(pg, info)
+			if x := xmp(pg, opt.Producer); x != nil {
+				cat["Metadata"] = p.AddStream(pdf.Dict{"Type": pdf.Name("Metadata"), "Subtype": pdf.Name("XML"),
+					"Filter": pdf.Name("FlateDecode")}, pdf.Flate(x))
+			}
 			break
 		}
+	}
+	if l := pageLabels(doc, sel); l != nil {
+		cat["PageLabels"] = l
 	}
 	if opt.Producer != "" {
 		info["Producer"] = pdf.TextString(opt.Producer)
 	}
-	var cat pdf.Dict
 	bms, err := doc.Outline()
 	if err != nil {
 		if opt.Warn == nil {
@@ -137,7 +144,8 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 	}
 	bms = tg.prune(bms)
 	if len(bms) > 0 {
-		cat = pdf.Dict{"Outlines": outline(p, bms, tg, pages), "PageMode": pdf.Name("UseOutlines")}
+		cat["Outlines"] = outline(p, bms, tg, pages)
+		cat["PageMode"] = pdf.Name("UseOutlines")
 	}
 	if err := p.Close(cat, info); err != nil {
 		return err

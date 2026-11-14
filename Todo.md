@@ -44,13 +44,6 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
 
-## P14. Document extras
-
-- [ ] Page labels from DIRM page titles
-- [ ] XMP metadata (ANTz `xmp`) as the catalog's `/Metadata`
-
-Done when: viewers show the DjVu page titles; `pdfinfo -meta` prints the XMP.
-
 ## P15. Remaining mask cases
 
 - [ ] Striped Smmr masks (one CCITT stencil per stripe)

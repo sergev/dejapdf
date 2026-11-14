@@ -506,6 +506,26 @@ metadata (ANTz `metadata`) maps to it by name.
 with a byte order mark: `<FEFF0422043504410442>` is "Тест" (*checked* with
 `pdfinfo`). Write ASCII as a literal string, anything else as UTF-16BE hex.
 
+**XMP** (14.3.2): the catalog's `/Metadata` is a stream `<< /Type /Metadata
+/Subtype /XML >>` holding an XMP packet. pdf2djvu stores the source PDF's XMP
+in the shared annotations as `(xmp "…")`. dejapdf carries it over with two
+fields made true of the new file: `dc:format` becomes application/pdf, and
+`pdf:Producer` dejapdf, as in `/Info`. The rest, the edit history included,
+is kept. `pdfinfo -meta` prints it (*checked*).
+
+**Page labels** (12.4.2): the catalog's `/PageLabels` is a number tree, here
+a flat `/Nums [index dict …]`. Each dict starts a range: `/P` a prefix,
+`/S` a style (`/D` decimal, `/r` `/R` roman, `/a` `/A` letters, absent for the
+prefix alone) and `/St` the first number (default 1). DjVu has free-form page
+titles in DIRM (pdf2djvu copies the PDF's labels there). dejapdf parses each
+title into prefix, style and number ("C1" is prefix C, decimal 1; "xiv" is
+roman 14; "Cover" is a prefix alone). A page that continues its
+predecessor's sequence joins its range. Untitled pages are numbered by their
+DjVu page. Labels that equal the page numbers are left out. One book's 381
+titles (C1, i–xvii with gaps, 1–…) give 16 ranges, which MuPDF and qpdf read
+back exactly and pdf.js shows as "ii (3 of 381)". With `-p`, the converted pages
+keep their DjVu numbers as labels.
+
 **Dates** (7.9.4): `(D:20261113120000Z)` or `(D:20261113120000+03'00')`.
 djvused writes `2026-11-13 19:38:50-08:00`; pdf2djvu copies the PDF's dates
 this way. dejapdf converts that and RFC 3339 dates and drops the rest;
