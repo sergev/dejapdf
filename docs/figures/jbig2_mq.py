@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """The MQ encoder (T.88 Annex E): code one decision, renormalise, output bytes."""
 
 from svg import Figure, LARGE, BLUE, GREEN, YELLOW, ORANGE, PURPLE, GREY, INK

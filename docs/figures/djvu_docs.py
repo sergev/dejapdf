@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """Bundled and indirect multipage documents; INCL points to a shared DJVI."""
 
 from svg import Figure, LARGE, BLUE, GREEN, PURPLE, YELLOW, GRAY, GREY, INK

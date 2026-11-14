@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Serge Vakulenko
+// SPDX-License-Identifier: MIT
+
 // Package iff parses the IFF85 chunk structure of DjVu files.
 package iff
 

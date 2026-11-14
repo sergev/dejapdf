@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """DjVu pixels to PDF points; an image's unit square stretched by cm."""
 
 from svg import Figure, BLUE, GREEN, YELLOW, GREY, INK, RED

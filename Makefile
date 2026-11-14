@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 .PHONY: all build test lint corpus docs docs-pdf clean
 
 all: build

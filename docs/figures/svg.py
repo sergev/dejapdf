@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """Minimal SVG writer for the figures in docs/.
 
 A figure script makes a Figure, draws on it and calls write(), which prints

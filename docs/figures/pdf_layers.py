@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """A DjVu compound page as PDF painting operations, bottom to top."""
 
 from svg import Figure, BLUE, GREEN, YELLOW, ORANGE, GREY, INK

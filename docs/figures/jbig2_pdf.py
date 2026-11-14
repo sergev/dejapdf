@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """The JBIG2 segments of a two-page dejapdf document, split into PDF streams."""
 
 from svg import Figure, LARGE, BLUE, GREEN, YELLOW, PURPLE, ORANGE, GRAY, GREY, INK

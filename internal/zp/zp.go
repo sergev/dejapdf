@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Serge Vakulenko
+// SPDX-License-Identifier: MIT
+
 // Package zp implements the DjVu ZP-coder (adaptive binary arithmetic decoder),
 // following the DjVu v3 spec, appendix 3.
 package zp

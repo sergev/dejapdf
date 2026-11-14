@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """BZZ decoding: per block, ZP bits to MTF ranks to the BWT buffer to bytes."""
 
 from svg import Figure, LARGE, BLUE, GREEN, YELLOW, PURPLE, ORANGE, GREY, INK

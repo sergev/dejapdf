@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """One ZP decode step, as verified against DjVuLibre streams."""
 
 from svg import Figure, LARGE, BLUE, GREEN, YELLOW, ORANGE, PURPLE, GREY, INK

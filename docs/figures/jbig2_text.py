@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """A text region: strips, the S and T of each instance, and the coded deltas."""
 
 from svg import Figure, LARGE, BLUE, GREEN, YELLOW, GREY, INK, RED

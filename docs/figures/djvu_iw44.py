@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """IW44: where each band's coefficients sit in a 32x32 block (spec 10.6.3)."""
 
 from svg import Figure, LARGE, GREY, INK

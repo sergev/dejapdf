@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 PYTHON ?= python3
 PANDOC ?= pandoc
 

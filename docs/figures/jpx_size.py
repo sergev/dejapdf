@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """Size study: PSNR of OpenJPEG's JP2 against the IW44 decode, at multiples of the IW44 size."""
 
 from svg import Figure, LARGE, GREY, INK

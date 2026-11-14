@@ -1,4 +1,5 @@
 // Copyright 2024 Joshua Kolden
+// Copyright 2026 Serge Vakulenko
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.

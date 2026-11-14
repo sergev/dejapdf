@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """Classic xref table vs PDF 1.5 object stream + cross-reference stream."""
 
 from svg import Figure, BLUE, GREEN, YELLOW, PURPLE, GREY

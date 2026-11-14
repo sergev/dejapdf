@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """The object graph of a two-page dejapdf output."""
 
 from svg import Figure, BLUE, GREEN, YELLOW, PURPLE, ORANGE, GRAY, GREY

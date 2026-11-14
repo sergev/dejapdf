@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """TXTz zone placement: each zone is stored relative to its parent or previous sibling."""
 
 from svg import Figure, LARGE, BLUE, GREEN, YELLOW, GREY, INK, RED

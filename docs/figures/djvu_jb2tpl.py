@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """JB2 pixel contexts: the direct template and the refinement template."""
 
 from svg import Figure, LARGE, BLUE, GREEN, ORANGE, GREY, INK

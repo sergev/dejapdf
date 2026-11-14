@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """Tier 1: the stripe scan of a code-block, and the three passes per bit-plane."""
 
 from svg import Figure, LARGE, BLUE, GREEN, YELLOW, ORANGE, GREY, INK, RED

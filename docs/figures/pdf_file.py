@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """The minimal PDF of section 1: the body, the xref table pointing at each
 object's offset, the trailer naming the catalog, startxref pointing at xref."""
 

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """The outline tree: First/Last down, Next/Prev across, Parent up."""
 
 from svg import Figure, PURPLE, BLUE, GREY, INK

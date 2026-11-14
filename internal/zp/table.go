@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Serge Vakulenko
+// SPDX-License-Identifier: MIT
+
 package zp
 
 // Probability state table, DjVu v3 spec, appendix 3, table 9:

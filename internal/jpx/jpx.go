@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Serge Vakulenko
+// SPDX-License-Identifier: MIT
+
 // Package jpx encodes 8-bit grey or RGB images as JPEG 2000 (JP2) files
 // for PDF's JPXDecode, cut to a byte budget by PCRD-opt rate control.
 // See docs/JPEG_2000_Image_Coding.md.

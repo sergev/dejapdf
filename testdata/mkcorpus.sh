@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
 # Generate testdata/corpus from testdata/src/pages.ps.
 # Needs: ghostscript, djvulibre-bin, pdf2djvu, minidjvu.
 set -eu

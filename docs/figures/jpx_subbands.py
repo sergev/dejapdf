@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """Three DWT levels: sub-bands and resolution levels of one tile-component."""
 
 from svg import Figure, LARGE, BLUE, GREEN, YELLOW, ORANGE, GREY, INK

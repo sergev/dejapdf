@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """DjVu's shared Djbz dictionary and per-page Sjbz become JBIG2 segments:
 global segments in one JBIG2Globals stream, page segments in each image."""
 

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """The JPEG 2000 encoder pipeline, from IW44 pixels to a JP2 file."""
 
 from svg import Figure, LARGE, BLUE, GREEN, YELLOW, ORANGE, PURPLE, GRAY, GREY

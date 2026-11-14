@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """Fitting an invisible word to its DjVu box with Tf, Td and Tz."""
 
 from svg import Figure, BLUE, YELLOW, GREY, INK, RED

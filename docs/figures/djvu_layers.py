@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """A compound page: background, mask and foreground colour, then the composite."""
 
 from svg import Figure, LARGE, GREY, INK

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """Refinement templates: JBIG2 GRTEMPLATE 0 and 1 (T.88 figures 12-13) next to DjVu's JB2."""
 
 from svg import Figure, LARGE, BLUE, GREEN, ORANGE, YELLOW, GREY, INK

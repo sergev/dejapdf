@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """Rate control: each code-block's passes are cut where they stop paying, then packed into packets."""
 
 from svg import Figure, LARGE, GREEN, PURPLE, GREY, INK, RED

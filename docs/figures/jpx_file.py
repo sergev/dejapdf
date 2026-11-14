@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """A JP2 file: its boxes, and the markers of the codestream inside (bytes from an opj-made file)."""
 
 from svg import Figure, LARGE, BLUE, GREEN, YELLOW, ORANGE, PURPLE, GRAY, GREY, INK

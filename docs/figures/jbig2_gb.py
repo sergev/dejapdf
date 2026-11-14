@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """The four generic-region templates (T.88 figures 3-6), AT pixels at their nominal places."""
 
 from svg import Figure, LARGE, BLUE, ORANGE, GREEN, GREY, INK

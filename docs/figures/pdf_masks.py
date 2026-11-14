@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """Three ways to mask an image: stencil, explicit /Mask, soft /SMask."""
 
 from svg import Figure, BLUE, GREEN, PURPLE, GREY, INK

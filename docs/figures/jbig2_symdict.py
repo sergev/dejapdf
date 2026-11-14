@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """A symbol dictionary: symbols grouped into height classes, coded as deltas."""
 
 from svg import Figure, LARGE, BLUE, GREEN, YELLOW, GREY, INK

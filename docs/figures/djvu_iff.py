@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Serge Vakulenko
+# SPDX-License-Identifier: MIT
+
 """IFF85 bytes of a single-page file: magic, FORM header, chunks, padding."""
 
 from svg import Figure, LARGE, BLUE, YELLOW, PURPLE, GRAY, GREY, INK
