@@ -1,0 +1,12 @@
+  FORM:DJVM [16558] 
+    DIRM [50]         Document directory (bundled, 3 files 2 pages)
+    FORM:DJVI [1454] {p1.iff} [I]
+      Djbz [1442]       JB2 shared dictionary
+    FORM:DJVU [5336] {p1.djvu} [P1]
+      INFO [10]         DjVu 2550x3300, v24, 300 dpi, gamma=2.2
+      INCL [6]          Indirection chunk --> {p1.iff}
+      Sjbz [5292]       JB2 bilevel data
+    FORM:DJVU [9682] {p4.djvu} [P2]
+      INFO [10]         DjVu 2550x3300, v24, 300 dpi, gamma=2.2
+      INCL [6]          Indirection chunk --> {p1.iff}
+      Sjbz [9638]       JB2 bilevel data

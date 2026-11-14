@@ -46,9 +46,11 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
       and generator `testdata/mkcorpus.sh` (`make corpus`)
 - [x] Run `make corpus`; commit `testdata/corpus` (bilevel, lossy, photo, gray, palette, compound,
       bundled + text/outline/annotations, indirect, pdf2djvu) with djvudump/djvused goldens
-- [ ] Shared `Djbz` sample: Debian's pdf2djvu lacks `--pages-per-dict` (no minidjvu);
-      need a real multi-page scan with Djbz, or build minidjvu as an external tool
-- [ ] A few public-domain scanned books (kept outside git, for size measurements)
+- [x] Shared `Djbz` sample `shared-dict.djvu`, made by minidjvu (built from source into
+      `~/.local/bin`, external tool only). Its single-page output lacks the `AT&T` magic.
+- [x] Real scanned books in `~/Documents` (not redistributable, never committed), used for
+      size measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz,
+      ANTz, and an unknown `CIDa` chunk
 
 Done when: `go build ./...` and `go test ./...` pass on an empty skeleton.
 

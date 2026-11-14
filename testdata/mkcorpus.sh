@@ -1,6 +1,6 @@
 #!/bin/sh
 # Generate testdata/corpus from testdata/src/pages.ps.
-# Needs: ghostscript, djvulibre-bin, pdf2djvu.
+# Needs: ghostscript, djvulibre-bin, pdf2djvu, minidjvu.
 set -eu
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -9,7 +9,7 @@ out=$here/corpus
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
-for t in gs cjb2 c44 cpaldjvu djvumake djvuextract djvm djvmcvt djvused djvudump pdf2djvu; do
+for t in gs cjb2 c44 cpaldjvu djvumake djvuextract djvm djvmcvt djvused djvudump pdf2djvu minidjvu; do
     command -v $t >/dev/null || { echo "missing: $t" >&2; exit 1; }
 done
 
@@ -73,6 +73,10 @@ djvused "$out/bundled.djvu" -s -e '
     Title "dejapdf test corpus"
 .
 '
+
+# Text pages sharing one Djbz dictionary. Lossy shape matching is
+# what fills the dictionary; page 2 (halftone) makes minidjvu crawl.
+minidjvu -d 300 p1.pbm p4.pbm "$out/shared-dict.djvu"
 
 # Indirect form of the same document.
 mkdir "$out/indirect"
