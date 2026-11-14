@@ -18,7 +18,7 @@ How DjVu maps to PDF, in one table:
 | FG44 foreground | JPXDecode image whose /Mask is the stencil (§8) |
 | FGbz palette | one stencil per colour (§9) |
 | BGjp, FGjp | DCTDecode, passed through (§3) |
-| Smmr mask | CCITTFaxDecode, K −1 (§3) |
+| Smmr mask | decoded, then a JBIG2 generic region (§10) |
 | TXTz | invisible text, render mode 3 (§12) |
 | NAVM | outline (§13) |
 | ANTz maparea | Link annotation (§14) |
@@ -114,7 +114,7 @@ both chain filters (7.4). The filters dejapdf uses:
 | JBIG2Decode | 1.4 | the mask (§10) | `JBIG2Globals` |
 | JPXDecode | 1.5 | background, foreground (§11) | none: the JP2 file carries them |
 | DCTDecode | 1.0 | BGjp/FGjp layers, as is | `ColorTransform` only if the JPEG lacks the Adobe marker |
-| CCITTFaxDecode | 1.0 | Smmr masks, with DjVu's 8-byte MMR header removed (*checked*) | `K -1` (G4), `Columns`, `Rows`, `BlackIs1` |
+| CCITTFaxDecode | 1.0 | not used: an Smmr mask without stripes could pass through, with DjVu's 8-byte MMR header removed (*checked*), but JBIG2 is 38% smaller | `K -1` (G4), `Columns`, `Rows`, `BlackIs1` |
 
 JBIG2Decode and JPXDecode only work in image XObjects, never in inline images
 (7.4.7, 7.4.9). DCT data is baseline or progressive JPEG with one byte per
@@ -331,7 +331,18 @@ With hidden text, bookmarks and links, and the colour layers at the default
 scanned book stands out at 1.29× (1.22× at `-q 1`). Its FGbz palettes average
 about six grey shades a page, and each shade is a stencil. That costs about
 210 bytes of image dictionary, segment headers and page information per
-stencil, or 0.6 MB in a 7.5 MB book. Before symbol
+stencil, or 0.6 MB in a 7.5 MB book.
+
+*Tried and dropped*: packing a page's colours into one stencil, each colour
+cropped to its blits' bounding box and the boxes stacked, then drawing that
+sheet once per colour, clipped to the colour's box and shifted into place.
+That would cost a few operators per colour instead of an image. Ghostscript
+renders it pixel-exact; MuPDF misplaces rows (71 060 pixels differ on the
+corpus palette page) and Poppler blurs clip edges (1 160 pixels). Both
+appear to mishandle drawing part of a large image. Separate stencils render
+exactly everywhere, so they stay.
+Writing no space before a delimiter (`/Subtype/Image`, `[1 0 R/XYZ]`, 7.2.2)
+saves 4 bytes a stencil, and 0.1% of that book. Before symbol
 dictionaries they were 1.9–13.6× with Flate masks, 1.04–4.6× with one JBIG2
 generic region a page. The masks are 1.04–1.13× their JB2 data, the colour
 layers 0.65–1.00× their IW44 data, the hidden text 0.90–1.08× its TXTz.

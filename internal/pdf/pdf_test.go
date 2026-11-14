@@ -29,8 +29,8 @@ func TestObjects(t *testing.T) {
 		{String("a(b)\\"), `(a\(b\)\\)`},
 		{String("\x00\xff"), "<00FF>"},
 		{TextString("Ж"), "<FEFF0416>"},
-		{Array{1, Ref(3), Name("X")}, "[1 3 0 R /X]"},
-		{Dict{"b": 1, "a": Name("Z"), "c": nil}, "<</a /Z/b 1>>"},
+		{Array{1, Ref(3), Name("X")}, "[1 3 0 R/X]"},
+		{Dict{"b": 1, "a": Name("Z"), "c": nil}, "<</a/Z/b 1>>"},
 	}
 	for _, c := range cases {
 		if got := string(appendObject(nil, c.v)); got != c.want {

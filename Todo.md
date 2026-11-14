@@ -44,16 +44,6 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
 
-## P15. Remaining mask cases
-
-- [ ] Striped Smmr masks (one CCITT stencil per stripe)
-- [ ] An Smmr page with a varying FG44 (now painted black)
-- [ ] FGbz pages: about 210 B fixed cost per colour stencil (Poia, six grey shades a page:
-      1.29× the DjVu); consider merging stencils without changing the rendering
-
-Done when: striped and FG44 Smmr corpus pages render as ddjvu does; Poia is within the
-1–1.5× target with fewer bytes per stencil.
-
 ## P16. Viewer fidelity
 
 - [ ] FG layers in viewers: MuPDF and Poppler interpolate a 12× upscaled FG44, blending

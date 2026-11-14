@@ -327,8 +327,6 @@ func build(doc *djvu.Document, pg *djvu.Page, i int, opt *Options, dicts *shared
 		try(err)
 	case mask != nil:
 		try(foreground(b, pg, mask, opt))
-	case pg.Form.Find("Smmr") != nil:
-		try(mmrForeground(b, pg, pg.Form.Find("Smmr").Data, opt))
 	}
 	try(text(b, pg, opt.Stats != nil))
 	try(links(b, pg, tg, i))

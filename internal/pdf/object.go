@@ -74,10 +74,11 @@ func appendObject(b []byte, v any) []byte {
 	case Array:
 		b = append(b, '[')
 		for i, e := range v {
-			if i > 0 {
-				b = append(b, ' ')
-			}
+			n := len(b)
 			b = appendObject(b, e)
+			if i > 0 && needSpace(b[n-1], b[n]) {
+				b = slices.Insert(b, n, ' ')
+			}
 		}
 		return append(b, ']')
 	case Dict:
@@ -91,13 +92,20 @@ func appendObject(b []byte, v any) []byte {
 		b = append(b, "<<"...)
 		for _, k := range keys {
 			b = appendName(b, Name(k))
-			b = append(b, ' ')
+			n := len(b)
 			b = appendObject(b, v[k])
+			if needSpace(b[n-1], b[n]) {
+				b = slices.Insert(b, n, ' ')
+			}
 		}
 		return append(b, ">>"...)
 	}
 	panic(fmt.Sprintf("pdf: unsupported value %T", v))
 }
+
+// needSpace reports whether tokens ending in a and starting with b must
+// be separated: delimiters end a token by themselves (7.2.2).
+func needSpace(a, b byte) bool { return isRegular(a) && isRegular(b) }
 
 // AppendReal appends a number with at most 4 decimals, no exponent.
 func AppendReal(b []byte, f float64) []byte {

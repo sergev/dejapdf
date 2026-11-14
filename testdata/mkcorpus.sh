@@ -54,8 +54,9 @@ djvumake "$out/compound.djvu" INFO=2550,3300,300 Sjbz=mask.sjbz FG44=fg.fg44 BG4
 # JPEG layers: BGjp + Sjbz + FGjp.
 djvumake "$out/jpeg.djvu" INFO=2550,3300,300 Sjbz=mask.sjbz FGjp=fg3.jpg BGjp=bg2.jpg
 
-# MMR mask: the G4 strip of a one-strip TIFF behind the Smmr header.
-python3 - p1.tif p1.mmr <<'EOF'
+# MMR masks: the G4 strips of a TIFF behind the Smmr header; several
+# strips make a striped Smmr, each strip an independent G4 stream.
+cat > tif2mmr.py <<'EOF'
 import struct, sys
 d = open(sys.argv[1], 'rb').read()
 e = '<' if d[:2] == b'II' else '>'
@@ -63,13 +64,32 @@ off = struct.unpack(e + 'I', d[4:8])[0]
 tags = {}
 for i in range(struct.unpack(e + 'H', d[off:off + 2])[0]):
     t, typ, cnt, val = struct.unpack(e + 'HHII', d[off + 2 + 12 * i:off + 14 + 12 * i])
-    if typ == 3:  # SHORT, left-justified in the field
-        val = val & 0xffff if e == '<' else val >> 16
-    tags[t] = val
-s = d[tags[273]:tags[273] + tags[279]]
-open(sys.argv[2], 'wb').write(b'MMR\0' + struct.pack('>HH', tags[256], tags[257]) + s)
+    f = 'H' if typ == 3 else 'I'
+    if cnt * struct.calcsize(f) <= 4:  # inline, left-justified
+        raw = d[off + 10 + 12 * i:off + 14 + 12 * i]
+    else:
+        raw = d[val:val + cnt * struct.calcsize(f)]
+    tags[t] = struct.unpack(e + f * cnt, raw[:cnt * struct.calcsize(f)])
+w, h = tags[256][0], tags[257][0]
+strips = [d[o:o + n] for o, n in zip(tags[273], tags[279])]
+if len(strips) == 1:
+    out = b'MMR\0' + struct.pack('>HH', w, h) + strips[0]
+else:
+    out = b'MMR\2' + struct.pack('>HHH', w, h, tags[278][0])
+    for s in strips:
+        out += struct.pack('>I', len(s)) + s
+open(sys.argv[2], 'wb').write(out)
 EOF
+python3 tif2mmr.py p1.tif p1.mmr
 djvumake "$out/mmr.djvu" INFO=2550,3300,300 Smmr=p1.mmr
+# 132 stripes of 25 rows. (On the halftone page 2, djvulibre's MMR decoder
+# fails with stripes under about 100 rows; ours decodes it as the original.)
+gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=tiffg4 -dMaxStripSize=8192 -r300 \
+    -dFirstPage=3 -dLastPage=3 -sOutputFile=p3.tif "$src"
+python3 tif2mmr.py p3.tif p3.mmr
+djvumake "$out/mmr-striped.djvu" INFO=2550,3300,300 Smmr=p3.mmr
+# G4 mask under a colour foreground.
+djvumake "$out/mmr-compound.djvu" INFO=2550,3300,300 Smmr=p1.mmr FG44=fg.fg44 BG44=bg.bg44
 
 # Bundled multi-page document with text layer, outline and annotations.
 djvm -c "$out/bundled.djvu" "$out/bilevel.djvu" "$out/photo.djvu" \

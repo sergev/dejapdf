@@ -104,3 +104,13 @@ func FuzzParse(f *testing.F) {
 		}
 	})
 }
+
+func FuzzDecodeMMR(f *testing.F) {
+	seeds(f, false, "Smmr")
+	f.Fuzz(func(t *testing.T, b []byte) {
+		if len(b) >= 8 && (int(b[4])<<8|int(b[5]))*(int(b[6])<<8|int(b[7])) > 1<<20 {
+			return // keep runs fast
+		}
+		DecodeMMR(b)
+	})
+}

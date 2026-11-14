@@ -183,6 +183,10 @@ func (b *pageBuilder) maskImage(mask *jb2.Image, w, h int, keep func(int) bool) 
 	if len(blits) == 0 {
 		return nil, nil
 	}
+	if mask.Dict == nil && len(mask.Shapes) == 1 && len(mask.Blits) == 1 {
+		// One bitmap (an Smmr mask): a generic region.
+		return maskDict(w, h), jbig2.GenericPage(pack(mask.RenderSome(w, h, nil)), 0)
+	}
 	var glob *shared
 	var ext func(int) int
 	var extSyms []*jbig2.Bitmap
@@ -223,15 +227,19 @@ func (b *pageBuilder) maskImage(mask *jb2.Image, w, h int, keep func(int) bool) 
 	tr := jbig2.Segment{Number: n + 1 + uint32(set.nsegs), Type: jbig2.TypeTextRegion, Refs: set.refs, Page: 1,
 		Data: jbig2.TextRegion(w, h, ins, len(set.syms), sbStrips, sbDSOffset)}
 	segs = tr.Append(segs)
-	d := pdf.Dict{
+	d := maskDict(w, h)
+	if useGlob {
+		d["DecodeParms"] = pdf.Dict{"JBIG2Globals": glob}
+	}
+	return d, segs
+}
+
+func maskDict(w, h int) pdf.Dict {
+	return pdf.Dict{
 		"Subtype":   pdf.Name("Image"),
 		"Width":     w,
 		"Height":    h,
 		"ImageMask": true,
 		"Filter":    pdf.Name("JBIG2Decode"),
 	}
-	if useGlob {
-		d["DecodeParms"] = pdf.Dict{"JBIG2Globals": glob}
-	}
-	return d, segs
 }

@@ -10,12 +10,20 @@ import (
 	"github.com/sergev/dejapdf/internal/jb2"
 )
 
-// Mask decodes the page's JB2 mask (Sjbz), or returns nil if it has
-// none. A shared dictionary (Djbz, in the page or an include) is
-// decoded once per document.
+// Mask decodes the page's JB2 mask (Sjbz), or its G4 mask (Smmr) as an
+// image of one blit, or returns nil if it has neither. A shared
+// dictionary (Djbz, in the page or an include) is decoded once per
+// document.
 func (d *Document) Mask(p *Page) (*jb2.Image, error) {
 	s := p.Form.Find("Sjbz")
 	if s == nil {
+		if m := p.Form.Find("Smmr"); m != nil {
+			im, err := mmrMask(m.Data)
+			if err != nil {
+				return nil, fmt.Errorf("djvu: page %q: %w", p.ID, err)
+			}
+			return im, nil
+		}
 		return nil, nil
 	}
 	var dict *jb2.Dict

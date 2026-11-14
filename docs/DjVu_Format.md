@@ -19,7 +19,8 @@ Where each part goes, in one table:
 | Sjbz, Djbz (JB2) | `internal/jb2` | JBIG2 stencil, JBIG2Globals |
 | BG44, FG44 (IW44) | `internal/iw44` | JPX images |
 | FGbz | `internal/djvu` | one stencil per colour |
-| BGjp, FGjp, Smmr | passed through | DCTDecode, CCITTFaxDecode |
+| BGjp, FGjp | passed through | DCTDecode |
+| Smmr | `internal/djvu`, G4 by `internal/ccitt` | a stencil, JBIG2 generic region |
 | TXTz | `internal/djvu` | invisible text |
 | ANTz | `internal/djvu` | Link annotations, Info |
 | NAVM | `internal/djvu` | outlines |
@@ -565,11 +566,28 @@ unchanged as a DCTDecode image (*checked*: `jpeg.djvu`, made with
 | 2 | height, big-endian |
 | … | if striped: rows per stripe (2 bytes), then for each stripe a 4-byte length and its G4 data; else one G4 stream |
 
-A non-striped Smmr passes through as CCITTFaxDecode with K −1 (*checked*:
-`mmr.djvu`, the G4 strip of a Ghostscript `tiffg4` file behind this header,
-renders identical to ddjvu in MuPDF and Poppler). Each stripe of a striped
-one is a separate G4 stream, so it would need one stencil per stripe; dejapdf
-does not handle it yet.
+Stripes run from the top, the last one shorter, and each is an
+independent G4 stream: the reference line starts white again (*checked*:
+the strips of a multi-strip Ghostscript `tiffg4` file, behind this header,
+decode identical to the original page both in dejapdf and in ddjvu). The
+spec's "rows per stripe" field is 2 bytes and each stripe length 4, both
+big-endian.
+
+dejapdf decodes Smmr with the G4 decoder of `golang.org/x/image/ccitt`,
+copied into `internal/ccitt` (BSD), into a bitmap that becomes a mask of one
+blit, so it goes the way of a JB2 mask: palettes, FG44 with the mask as
+`/Mask`, page selection. The mask is coded as one JBIG2 generic region,
+38% smaller than the G4 data on the corpus pages. Passing the G4 data
+through as CCITTFaxDecode, as dejapdf first did, works only for an
+unstriped mask under a single colour. The FG44 `/Mask` needs the stencil
+padded to the layer's size, which G4 data cannot be. Corpus files:
+`mmr.djvu` (one G4 stream), `mmr-striped.djvu` (132 stripes of 25 rows)
+and `mmr-compound.djvu` (G4 mask, FG44 and BG44). All three masks are
+identical to `ddjvu -mode=mask`.
+
+djvulibre's own decoder fails ("Invalid G4/MMR Data") on striped halftone
+pages when the stripes are under about 100 rows, though the data decodes
+correctly here. The corpus uses a text page for its stripes.
 
 ## 12. Hidden text
 

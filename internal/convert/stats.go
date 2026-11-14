@@ -14,7 +14,7 @@ import (
 
 // Layer kinds of the size report.
 const (
-	Mask   = iota // JB2, Djbz, FGbz, MMR / JBIG2, CCITT
+	Mask   = iota // JB2, Djbz, FGbz, MMR / JBIG2
 	Colour        // IW44, JPEG / JPX, DCT
 	Text          // TXTz, TXTa / text operators
 	Other         // the rest
@@ -99,7 +99,7 @@ func djvuSizes(doc *djvu.Document, sel []int, s *Stats) {
 // streamKind is the layer kind of a stream written with dictionary d.
 func streamKind(d pdf.Dict) int {
 	switch d["Filter"] {
-	case pdf.Name("JBIG2Decode"), pdf.Name("CCITTFaxDecode"):
+	case pdf.Name("JBIG2Decode"):
 		return Mask
 	case pdf.Name("JPXDecode"), pdf.Name("DCTDecode"):
 		return Colour

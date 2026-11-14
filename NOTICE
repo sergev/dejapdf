@@ -12,3 +12,9 @@ Modified files carry a notice stating the changes.
 
 * JBIG2 by XIAO QI DUN (https://github.com/xiaoqidun/jbig2)
   Used in: internal/mq, internal/jbig2
+
+This product also includes software from the Go project, licensed under a
+BSD-style license (internal/ccitt/LICENSE).
+
+* golang.org/x/image/ccitt (https://github.com/golang/image)
+  Used in: internal/ccitt
