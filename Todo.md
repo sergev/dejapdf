@@ -44,16 +44,6 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
 
-## P13. Robustness
-
-- [x] A layer that fails to decode is left out with a warning, not the whole file (done in
-      P12: `Options.Warn`; still to test on damaged files)
-- [ ] Damaged documents: truncated files, bad chunk sizes, missing INFO, unknown chunks
-- [ ] Fuzz tests for iff, zp, bzz, jb2, iw44 (and the djvu text, outline, sexp parsers)
-
-Done when: each fuzz target runs for a few minutes with no panic or hang; truncated and
-corrupted corpus files convert with warnings.
-
 ## P14. Document extras
 
 - [ ] Page labels from DIRM page titles

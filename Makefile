@@ -1,7 +1,7 @@
 # Copyright (c) 2026 Serge Vakulenko
 # SPDX-License-Identifier: MIT
 
-.PHONY: all build test lint corpus docs docs-pdf clean
+.PHONY: all build test lint fuzz corpus docs docs-pdf clean
 
 all: build
 
@@ -14,6 +14,19 @@ test:
 lint:
 	@out=$$(gofmt -l .); if [ -n "$$out" ]; then echo "gofmt needed:"; echo "$$out"; exit 1; fi
 	go vet ./...
+
+# Run every fuzz target for FUZZTIME. Few workers and a memory cap:
+# one worker per CPU can exhaust memory.
+FUZZTIME ?= 60s
+fuzz:
+	@for pkg in $$(go list ./internal/...); do \
+		for t in $$(go test $$pkg -list '^Fuzz' | grep '^Fuzz'); do \
+			echo "$$pkg $$t"; \
+			out=$$( ulimit -v 16000000; GOMEMLIMIT=1GiB go test $$pkg -run '^$$' -fuzz "^$$t$$" \
+				-fuzztime $(FUZZTIME) -parallel 4 2>&1 ) || { echo "$$out"; exit 1; }; \
+			echo "$$out" | tail -1; \
+		done; \
+	done
 
 # Regenerate testdata/corpus; needs djvulibre-bin and ghostscript.
 corpus:

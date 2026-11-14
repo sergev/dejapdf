@@ -59,6 +59,13 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		}
 		pages[i] = p.Alloc()
 	}
+	for _, w := range doc.Warnings {
+		if opt.Warn == nil {
+			return w
+		}
+		opt.Warn(-1, w)
+	}
+	blank := blankSizes(doc)
 	tg := newTargets(doc, pages)
 	font := &textFont{}
 	// Pages are built in parallel and written in order.
@@ -76,7 +83,19 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		for k, i := range sel {
 			window <- struct{}{}
 			go func(i int, c chan result) {
-				b, err := build(doc, doc.Pages[i], i, &opt, dicts, tg)
+				defer func() {
+					// A decoder bug must not take down the whole file.
+					if e := recover(); e != nil {
+						err := fmt.Errorf("internal error: %v", e)
+						if opt.Warn == nil {
+							c <- result{nil, err}
+							return
+						}
+						opt.Warn(i, err)
+						c <- result{blankPage(blank[i], dicts), nil}
+					}
+				}()
+				b, err := build(doc, doc.Pages[i], i, &opt, dicts, tg, blank[i])
 				c <- result{b, err}
 			}(i, results[k])
 		}
@@ -99,8 +118,11 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		return err
 	}
 	info := pdf.Dict{}
-	if len(doc.Pages) > 0 {
-		metadata(doc.Pages[0], info)
+	for _, pg := range doc.Pages {
+		if pg.Err == nil {
+			metadata(pg, info)
+			break
+		}
 	}
 	if opt.Producer != "" {
 		info["Producer"] = pdf.TextString(opt.Producer)
@@ -111,7 +133,7 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		if opt.Warn == nil {
 			return err
 		}
-		opt.Warn(0, err)
+		opt.Warn(-1, err)
 	}
 	bms = tg.prune(bms)
 	if len(bms) > 0 {
@@ -258,14 +280,25 @@ func channel(v byte) string { return num(float64(v) / 255) }
 
 // build prepares a page. A layer that fails is left out with a warning,
 // if opt.Warn is set.
-func build(doc *djvu.Document, pg *djvu.Page, i int, opt *Options, dicts *sharedDicts, tg *targets) (*pageBuilder, error) {
+// A page that cannot be read becomes a blank page of size blank.
+func build(doc *djvu.Document, pg *djvu.Page, i int, opt *Options, dicts *sharedDicts, tg *targets,
+	blank djvu.Info) (*pageBuilder, error) {
 	in := pg.Info
-	if in.Width <= 0 || in.Height <= 0 {
-		return nil, fmt.Errorf("bad size %dx%d", in.Width, in.Height)
+	err := pg.Err
+	if err == nil && (in.Width <= 0 || in.Height <= 0) {
+		err = fmt.Errorf("bad size %dx%d", in.Width, in.Height)
 	}
-	b := &pageBuilder{in: in, xobj: pdf.Dict{}, shared: dicts,
-		w: float64(in.Width) * 72 / float64(in.DPI),
-		h: float64(in.Height) * 72 / float64(in.DPI)}
+	if err != nil {
+		if opt.Warn == nil {
+			return nil, err
+		}
+		opt.Warn(i, fmt.Errorf("blank page: %w", err))
+		in = blank
+	}
+	b := blankPage(in, dicts)
+	if err != nil {
+		return b, nil
+	}
 	var first error
 	try := func(err error) {
 		if err == nil {
@@ -481,3 +514,32 @@ func jpx(im *iw44.Image, budget int) (pdf.Dict, []byte, error) {
 func num(f float64) string {
 	return string(pdf.AppendReal(nil, f))
 }
+
+// blankPage starts a page of the given size.
+func blankPage(in djvu.Info, dicts *sharedDicts) *pageBuilder {
+	return &pageBuilder{in: in, xobj: pdf.Dict{}, shared: dicts,
+		w: float64(in.Width) * 72 / float64(in.DPI),
+		h: float64(in.Height) * 72 / float64(in.DPI)}
+}
+
+// blankSizes gives each page the size it gets if it cannot be read: the
+// nearest readable page's, before or after it, or US Letter.
+func blankSizes(doc *djvu.Document) []djvu.Info {
+	r := make([]djvu.Info, len(doc.Pages))
+	last := djvu.Info{Width: 2550, Height: 3300, DPI: 300}
+	for _, pg := range doc.Pages {
+		if ok(pg) {
+			last = pg.Info
+			break
+		}
+	}
+	for i, pg := range doc.Pages {
+		if ok(pg) {
+			last = pg.Info
+		}
+		r[i] = djvu.Info{Width: last.Width, Height: last.Height, DPI: last.DPI}
+	}
+	return r
+}
+
+func ok(pg *djvu.Page) bool { return pg.Err == nil && pg.Info.Width > 0 && pg.Info.Height > 0 }

@@ -19,6 +19,9 @@ func (p *Page) Annotations() ([]*Sexp, error) {
 func annoOf(forms ...*iff.Chunk) ([]*Sexp, error) {
 	var r []*Sexp
 	for _, f := range forms {
+		if f == nil {
+			continue
+		}
 		for _, c := range f.Children {
 			b := c.Data
 			switch c.ID {

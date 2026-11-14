@@ -5,6 +5,7 @@
 package djvu
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -24,14 +25,20 @@ type Document struct {
 	Dir   *Dir // nil for a single-page document
 	Pages []*Page
 
+	// Warnings tell of damage the document was read past: a truncated
+	// or corrupt file, a missing include.
+	Warnings []error
+
 	load  Loader
 	cache map[string]*iff.Chunk // components by id
 	dicts map[*iff.Chunk]*jb2.Dict
 	mu    sync.Mutex // guards dicts
 }
 
-// Page is one FORM:DJVU with its resolved includes.
+// Page is one FORM:DJVU with its resolved includes. A page that cannot
+// be read has Err set, and possibly no Form.
 type Page struct {
+	Err      error
 	ID       string // component id; empty for a single-page document
 	Form     *iff.Chunk
 	Info     Info
@@ -67,14 +74,17 @@ func Open(path string) (*Document, error) {
 // document references no other files.
 func Parse(data []byte, load Loader) (*Document, error) {
 	root, err := iff.Parse(data)
-	if err != nil {
+	if root == nil {
 		return nil, err
 	}
 	d := &Document{Root: root, load: load, cache: map[string]*iff.Chunk{}}
+	if err != nil {
+		d.Warnings = append(d.Warnings, err)
+	}
 	switch root.Name() {
 	case "FORM:DJVU":
 		p, err := d.newPage("", root)
-		if err != nil {
+		if p == nil {
 			return nil, err
 		}
 		d.Pages = []*Page{p}
@@ -104,17 +114,21 @@ func (d *Document) build(dir *Dir) error {
 			continue
 		}
 		f, err := d.component(c)
-		if err != nil {
-			return err
+		if err == nil && f.Name() != "FORM:DJVU" {
+			err = fmt.Errorf("djvu: page %q is %s", c.ID, f.Name())
 		}
-		if f.Name() != "FORM:DJVU" {
-			return fmt.Errorf("djvu: page %q is %s", c.ID, f.Name())
+		if err != nil {
+			d.Pages = append(d.Pages, &Page{ID: c.ID, Err: err})
+			continue
 		}
 		p, err := d.newPage(c.ID, f)
-		if err != nil {
-			return err
+		if p == nil {
+			p = &Page{ID: c.ID, Err: err}
 		}
 		d.Pages = append(d.Pages, p)
+	}
+	if len(d.Pages) == 0 {
+		return errors.New("djvu: no pages")
 	}
 	return nil
 }
@@ -155,7 +169,11 @@ func (d *Document) loadFile(name string) (*iff.Chunk, error) {
 	}
 	f, err := iff.Parse(data)
 	if err != nil {
-		return nil, fmt.Errorf("djvu: %s: %w", name, err)
+		err = fmt.Errorf("djvu: %s: %w", name, err)
+		if f == nil {
+			return nil, err
+		}
+		d.warn(err)
 	}
 	return f, nil
 }
@@ -182,6 +200,8 @@ func (d *Document) lookup(id string) (*iff.Chunk, error) {
 	return f, nil
 }
 
+// newPage reads a page. It returns nil and an error if the page has no
+// usable INFO; an include that fails is a warning.
 func (d *Document) newPage(id string, f *iff.Chunk) (*Page, error) {
 	c := f.Find("INFO")
 	if c == nil {
@@ -193,26 +213,37 @@ func (d *Document) newPage(id string, f *iff.Chunk) (*Page, error) {
 	}
 	p := &Page{ID: id, Form: f, Info: in}
 	seen := map[*iff.Chunk]bool{f: true}
-	var walk func(*iff.Chunk) error
-	walk = func(f *iff.Chunk) error {
+	var walk func(*iff.Chunk)
+	walk = func(f *iff.Chunk) {
 		for _, k := range f.All("INCL") {
 			t, err := d.lookup(strings.TrimSpace(string(k.Data)))
-			if err != nil {
-				return err
+			if err == nil && t.Name() != "FORM:DJVI" {
+				err = fmt.Errorf("djvu: INCL %q is %s", k.Data, t.Name())
 			}
-			if t.Name() != "FORM:DJVI" {
-				return fmt.Errorf("djvu: INCL %q is %s", k.Data, t.Name())
+			if err != nil {
+				d.warn(fmt.Errorf("page %q: %w", id, err))
+				continue
 			}
 			if seen[t] {
 				continue
 			}
 			seen[t] = true
 			p.Includes = append(p.Includes, t)
-			if err := walk(t); err != nil {
-				return err
-			}
+			walk(t)
 		}
-		return nil
 	}
-	return p, walk(f)
+	walk(f)
+	return p, nil
+}
+
+// warn records damage, once per message.
+func (d *Document) warn(err error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	for _, w := range d.Warnings {
+		if w.Error() == err.Error() {
+			return
+		}
+	}
+	d.Warnings = append(d.Warnings, err)
 }

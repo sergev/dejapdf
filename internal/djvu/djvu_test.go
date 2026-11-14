@@ -133,8 +133,10 @@ func TestIncludeFile(t *testing.T) {
 	if len(p.Includes) != 1 || len(p.Chunks("ANTz")) != 2 {
 		t.Fatalf("includes %d, ANTz %d", len(p.Includes), len(p.Chunks("ANTz")))
 	}
-	if _, err := Parse(mustRead(t, filepath.Join(corpus, "indirect", "bilevel.djvu")), nil); err == nil {
-		t.Error("INCL without loader accepted")
+	// Without a loader the include is missing: a warning.
+	d, err = Parse(mustRead(t, filepath.Join(corpus, "indirect", "bilevel.djvu")), nil)
+	if err != nil || len(d.Warnings) != 1 || len(d.Pages[0].Includes) != 0 {
+		t.Errorf("INCL without loader: %v, warnings %v", err, d.Warnings)
 	}
 }
 

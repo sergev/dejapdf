@@ -87,7 +87,9 @@ func djvuSizes(doc *djvu.Document, sel []int, s *Stats) {
 		}
 	}
 	for _, i := range sel {
-		walk(doc.Pages[i].Form)
+		if doc.Pages[i].Form != nil {
+			walk(doc.Pages[i].Form)
+		}
 		for _, f := range doc.Pages[i].Includes {
 			walk(f)
 		}

@@ -4,7 +4,10 @@
 package convert
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
+	stdjpeg "image/jpeg"
 
 	"github.com/sergev/dejapdf/internal/pdf"
 )
@@ -38,7 +41,7 @@ func jpegSize(b []byte) (w, h, nc int, err error) {
 }
 
 // jpeg returns the dictionary of a JPEG file used unchanged as a
-// DCTDecode image, and its size.
+// DCTDecode image, and its size, after checking that it decodes.
 func jpeg(b []byte) (pdf.Dict, int, int, error) {
 	w, h, nc, err := jpegSize(b)
 	if err != nil {
@@ -47,6 +50,11 @@ func jpeg(b []byte) (pdf.Dict, int, int, error) {
 	cs := map[int]string{1: "DeviceGray", 3: "DeviceRGB", 4: "DeviceCMYK"}[nc]
 	if cs == "" || w == 0 || h == 0 {
 		return nil, 0, 0, errors.New("unsupported JPEG")
+	}
+	// Passed on unchanged, so it must be whole: a truncated JPEG breaks
+	// readers.
+	if _, err := stdjpeg.Decode(bytes.NewReader(b)); err != nil {
+		return nil, 0, 0, fmt.Errorf("JPEG: %w", err)
 	}
 	d := pdf.Dict{
 		"Subtype":          pdf.Name("Image"),

@@ -15,13 +15,15 @@ finished phases are removed from it. The original design brief is
 
 ## Commands
 
-Standard Go tooling (`make build`, `make test`, `make lint`, `make corpus`):
+Standard Go tooling (`make build`, `make test`, `make lint`, `make fuzz`, `make corpus`).
+Fuzz with few workers (`-parallel 4`): one per CPU can exhaust memory.
 
 ```
 go build ./cmd/dejapdf
 go test ./...
 go test ./internal/jb2 -run TestName      # single test
-go test ./internal/zp -fuzz FuzzDecode    # fuzz one package
+go test ./internal/zp -fuzz FuzzDecode -parallel 4   # fuzz one target
+make fuzz FUZZTIME=60s                    # all targets, capped memory
 go vet ./...
 ```
 

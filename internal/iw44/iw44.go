@@ -26,6 +26,10 @@ var (
 
 // stepIndex maps a coefficient index to its step size table entry
 // (Table 3).
+
+// maxPixels limits an image: an A3 page at 600 dpi is 7016×9921, 2^26.06.
+const maxPixels = 1 << 27
+
 func stepIndex(i int) int {
 	switch {
 	case i < 4:
@@ -102,7 +106,7 @@ func (d *Decoder) Decode(b []byte) error {
 		d.gray = b[0]&0x80 != 0
 		d.w = int(b[2])<<8 | int(b[3])
 		d.h = int(b[4])<<8 | int(b[5])
-		if d.w == 0 || d.h == 0 {
+		if d.w == 0 || d.h == 0 || d.w*d.h > maxPixels {
 			return fmt.Errorf("iw44: size %dx%d", d.w, d.h)
 		}
 		// From minor version 2: chroma delay; a clear bit 7 halves

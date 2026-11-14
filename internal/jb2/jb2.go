@@ -148,7 +148,8 @@ const (
 const (
 	maxSize    = 262142
 	maxPixels  = 1 << 26
-	maxOver    = 64 // bytes read past the end before giving up
+	maxPage    = 1 << 27 // pixels of a page: A3 at 600 dpi is 2^26.06
+	maxOver    = 64      // bytes read past the end before giving up
 	maxRecords = 1 << 22
 )
 
@@ -233,6 +234,9 @@ func decode(data []byte, dict *Dict) (result, error) {
 			started = true
 			d.im.W = d.num[numImageSize].decode(d.zp, 0, maxSize)
 			d.im.H = d.num[numImageSize].decode(d.zp, 0, maxSize)
+			if d.im.W*d.im.H > maxPage {
+				return result{}, fmt.Errorf("jb2: page %dx%d", d.im.W, d.im.H)
+			}
 			d.zp.Decode(&d.refineFlag)
 			d.firstLeft, d.firstBottom = 0, d.im.H
 			d.prevRight = 0

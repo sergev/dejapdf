@@ -136,6 +136,9 @@ func (p *Page) Text() (*Zone, error) {
 
 func textOf(forms ...*iff.Chunk) (*Zone, error) {
 	for _, f := range forms {
+		if f == nil {
+			continue
+		}
 		for _, c := range f.Children {
 			switch c.ID {
 			case "TXTa":

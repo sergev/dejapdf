@@ -67,6 +67,10 @@ func convertFile(in, out string, quality float64, pages string, verbose bool) er
 		Producer: "dejapdf " + version,
 		Quality:  quality,
 		Warn: func(page int, err error) {
+			if page < 0 {
+				fmt.Fprintf(os.Stderr, "dejapdf: warning: %v\n", err)
+				return
+			}
 			fmt.Fprintf(os.Stderr, "dejapdf: page %d: %v\n", page+1, err)
 		},
 	}
