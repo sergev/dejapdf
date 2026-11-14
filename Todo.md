@@ -1,6 +1,6 @@
 # dejapdf — Todo
 
-Sequential plan. Each phase builds on the previous one and ends with a testable
+Sequential plan. Each phase (P2, P3, …) builds on the previous one and ends with a testable
 "Done when" criterion.
 
 ## Ground rules
@@ -44,37 +44,29 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
 
-## 1. DjVu container
+## P2. ZP-coder decoder
 
-- [x] IFF85 chunk parser (`AT&T` magic optional, FORM nesting, padding)
-- [x] FORM:DJVU (single page), FORM:DJVM (multi-page), FORM:DJVI (shared include)
-- [x] DIRM: bundled and indirect documents (BZZ-compressed part finished in phase 3)
-- [x] INCL resolution (shared dictionaries, shared annotations)
-- [x] INFO: width, height, dpi, gamma, rotation, version
-- [x] `dejapdf -dump file.djvu` prints the chunk tree
-
-Done when: `-dump` output matches `djvudump` on the corpus.
-Status: matches on the corpus and the books, except the DIRM-derived parts
-(page count, component ids and titles), which need BZZ; the test masks them
-until `bzz.Decode` stops returning `ErrNotImplemented`.
-
-## 2. ZP-coder decoder
-
-- [ ] Probability/threshold tables from the spec, adaptive context bits
-- [ ] Decoder API: `Decode(ctx *byte) int`, `DecodePassthrough() int`
+- [x] Probability/threshold tables from the spec, adaptive context bits
+      (table re-read from the scan; garbled entries reconstructed, see `docs/README.md`)
+- [x] Decoder API: `Decode(ctx *byte) int`, `DecodePassthrough() int`,
+      `DecodePassthroughIW44() int`; decoding rules corrected against DjVuLibre streams
+- [x] Test vectors: `bzz -e` streams (zeros, random, text, multi-block) and raw vectors
+      from the MIT `djvu-zp` encoder (`tmp/zpgen`, run only as a generator)
 
 Done when: unit tests pass on known streams; fuzz test runs clean.
+Status: done. IW44 pass-through is checked only against `djvu-zp`; confirm in P6 with `c44`.
 
-## 3. BZZ decompressor
+## P3. BZZ decompressor
 
-- [ ] ZP-coded block decoding, MTF, inverse Burrows–Wheeler
-- [ ] Finish DIRM: `djvu.ParseDir` already parses the decoded body; `-dump` must then
-      match `djvudump` exactly (the corpus test stops masking DIRM parts by itself)
+- [x] ZP-coded block decoding, MTF, inverse Burrows–Wheeler (pulled forward to
+      validate P2; round-trips `bzz -e` on varied inputs and block sizes)
+- [x] Finish DIRM: `-dump` matches `djvudump` exactly on the corpus and all 9 books;
+      `djvu.Open` opens bundled and indirect documents
 - [ ] Raw decode of TXTz, ANTz, NAVM
 
 Done when: decoded text and outlines match `djvused -e print-txt` / `print-outline`.
 
-## 4. JB2 decoder
+## P4. JB2 decoder
 
 Produce the *structure*, not just a bitmap.
 
@@ -89,7 +81,7 @@ Produce the *structure*, not just a bitmap.
 
 Done when: rendered masks are pixel-identical to `ddjvu -mode=mask` on the corpus.
 
-## 5. Minimal PDF writer
+## P5. Minimal PDF writer
 
 - [ ] Objects, xref table, trailer, Flate-compressed streams
 - [ ] Pages: MediaBox from INFO size and dpi, `/Rotate` from INFO
@@ -100,7 +92,7 @@ Done when: rendered masks are pixel-identical to `ddjvu -mode=mask` on the corpu
 
 Done when: `qpdf --check` passes; `pdftoppm` render matches `ddjvu` render.
 
-## 6. IW44 decoder
+## P6. IW44 decoder
 
 - [ ] Wavelet coefficient decoding (buckets, bands, slices), ZP contexts
 - [ ] Inverse wavelet transform
@@ -110,7 +102,7 @@ Done when: `qpdf --check` passes; `pdftoppm` render matches `ddjvu` render.
 
 Done when: decoded background matches `ddjvu -mode=background` (PSNR near exact).
 
-## 7. Layered page assembly
+## P7. Layered page assembly
 
 - [ ] `internal/jpx`: port the encoder path of `tmp/go-jpeg2000` (codestream, dwt 9/7,
       entropy/EBCOT encoder, mct, tcd, t2 packets, jp2 boxes); drop decoder, float/half,
@@ -125,7 +117,7 @@ Done when: decoded background matches `ddjvu -mode=background` (PSNR near exact)
 
 **Milestone B**: renders visually match `ddjvu` on the whole corpus; record size ratio per file.
 
-## 8. MQ encoder + JBIG2 generic region
+## P8. MQ encoder + JBIG2 generic region
 
 - [ ] MQ arithmetic encoder (T.88 Annex E), borrowed from `tmp/jbig2/jbig2_arith_encoder.go`
 - [ ] Generic region encoding, template 0, TPGDON, from `tmp/jbig2/jbig2_grd_encoder.go`
@@ -134,7 +126,7 @@ Done when: decoded background matches `ddjvu -mode=background` (PSNR near exact)
 
 Done when: output decodes bit-exact with `jbig2dec` and renders correctly in `mutool`.
 
-## 9. JBIG2 symbol dictionary + text region
+## P9. JBIG2 symbol dictionary + text region
 
 - [ ] Symbol dictionary segment: arithmetic coding, height classes, generic-coded symbols, no refinement
 - [ ] Text region segment: arithmetic IA* contexts, SBSYMCODELEN, REFCORNER, no transposition
@@ -145,7 +137,7 @@ Done when: output decodes bit-exact with `jbig2dec` and renders correctly in `mu
 
 **Milestone C**: mask bytes ≈ JB2 bytes; whole PDF 1–1.5× the DjVu size.
 
-## 10. Extras
+## P10. Extras
 
 - [ ] TXTz → invisible text (`3 Tr`, glyph-less font, word positioning from zones)
 - [ ] NAVM → outlines (bookmarks)
@@ -153,14 +145,14 @@ Done when: output decodes bit-exact with `jbig2dec` and renders correctly in `mu
 
 Done when: PDF is searchable and copyable in viewers; bookmarks and links work.
 
-## 11. Background rate tuning
+## P11. Background rate tuning
 
 - [ ] Choose JPX `CompressionRatio`/quality from the IW44 chunk size so the image ≈ IW44 bytes
 - [ ] Check JPX rendering in pdf.js, MuPDF, Poppler, Acrobat
 
 Done when: background bytes within ~1.2× of IW44 bytes at comparable visual quality.
 
-## 12. Hardening and UX
+## P12. Hardening and UX
 
 - [ ] Page-parallel decode/encode
 - [ ] Options: page range, quality, progress, verbose size report

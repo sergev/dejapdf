@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/sergev/dejapdf/internal/iff"
 )
@@ -45,9 +46,9 @@ func Dump(w io.Writer, root *iff.Chunk) error {
 		head := fmt.Sprintf("%s [%d] ", c.Name(), c.Size())
 		if c.Composite() {
 			if k := comps[c.Offset]; k != nil {
-				head += "{" + k.ID + "} [" + kindTag(k.Type, pageNo[c.Offset]) + "]"
+				head += "{" + printable(k.ID) + "} [" + kindTag(k.Type, pageNo[c.Offset]) + "]"
 				if k.HasTitle {
-					head += " (" + k.Title + ")"
+					head += " (" + printable(k.Title) + ")"
 				}
 			}
 			fmt.Fprintf(bw, "%s%s\n", indent, head)
@@ -75,12 +76,30 @@ func Dump(w io.Writer, root *iff.Chunk) error {
 		}
 		if c.ID == "DIRM" && dir != nil && !dir.Bundled && dirFull {
 			for _, k := range dir.Components {
-				fmt.Fprintf(bw, "%s  %s -> %s\n", indent, k.ID, k.Name)
+				fmt.Fprintf(bw, "%s  %s -> %s\n", indent, printable(k.ID), printable(k.Name))
 			}
 		}
 	}
 	walk(root, "", 0)
 	return bw.Flush()
+}
+
+// printable replaces each byte of invalid UTF-8 with '?', as djvudump does.
+func printable(s string) string {
+	if utf8.ValidString(s) {
+		return s
+	}
+	var b strings.Builder
+	for i := 0; i < len(s); {
+		r, n := utf8.DecodeRuneInString(s[i:])
+		if r == utf8.RuneError && n == 1 {
+			b.WriteByte('?')
+		} else {
+			b.WriteString(s[i : i+n])
+		}
+		i += n
+	}
+	return b.String()
 }
 
 func kindTag(t ComponentType, page int) string {

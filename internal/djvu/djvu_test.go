@@ -3,36 +3,15 @@ package djvu
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/sergev/dejapdf/internal/bzz"
 	"github.com/sergev/dejapdf/internal/iff"
 )
 
 const corpus = "../../testdata/corpus"
-
-var (
-	rePages  = regexp.MustCompile(` files \d+ pages\)`)
-	reFormID = regexp.MustCompile(`(?m)^( *FORM:\w{4} \[\d+\] ).*$`)
-	reDirEnt = regexp.MustCompile(`(?m)^ +\S+ -> \S+\n`)
-)
-
-// stripDir removes what needs the BZZ-coded part of DIRM.
-func stripDir(s string) string {
-	s = rePages.ReplaceAllString(s, " files)")
-	s = reFormID.ReplaceAllString(s, "$1")
-	return reDirEnt.ReplaceAllString(s, "")
-}
-
-func bzzMissing() bool {
-	_, err := bzz.Decode(nil)
-	return errors.Is(err, bzz.ErrNotImplemented)
-}
 
 func TestDumpCorpus(t *testing.T) {
 	goldens, _ := filepath.Glob(filepath.Join(corpus, "*.dump"))
@@ -58,12 +37,8 @@ func TestDumpCorpus(t *testing.T) {
 		if err := Dump(&buf, root); err != nil {
 			t.Fatal(err)
 		}
-		got, exp := buf.String(), string(want)
-		if bzzMissing() {
-			got, exp = stripDir(got), stripDir(exp)
-		}
-		if got != exp {
-			t.Errorf("%s:\n--- got\n%s--- want\n%s", g, got, exp)
+		if got := buf.String(); got != string(want) {
+			t.Errorf("%s:\n--- got\n%s--- want\n%s", g, got, want)
 		}
 	}
 }
@@ -169,42 +144,12 @@ func mustRead(t *testing.T, path string) []byte {
 	return b
 }
 
-// withDir builds a document from a hand-written directory, standing in
-// for the BZZ part of DIRM.
-func withDir(t *testing.T, path string, comps []Component, load Loader) *Document {
-	t.Helper()
-	root, err := iff.Parse(mustRead(t, path))
-	if err != nil {
-		t.Fatal(err)
-	}
-	dir, _, err := parseDirHeader(root.Find("DIRM").Data)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(dir.Components) != len(comps) {
-		t.Fatalf("directory has %d components, test gives %d", len(dir.Components), len(comps))
-	}
-	for i := range comps {
-		comps[i].Offset = dir.Components[i].Offset
-		if comps[i].Name == "" {
-			comps[i].Name = comps[i].ID
-		}
-	}
-	dir.Components = comps
-	d := &Document{Root: root, load: load, cache: map[string]*iff.Chunk{}}
-	if err := d.build(dir); err != nil {
-		t.Fatal(err)
-	}
-	return d
-}
-
 func TestBundled(t *testing.T) {
-	d := withDir(t, filepath.Join(corpus, "shared-dict.djvu"), []Component{
-		{ID: "p1.iff", Type: Include},
-		{ID: "p1.djvu", Type: PageComp},
-		{ID: "p4.djvu", Type: PageComp},
-	}, nil)
-	if len(d.Pages) != 2 {
+	d, err := Open(filepath.Join(corpus, "shared-dict.djvu"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(d.Pages) != 2 || !d.Dir.Bundled || len(d.Dir.Components) != 3 {
 		t.Fatalf("pages %d", len(d.Pages))
 	}
 	for _, p := range d.Pages {
@@ -215,19 +160,17 @@ func TestBundled(t *testing.T) {
 	if d.Pages[0].Includes[0] != d.Pages[1].Includes[0] {
 		t.Error("shared dictionary not shared")
 	}
+	if d.Pages[0].ID != "p1.djvu" || d.Pages[1].ID != "p4.djvu" {
+		t.Errorf("ids %q %q", d.Pages[0].ID, d.Pages[1].ID)
+	}
 }
 
 func TestIndirect(t *testing.T) {
-	dir := filepath.Join(corpus, "indirect")
-	load := func(name string) ([]byte, error) { return os.ReadFile(filepath.Join(dir, name)) }
-	d := withDir(t, filepath.Join(dir, "index.djvu"), []Component{
-		{ID: "bilevel.djvu", Type: PageComp},
-		{ID: "shared_anno.iff", Type: SharedAnno},
-		{ID: "photo.djvu", Type: PageComp},
-		{ID: "palette.djvu", Type: PageComp},
-		{ID: "compound.djvu", Type: PageComp},
-	}, load)
-	if len(d.Pages) != 4 {
+	d, err := Open(filepath.Join(corpus, "indirect", "index.djvu"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(d.Pages) != 4 || d.Dir.Bundled {
 		t.Fatalf("pages %d", len(d.Pages))
 	}
 	for _, p := range d.Pages {
@@ -240,12 +183,23 @@ func TestIndirect(t *testing.T) {
 	}
 }
 
-func TestDJVMNeedsBZZ(t *testing.T) {
-	if !bzzMissing() {
-		t.Skip("BZZ implemented")
+// Bundled and indirect forms of the same document agree.
+func TestBundledMatchesIndirect(t *testing.T) {
+	b, err := Open(filepath.Join(corpus, "bundled.djvu"))
+	if err != nil {
+		t.Fatal(err)
 	}
-	_, err := Open(filepath.Join(corpus, "bundled.djvu"))
-	if !errors.Is(err, bzz.ErrNotImplemented) {
-		t.Errorf("got %v", err)
+	i, err := Open(filepath.Join(corpus, "indirect", "index.djvu"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(b.Pages) != len(i.Pages) {
+		t.Fatalf("pages %d vs %d", len(b.Pages), len(i.Pages))
+	}
+	for n := range b.Pages {
+		p, q := b.Pages[n], i.Pages[n]
+		if p.ID != q.ID || p.Info != q.Info || len(p.Form.Children) != len(q.Form.Children) {
+			t.Errorf("page %d differs", n+1)
+		}
 	}
 }

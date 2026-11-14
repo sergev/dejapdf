@@ -117,8 +117,8 @@ func (d *Dir) parseDirBody(b []byte) error {
 	return nil
 }
 
-// ParseDir decodes a DIRM chunk. Until BZZ is implemented it returns
-// the header part together with an error wrapping bzz.ErrNotImplemented.
+// ParseDir decodes a DIRM chunk. On a BZZ error it still returns the
+// header part.
 func ParseDir(b []byte) (*Dir, error) {
 	d, rest, err := parseDirHeader(b)
 	if err != nil {
