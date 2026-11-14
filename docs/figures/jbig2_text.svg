@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="470" viewBox="0 0 940 470">
+<rect width="940" height="470" fill="white"/>
+<rect x="40" y="40" width="600" height="330" fill="white" stroke="#808080" stroke-width="1"/>
+<text x="46" y="58" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">region (0, 0) top left</text>
+<line x1="40" y1="163" x2="640" y2="163" stroke="#82b366" stroke-width="1" stroke-dasharray="5 3"/>
+<text x="636" y="156" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#82b366" text-anchor="end">strip T = 20</text>
+<rect x="76" y="106" width="54" height="60" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<circle cx="79.0" cy="163.0" r="4" fill="#d62728"/>
+<text x="80" y="200" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#d62728" text-anchor="start">S = 6</text>
+<rect x="142" y="124" width="48" height="42" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<circle cx="145.0" cy="163.0" r="4" fill="#d62728"/>
+<line x1="124" y1="182" x2="139.5" y2="182" stroke="#2060c0" stroke-width="1.2"/>
+<polygon points="145,182 138.55,184.73 138.55,179.27" fill="#2060c0" stroke="none" stroke-width="1"/>
+<text x="133" y="200" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#2060c0" text-anchor="middle">3</text>
+<rect x="202" y="88" width="60" height="78" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<circle cx="205.0" cy="163.0" r="4" fill="#d62728"/>
+<line x1="184" y1="182" x2="199.5" y2="182" stroke="#2060c0" stroke-width="1.2"/>
+<polygon points="205,182 198.55,184.73 198.55,179.27" fill="#2060c0" stroke="none" stroke-width="1"/>
+<text x="193" y="200" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#2060c0" text-anchor="middle">3</text>
+<rect x="280" y="106" width="54" height="60" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<circle cx="283.0" cy="163.0" r="4" fill="#d62728"/>
+<line x1="256" y1="182" x2="277.5" y2="182" stroke="#2060c0" stroke-width="1.2"/>
+<polygon points="283,182 276.55,184.73 276.55,179.27" fill="#2060c0" stroke="none" stroke-width="1"/>
+<text x="268" y="200" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#2060c0" text-anchor="middle">4</text>
+<line x1="40" y1="307" x2="640" y2="307" stroke="#82b366" stroke-width="1" stroke-dasharray="5 3"/>
+<text x="636" y="300" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#82b366" text-anchor="end">strip T = 44</text>
+<rect x="94" y="250" width="54" height="60" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<circle cx="97.0" cy="307.0" r="4" fill="#d62728"/>
+<text x="98" y="344" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#d62728" text-anchor="start">S = 9</text>
+<rect x="160" y="250" width="66" height="60" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<circle cx="163.0" cy="307.0" r="4" fill="#d62728"/>
+<line x1="142" y1="326" x2="157.5" y2="326" stroke="#2060c0" stroke-width="1.2"/>
+<polygon points="163,326 156.55,328.73 156.55,323.27" fill="#2060c0" stroke="none" stroke-width="1"/>
+<text x="151" y="344" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#2060c0" text-anchor="middle">3</text>
+<rect x="238" y="268" width="48" height="42" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<circle cx="241.0" cy="307.0" r="4" fill="#d62728"/>
+<line x1="220" y1="326" x2="235.5" y2="326" stroke="#2060c0" stroke-width="1.2"/>
+<polygon points="241,326 234.55,328.73 234.55,323.27" fill="#2060c0" stroke="none" stroke-width="1"/>
+<text x="229" y="344" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#2060c0" text-anchor="middle">3</text>
+<rect x="298" y="250" width="72" height="60" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<circle cx="301.0" cy="307.0" r="4" fill="#d62728"/>
+<line x1="280" y1="326" x2="295.5" y2="326" stroke="#2060c0" stroke-width="1.2"/>
+<polygon points="301,326 294.55,328.73 294.55,323.27" fill="#2060c0" stroke="none" stroke-width="1"/>
+<text x="289" y="344" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#2060c0" text-anchor="middle">3</text>
+<rect x="670" y="40" width="250" height="120" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="795" y="64" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">per strip: delta T (IADT)</text>
+<text x="795" y="85.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">first S: delta from the</text>
+<text x="795" y="106.5" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">previous strip's first S (IAFS)</text>
+<text x="795" y="127.75" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">then per instance: ID (IAID)</text>
+<rect x="670" y="176" width="250" height="194" fill="#fafafa" stroke="#cccccc" stroke-width="1.2" rx="3"/>
+<text x="795" y="200" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">next S (IADS) = gap from</text>
+<text x="795" y="221.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">the previous right edge:</text>
+<text x="795" y="242.5" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">S − (S′ + W′ − 1) − DSOFFSET</text>
+<text x="795" y="263.75" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle"></text>
+<text x="795" y="285" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">OOB (IADS) ends the strip</text>
+<text x="795" y="306.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle"></text>
+<text x="795" y="327.5" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">red dot: reference corner,</text>
+<text x="795" y="348.75" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">BOTTOMLEFT</text>
+<text x="470" y="404" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">Strips of height 1, 2, 4 or 8 group instances by T; inside a strip each instance codes</text>
+<text x="470" y="425.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">its T offset (IAIT) unless the strip height is 1. All S and T values are in pixels.</text>
+</svg>

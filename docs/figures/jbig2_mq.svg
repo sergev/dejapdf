@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="560" viewBox="0 0 940 560">
+<rect width="940" height="560" fill="white"/>
+<rect x="20" y="20" width="420" height="44" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="230" y="48.25" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="middle">Qe = Qe(I(CX));  A = A − Qe</text>
+<line x1="230" y1="64" x2="230" y2="80.5" stroke="#333333" stroke-width="1.2"/>
+<polygon points="230,86 227.27,79.55 232.73,79.55" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="130" y="88" width="200" height="40" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="230" y="114.25" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="middle">D = MPS(CX)?</text>
+<line x1="130" y1="108" x2="95.5" y2="108" stroke="#333333" stroke-width="1.2"/>
+<polygon points="90,108 96.45,105.27 96.45,110.73" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="110" y="100" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="middle">yes</text>
+<rect x="10" y="150" width="250" height="124" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="135" y="178.89" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="middle">MPS</text>
+<text x="135" y="198.27" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="middle">if A ≥ 0x8000: C += Qe</text>
+<text x="135" y="217.65" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="middle">else: if A &lt; Qe: A = Qe</text>
+<text x="135" y="237.03" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="middle">      else C += Qe</text>
+<text x="135" y="256.41" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="middle">  I(CX) = NMPS; RENORME</text>
+<line x1="90" y1="108" x2="90" y2="148" stroke="#333333" stroke-width="1"/>
+<polygon points="90,150 87.27,143.55 92.73,143.55" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="330" y1="108" x2="364.5" y2="108" stroke="#333333" stroke-width="1.2"/>
+<polygon points="370,108 363.55,110.73 363.55,105.27" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="370" y1="108" x2="370" y2="148" stroke="#333333" stroke-width="1"/>
+<polygon points="370,150 367.27,143.55 372.73,143.55" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="350" y="100" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="middle">no</text>
+<rect x="275" y="150" width="240" height="124" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.2" rx="3"/>
+<text x="395" y="178.89" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="middle">LPS</text>
+<text x="395" y="198.27" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="middle">if A &lt; Qe: C += Qe</text>
+<text x="395" y="217.65" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="middle">else A = Qe</text>
+<text x="395" y="237.03" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="middle">if SWITCH: flip MPS</text>
+<text x="395" y="256.41" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#333333" text-anchor="middle">I(CX) = NLPS; RENORME</text>
+<text x="260" y="300" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="middle">the swap when A &lt; Qe is the conditional exchange</text>
+<rect x="560" y="20" width="360" height="96" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="740" y="43.35" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">RENORME: repeat</text>
+<text x="740" y="63.75" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">A &lt;&lt;= 1; C &lt;&lt;= 1; CT −= 1</text>
+<text x="740" y="84.15" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">if CT = 0: BYTEOUT</text>
+<text x="740" y="104.55" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">until A ≥ 0x8000</text>
+<rect x="560" y="136" width="360" height="150" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="740" y="165.95" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">BYTEOUT (B = last byte out)</text>
+<text x="740" y="186.35" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">if B = 0xFF: B = C &gt;&gt; 20 (7 bits)</text>
+<text x="740" y="206.75" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">else if carry in C:</text>
+<text x="740" y="227.15" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">   B += 1, and if B = 0xFF</text>
+<text x="740" y="247.55" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">   stuff as above</text>
+<text x="740" y="267.95" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">else B = C &gt;&gt; 19 (8 bits)</text>
+<line x1="740" y1="116" x2="740" y2="128.5" stroke="#333333" stroke-width="1.2"/>
+<polygon points="740,134 737.27,127.55 742.73,127.55" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="20" y="330" width="440" height="70" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="240" y="360.75" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">INITENC: A = 0x8000, C = 0, CT = 12</text>
+<text x="240" y="381.15" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">all contexts: I = 0, MPS = 0</text>
+<rect x="480" y="330" width="440" height="116" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="700" y="363.35" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">FLUSH: set the low 16 bits of C to 1</text>
+<text x="700" y="383.75" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">if that leaves the interval, drop 0x8000</text>
+<text x="700" y="404.15" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">two BYTEOUTs, then the marker FF AC</text>
+<text x="700" y="424.55" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">(an FF already out is reused)</text>
+<text x="470" y="488" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">Registers: A interval (16 bits), C code (28 bits), CT bits left before the next byte.</text>
+<text x="470" y="509.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">After an 0xFF byte the next byte carries 7 bits, so a carry can never ripple past it.</text>
+<text x="470" y="530.5" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">Checked: the Annex H test sequence encodes to the 30 bytes in the spec.</text>
+</svg>

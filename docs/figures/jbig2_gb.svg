@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="320" viewBox="0 0 940 320">
+<rect width="940" height="320" fill="white"/>
+<text x="143" y="32" font-family="Helvetica, Arial, sans-serif" font-size="19.55" fill="#333333" text-anchor="middle" font-weight="bold">GBTEMPLATE 0: 16 pixels</text>
+<rect x="104" y="48" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="130" y="48" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="156" y="48" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="78" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="104" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="130" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="156" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="182" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="26" y="100" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="52" y="100" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="78" y="100" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="104" y="100" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="208" y="74" width="26" height="26" fill="#d5e8d4" stroke="#82b366" stroke-width="1"/>
+<text x="221" y="91" font-family="Helvetica, Arial, sans-serif" font-size="14.45" fill="#333333" text-anchor="middle">A1</text>
+<rect x="52" y="74" width="26" height="26" fill="#d5e8d4" stroke="#82b366" stroke-width="1"/>
+<text x="65" y="91" font-family="Helvetica, Arial, sans-serif" font-size="14.45" fill="#333333" text-anchor="middle">A2</text>
+<rect x="182" y="48" width="26" height="26" fill="#d5e8d4" stroke="#82b366" stroke-width="1"/>
+<text x="195" y="65" font-family="Helvetica, Arial, sans-serif" font-size="14.45" fill="#333333" text-anchor="middle">A3</text>
+<rect x="78" y="48" width="26" height="26" fill="#d5e8d4" stroke="#82b366" stroke-width="1"/>
+<text x="91" y="65" font-family="Helvetica, Arial, sans-serif" font-size="14.45" fill="#333333" text-anchor="middle">A4</text>
+<rect x="130" y="100" width="26" height="26" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+<text x="143" y="117" font-family="Helvetica, Arial, sans-serif" font-size="15.3" fill="#333333" text-anchor="middle" font-weight="bold">X</text>
+<text x="483" y="32" font-family="Helvetica, Arial, sans-serif" font-size="19.55" fill="#333333" text-anchor="middle" font-weight="bold">1: 13 pixels</text>
+<rect x="444" y="48" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="470" y="48" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="496" y="48" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="522" y="48" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="418" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="444" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="470" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="496" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="522" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="392" y="100" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="418" y="100" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="444" y="100" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="548" y="74" width="26" height="26" fill="#d5e8d4" stroke="#82b366" stroke-width="1"/>
+<text x="561" y="91" font-family="Helvetica, Arial, sans-serif" font-size="14.45" fill="#333333" text-anchor="middle">A1</text>
+<rect x="470" y="100" width="26" height="26" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+<text x="483" y="117" font-family="Helvetica, Arial, sans-serif" font-size="15.3" fill="#333333" text-anchor="middle" font-weight="bold">X</text>
+<text x="803" y="32" font-family="Helvetica, Arial, sans-serif" font-size="19.55" fill="#333333" text-anchor="middle" font-weight="bold">2: 10 pixels</text>
+<rect x="764" y="48" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="790" y="48" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="816" y="48" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="738" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="764" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="790" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="816" y="74" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="738" y="100" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="764" y="100" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="842" y="74" width="26" height="26" fill="#d5e8d4" stroke="#82b366" stroke-width="1"/>
+<text x="855" y="91" font-family="Helvetica, Arial, sans-serif" font-size="14.45" fill="#333333" text-anchor="middle">A1</text>
+<rect x="790" y="100" width="26" height="26" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+<text x="803" y="117" font-family="Helvetica, Arial, sans-serif" font-size="15.3" fill="#333333" text-anchor="middle" font-weight="bold">X</text>
+<text x="313" y="198" font-family="Helvetica, Arial, sans-serif" font-size="19.55" fill="#333333" text-anchor="middle" font-weight="bold">3: 10 pixels, 2 rows</text>
+<rect x="222" y="214" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="248" y="214" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="274" y="214" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="300" y="214" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="326" y="214" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="196" y="240" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="222" y="240" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="248" y="240" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="274" y="240" width="26" height="26" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<rect x="352" y="214" width="26" height="26" fill="#d5e8d4" stroke="#82b366" stroke-width="1"/>
+<text x="365" y="231" font-family="Helvetica, Arial, sans-serif" font-size="14.45" fill="#333333" text-anchor="middle">A1</text>
+<rect x="300" y="240" width="26" height="26" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+<text x="313" y="257" font-family="Helvetica, Arial, sans-serif" font-size="15.3" fill="#333333" text-anchor="middle" font-weight="bold">X</text>
+<text x="700" y="216" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">X: the pixel being coded</text>
+<text x="700" y="237.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">blue: fixed neighbours</text>
+<text x="700" y="258.5" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">green: AT pixels, movable</text>
+<text x="700" y="279.75" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">outside the bitmap = 0</text>
+</svg>

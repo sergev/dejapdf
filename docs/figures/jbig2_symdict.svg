@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="400" viewBox="0 0 940 400">
+<rect width="940" height="400" fill="white"/>
+<rect x="20" y="40" width="900" height="130" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="36" y="66" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="start" font-weight="bold">height class 5</text>
+<text x="36" y="90" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start">delta height +5</text>
+<text x="36" y="112" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">IADH</text>
+<rect x="250" y="74" width="45" height="45" fill="white" stroke="#808080" stroke-width="0.6"/>
+<rect x="259" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="268" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="277" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="250" y="83" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="286" y="83" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="250" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="259" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="268" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="277" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="286" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="250" y="101" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="259" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="268" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="277" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="272.5" y="142" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">+5</text>
+<rect x="365" y="74" width="45" height="45" fill="white" stroke="#808080" stroke-width="0.6"/>
+<rect x="374" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="383" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="392" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="401" y="83" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="374" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="383" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="392" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="401" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="365" y="101" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="401" y="101" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="374" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="383" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="392" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="401" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="387.5" y="142" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">+0</text>
+<rect x="480" y="74" width="45" height="45" fill="white" stroke="#808080" stroke-width="0.6"/>
+<rect x="489" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="498" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="507" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="480" y="83" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="516" y="83" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="480" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="516" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="480" y="101" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="516" y="101" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="489" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="498" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="507" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="502.5" y="142" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">+0</text>
+<rect x="595" y="74" width="45" height="45" fill="white" stroke="#808080" stroke-width="0.6"/>
+<rect x="595" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="604" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="622" y="74" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="595" y="83" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="613" y="83" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="631" y="83" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="595" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="613" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="631" y="92" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="595" y="101" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="613" y="101" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="631" y="101" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="595" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="613" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="631" y="110" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="617.5" y="142" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">+0</text>
+<text x="710" y="100" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">OOB</text>
+<text x="710" y="122" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">ends the class</text>
+<text x="250" y="162" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">delta widths (IADW), each followed by the symbol's bitmap (generic coding)</text>
+<rect x="20" y="190" width="900" height="130" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="36" y="216" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="start" font-weight="bold">height class 7</text>
+<text x="36" y="240" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start">delta height +2</text>
+<text x="36" y="262" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">IADH</text>
+<rect x="250" y="206" width="9" height="63" fill="white" stroke="#808080" stroke-width="0.6"/>
+<rect x="250" y="206" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="250" y="215" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="250" y="224" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="250" y="233" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="250" y="242" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="250" y="251" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="250" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="254.5" y="292" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">+1</text>
+<rect x="350" y="206" width="45" height="63" fill="white" stroke="#808080" stroke-width="0.6"/>
+<rect x="350" y="206" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="350" y="215" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="350" y="224" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="359" y="224" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="368" y="224" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="377" y="224" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="350" y="233" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="386" y="233" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="350" y="242" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="386" y="242" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="350" y="251" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="386" y="251" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="350" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="359" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="368" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="377" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="372.5" y="292" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">+4</text>
+<rect x="465" y="206" width="45" height="63" fill="white" stroke="#808080" stroke-width="0.6"/>
+<rect x="501" y="206" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="501" y="215" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="474" y="224" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="483" y="224" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="492" y="224" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="501" y="224" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="465" y="233" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="501" y="233" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="465" y="242" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="501" y="242" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="465" y="251" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="501" y="251" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="474" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="483" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="492" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="501" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="487.5" y="292" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">+0</text>
+<rect x="580" y="206" width="45" height="63" fill="white" stroke="#808080" stroke-width="0.6"/>
+<rect x="589" y="206" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="598" y="206" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="607" y="206" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="616" y="206" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="580" y="215" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="616" y="215" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="580" y="224" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="616" y="224" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="589" y="233" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="598" y="233" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="607" y="233" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="616" y="233" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="616" y="242" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="616" y="251" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="589" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="598" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="607" y="260" width="9" height="9" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="602.5" y="292" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">+0</text>
+<text x="695" y="250" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">OOB</text>
+<text x="695" y="272" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">ends the class</text>
+<text x="250" y="312" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">delta widths (IADW), each followed by the symbol's bitmap (generic coding)</text>
+<rect x="20" y="340" width="900" height="46" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="470" y="368" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="middle">then the export flags: run lengths (IAEX) of not-exported / exported symbols, e.g. 0, 8</text>
+</svg>

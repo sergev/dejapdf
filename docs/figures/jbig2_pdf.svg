@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="470" viewBox="0 0 940 470">
+<rect width="940" height="470" fill="white"/>
+<text x="20" y="26" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="start" font-weight="bold">JBIG2Globals stream (shared)</text>
+<rect x="20" y="38" width="420" height="70" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<rect x="30" y="48" width="400" height="50" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="40" y="69" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">0</text>
+<text x="70" y="69" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">symbol dictionary: Djbz</text>
+<text x="70" y="89" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">page 0, all symbols exported</text>
+<text x="20" y="150" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="start" font-weight="bold">image stream for PDF page 1</text>
+<rect x="20" y="162" width="440" height="236" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<rect x="30" y="172" width="420" height="50" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="40" y="193" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">1</text>
+<text x="70" y="193" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">page information</text>
+<text x="70" y="213" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">page 1: size, default pixel 0, OR</text>
+<rect x="30" y="228" width="420" height="50" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="40" y="249" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">2</text>
+<text x="70" y="249" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">symbol dictionary: this page's own shapes</text>
+<text x="70" y="269" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">page 1</text>
+<rect x="30" y="284" width="420" height="50" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="40" y="305" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">3</text>
+<text x="70" y="305" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">immediate text region: the blits</text>
+<text x="70" y="325" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">page 1, refers to 0 and 2</text>
+<rect x="30" y="340" width="420" height="50" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.2" rx="3"/>
+<text x="40" y="361" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">4</text>
+<text x="70" y="361" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">immediate generic region</text>
+<text x="70" y="381" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">page 1, a non-symbol bitmap</text>
+<text x="480" y="150" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="start" font-weight="bold">image stream for PDF page 2</text>
+<rect x="480" y="162" width="440" height="236" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<rect x="490" y="172" width="420" height="50" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="500" y="193" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">1</text>
+<text x="530" y="193" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">page information</text>
+<text x="530" y="213" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">page 1: size, default pixel 0, OR</text>
+<rect x="490" y="228" width="420" height="50" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="500" y="249" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">2</text>
+<text x="530" y="249" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">symbol dictionary: this page's own shapes</text>
+<text x="530" y="269" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">page 1</text>
+<rect x="490" y="284" width="420" height="50" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="500" y="305" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">3</text>
+<text x="530" y="305" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">immediate text region: the blits</text>
+<text x="530" y="325" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">page 1, refers to 0 and 2</text>
+<rect x="490" y="340" width="420" height="50" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.2" rx="3"/>
+<text x="500" y="361" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="start" font-weight="bold">4</text>
+<text x="530" y="361" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">immediate generic region</text>
+<text x="530" y="381" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">page 1, a non-symbol bitmap</text>
+<path d="M440,309 C462,309 470,73 434,73" fill="none" stroke="#9673a6" stroke-width="1.2" stroke-dasharray="4 3"/>
+<polygon points="434,73 440.45,70.27 440.45,75.73" fill="#9673a6" stroke="none" stroke-width="1"/>
+<path d="M900,160 C900,70 560,56 442,62" fill="none" stroke="#9673a6" stroke-width="1.2" stroke-dasharray="4 3"/>
+<polygon points="442,62 448.3,58.95 448.58,64.39" fill="#9673a6" stroke="none" stroke-width="1"/>
+<text x="470" y="424" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">Each image is decoded alone, with the globals: every page stream is page 1, and numbers</text>
+<text x="470" y="445.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">need only be unique within globals + one stream. No file header, no end segments.</text>
+</svg>

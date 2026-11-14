@@ -4,6 +4,9 @@ Articles:
 
 - [DjVu_Format.md](DjVu_Format.md): the parts of DjVu that dejapdf
   decodes, from the container to JB2, IW44, text and annotations.
+- [JBIG2_Coding.md](JBIG2_Coding.md): the subset of JBIG2 that dejapdf
+  encodes (MQ coder, generic region, symbol dictionary, text region) and how
+  it goes into PDF.
 - [Portable_Document_Format.md](Portable_Document_Format.md): the parts of
   PDF that dejapdf writes.
 
