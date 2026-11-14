@@ -1,6 +1,6 @@
 # dejapdf — Todo
 
-Sequential plan. Each phase (P10, P11, …) builds on the previous one and ends with a testable
+Sequential plan. Each phase (P11, P12) builds on the previous one and ends with a testable
 "Done when" criterion.
 
 ## Ground rules
@@ -44,14 +44,6 @@ Sequential plan. Each phase (P10, P11, …) builds on the previous one and ends 
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
 
-## P10. Extras
-
-- [ ] TXTz → invisible text (`3 Tr`, glyph-less font, word positioning from zones)
-- [ ] NAVM → outlines (bookmarks)
-- [ ] ANTz → link annotations (`/URI` and internal page links), metadata → document info
-
-Done when: PDF is searchable and copyable in viewers; bookmarks and links work.
-
 ## P11. Background rate tuning
 
 - [x] JPX byte budget = IW44 chunk size × `-q` (done in P7, PCRD-opt in `internal/jpx`)
@@ -64,6 +56,7 @@ Done when: background bytes within ~1.2× of IW44 bytes at comparable visual qua
 - [x] Page-parallel decode/encode (done in P7)
 - [ ] Options: page range, progress, verbose size report (`-q` exists)
 - [ ] Graceful handling of broken or unknown chunks
+- [ ] Page labels from DIRM page titles; XMP metadata (ANTz `xmp`)
 - [ ] Striped Smmr masks (one CCITT stencil per stripe); an Smmr page with a varying FG44
       (now painted black)
 - [ ] FG layers in viewers: MuPDF and Poppler interpolate a 12× upscaled FG44, blending

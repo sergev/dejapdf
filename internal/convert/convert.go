@@ -28,6 +28,12 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		opt.Quality = 1
 	}
 	p := pdf.NewWriter(w)
+	pages := make([]pdf.Ref, len(doc.Pages))
+	for i := range pages {
+		pages[i] = p.Alloc()
+	}
+	tg := newTargets(doc)
+	font := &textFont{}
 	// Pages are built in parallel and written in order.
 	type result struct {
 		b   *pageBuilder
@@ -42,10 +48,16 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 	go func() {
 		for i, pg := range doc.Pages {
 			window <- struct{}{}
-			go func(c chan result) {
+			go func(i int, c chan result) {
 				b, err := build(doc, pg, &opt, dicts)
+				if err == nil {
+					err = text(b, pg)
+				}
+				if err == nil {
+					err = links(b, pg, tg, i, len(pages))
+				}
 				c <- result{b, err}
-			}(results[i])
+			}(i, results[i])
 		}
 	}()
 	var err error
@@ -55,7 +67,7 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 			err = fmt.Errorf("page %d: %w", i+1, r.err)
 		}
 		if err == nil {
-			r.b.emit(p)
+			r.b.emit(p, pages[i], pages, font)
 		}
 		<-window
 	}
@@ -63,15 +75,21 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		return err
 	}
 	info := pdf.Dict{}
+	if len(doc.Pages) > 0 {
+		metadata(doc.Pages[0], info)
+	}
 	if opt.Producer != "" {
 		info["Producer"] = pdf.TextString(opt.Producer)
 	}
-	if len(doc.Pages) > 0 {
-		if t := title(doc.Pages[0]); t != "" {
-			info["Title"] = pdf.TextString(t)
-		}
+	var cat pdf.Dict
+	bms, err := doc.Outline()
+	if err != nil {
+		return err
 	}
-	return p.Close(nil, info)
+	if len(bms) > 0 {
+		cat = pdf.Dict{"Outlines": outline(p, bms, tg, pages), "PageMode": pdf.Name("UseOutlines")}
+	}
+	return p.Close(cat, info)
 }
 
 // pageBuilder collects a page's content and objects.
@@ -82,6 +100,8 @@ type pageBuilder struct {
 	xobj    pdf.Dict // name to local
 	content []byte
 	shared  *sharedDicts
+	font    bool       // the content uses the hidden-text font
+	annots  []pdf.Dict // pageNum values refer to pages
 }
 
 // object is a stream to write; local values in its dictionary refer to
@@ -100,28 +120,36 @@ func (b *pageBuilder) obj(d pdf.Dict, data []byte) local {
 	return local(len(b.objs) - 1)
 }
 
-// emit writes the page and its objects.
-func (b *pageBuilder) emit(p *pdf.Writer) {
+// emit writes the page as object r, and its objects.
+func (b *pageBuilder) emit(p *pdf.Writer, r pdf.Ref, pages []pdf.Ref, font *textFont) {
 	refs := make([]pdf.Ref, len(b.objs))
 	for i := range refs {
 		refs[i] = p.Alloc()
 	}
-	var resolve func(d pdf.Dict)
-	resolve = func(d pdf.Dict) {
-		for k, v := range d {
-			switch v := v.(type) {
-			case local:
-				d[k] = refs[v]
-			case *shared:
-				if v.ref == 0 {
-					v.ref = p.AddStream(pdf.Dict{}, v.data)
-				}
-				d[k] = v.ref
-			case pdf.Dict:
-				resolve(v)
+	var value func(v any) any
+	value = func(v any) any {
+		switch v := v.(type) {
+		case local:
+			return refs[v]
+		case pageNum:
+			return pages[v]
+		case *shared:
+			if v.ref == 0 {
+				v.ref = p.AddStream(pdf.Dict{}, v.data)
+			}
+			return v.ref
+		case pdf.Dict:
+			for k, e := range v {
+				v[k] = value(e)
+			}
+		case pdf.Array:
+			for i, e := range v {
+				v[i] = value(e)
 			}
 		}
+		return v
 	}
+	resolve := func(d pdf.Dict) { value(d) }
 	for i, o := range b.objs {
 		resolve(o.dict)
 		p.Stream(refs[i], o.dict, o.data)
@@ -131,7 +159,16 @@ func (b *pageBuilder) emit(p *pdf.Writer) {
 	if len(b.xobj) > 0 {
 		res["XObject"] = b.xobj
 	}
-	p.AddPage(pdf.Page{Width: b.w, Height: b.h, Rotate: b.in.Rotate, Resources: res, Content: b.content})
+	if b.font {
+		res["Font"] = pdf.Dict{"Tx": font.get(p)}
+	}
+	var annots pdf.Array
+	for _, a := range b.annots {
+		resolve(a)
+		annots = append(annots, p.Add(a))
+	}
+	p.AddPage(pdf.Page{Ref: r, Width: b.w, Height: b.h, Rotate: b.in.Rotate,
+		Resources: res, Content: b.content, Annots: annots})
 }
 
 // draw paints XObject name over the area a layer of iw×ih pixels covers.
@@ -392,20 +429,4 @@ func jpx(im *iw44.Image, budget int) (pdf.Dict, []byte, error) {
 // num formats a coordinate.
 func num(f float64) string {
 	return string(pdf.AppendReal(nil, f))
-}
-
-// title returns the Title from the page's (metadata ...) annotations.
-func title(pg *djvu.Page) string {
-	ann, _ := pg.Annotations()
-	for _, a := range ann {
-		if a.Head() != "metadata" {
-			continue
-		}
-		for _, kv := range a.List[1:] {
-			if kv.Head() == "Title" && len(kv.List) == 2 && kv.List[1].Quoted {
-				return kv.List[1].Atom
-			}
-		}
-	}
-	return ""
 }

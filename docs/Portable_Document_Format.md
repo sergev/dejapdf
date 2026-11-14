@@ -321,11 +321,12 @@ photo pages 45–54 dB (the JPX at 1×); compound pages 29.5 dB, the JPEG page
 interpolate an FG layer upscaled 12 times, ddjvu takes the nearest sample.
 Sample pages of the books: text pages identical, colour pages 39–47 dB.
 
-All 14 books convert and pass `qpdf --check`, in 0.4–13 s on 16 threads.
-The PDFs are 0.79–1.08× the DjVu size (1.9–13.6× with Flate masks, 1.04–4.6×
-with one JBIG2 generic region a page); the masks are 1.04–1.13× their JB2
-data, the colour layers 0.65–1.00× their IW44 data. The DjVu figure includes
-the hidden text, which the PDF does not carry yet (P10).
+All 15 books convert and pass `qpdf --check`, in 0.5–14 s on 16 threads.
+With hidden text, bookmarks and links, the PDFs are 0.99–1.11× the DjVu size
+(one scanned book with large colour layers: 1.22×). Before symbol
+dictionaries they were 1.9–13.6× with Flate masks, 1.04–4.6× with one JBIG2
+generic region a page. The masks are 1.04–1.13× their JB2 data, the colour
+layers 0.65–1.00× their IW44 data, the hidden text 0.90–1.08× its TXTz.
 
 ## 10. JBIG2Decode
 
@@ -380,8 +381,28 @@ searchable and extractable.
 
 **Fitting a word.** Each glyph advances `w0/1000 × size × Tz/100` (9.4.4). With
 a constant width `DW` for every glyph, a word of n characters needs
-`k = 100 × boxwidth / (n × DW/1000 × size)`. One `Td`, `Tz`, `Tj` per word, or
-one `TJ` per line with spacing adjustments.
+`k = 100 × boxwidth / (n × DW/1000 × size)`.
+
+What dejapdf writes, per page:
+
+```
+q s 0 0 s 0 0 cm BT 3 Tr           % s = 72/dpi: units are DjVu pixels
+/Tx 50 Tf 300 3010 Td 196 Tz (…)Tj % line height; first word, absolute
+245 0 Td 144 Tz (…)Tj              % next word, relative to the last
+ET Q
+```
+
+- Words of a line take the line's bottom and height, so `Tf` and the `Td` y
+  change once a line; the selection highlight is one even band.
+- A word that has a next word on its line gets a trailing space, and its `Tz`
+  stretches it to that word's start: copied text keeps the gaps, and
+  extractors need not guess them.
+- Integer pixel coordinates and integer `Tz`; strings are literal binary
+  UTF-16BE (only `(`, `)`, `\` and CR escaped).
+
+Compared with `Tm` per word in points and hex strings, this halves the
+text's size: from 1.5–1.9× the TXTz chunks to 0.90–1.08×. Flate at its
+best level saves another 1.6% of the whole file at no visible cost in time.
 
 **Fonts.** The 14 standard fonts (Helvetica …) need no embedding but cover
 Latin only. Russian books need a *composite font* (9.7):
@@ -408,7 +429,8 @@ each character as its CID, and a ToUnicode CMap mapping every CID to itself
 endcmap CMapName currentdict /CMap defineresource pop end end
 ```
 
-Then `Привет` is `<041F04400438043204350442> Tj`, and `pdftotext` returns
+Then `Привет` is `<041F04400438043204350442> Tj` (or the same bytes as a
+literal string), and `pdftotext` returns
 `Привет` with the word box exactly where it was put (*checked*: both MuPDF and
 Poppler report x from 50 to 350 for a 300-point box). A non-embedded CIDFont
 needs a predefined CMap such as Identity-H (9.7.6) and a font descriptor
@@ -417,6 +439,15 @@ needs a predefined CMap such as Identity-H (9.7.6) and a font descriptor
 highlight. Embedding a tiny glyph-less TrueType font instead makes the file
 self-contained (PDF/A wants this); characters outside the BMP would need
 surrogate pairs in ToUnicode.
+
+dejapdf embeds a 296-byte TrueType (`FontFile2`, written once per file, only
+if some page has text): `head`, `hhea`, `hmtx`, `maxp`, `loca`, `glyf` and
+`post`, no `cmap` (a CIDFontType2 maps CIDs to glyphs by `/CIDToGIDMap`, here
+a Flate stream sending all 65536 CIDs to glyph 1). Glyph 1 is a 500 × 1000
+*box*, not empty: MuPDF gives empty glyphs zero-height boxes and drops some
+of their characters from extraction (*checked*: page 1 of the bundled corpus
+file came out empty). Render mode 3 never paints the box (*checked*: MuPDF,
+Poppler and Ghostscript renders unchanged).
 
 ## 13. Outlines and destinations
 
@@ -433,6 +464,10 @@ A destination (12.3.2) is an array: `[page /XYZ left top zoom]` (`null`
 keeps the current value; a zoom of 0 means the same, but write `null`:
 `mutool show outline` prints 0 as `nan`), `[page /Fit]`, `[page /FitH top]`. `page` is the page object. DjVu's NAVM
 bookmarks `("Title" "#n" children…)` map one to one, `#n` being page n.
+DjVu URLs also name a page by its component id or title (`#p0003.djvu`, as
+pdf2djvu writes them) or relative to the current page (`#+1`, `#-1`); ids
+and titles are tried first. dejapdf writes `[page /XYZ null null null]`,
+every item closed, and `/PageMode /UseOutlines`.
 
 ## 14. Links
 
@@ -448,8 +483,10 @@ A link is an annotation in the page's `/Annots` (12.5.6.5):
 External links use a URI action (12.6.4.7), internal ones a destination or a
 GoTo action (12.6.4.2). DjVu's `(maparea "url" "comment" (rect x y w h))` gives
 `Rect [x y x+w y+h] × 72/dpi`; a url `#n` is page n. The comment can go into
-`/Contents`. Other maparea shapes (oval, poly, text) become their bounding
-rectangle.
+`/Contents`. Oval and poly areas become their bounding rectangle; text and
+line areas (notes and drawings, not links) are dropped, as are mapareas
+with an empty url. Page targets are allocated before any page is written,
+so a link can point forward.
 
 ## 15. Metadata and strings
 
@@ -461,7 +498,10 @@ metadata (ANTz `metadata`) maps to it by name.
 with a byte order mark: `<FEFF0422043504410442>` is "Тест" (*checked* with
 `pdfinfo`). Write ASCII as a literal string, anything else as UTF-16BE hex.
 
-**Dates** (7.9.4): `(D:20261113120000Z)` or `(D:20261113120000+03'00)`.
+**Dates** (7.9.4): `(D:20261113120000Z)` or `(D:20261113120000+03'00')`.
+djvused writes `2026-11-13 19:38:50-08:00`; pdf2djvu copies the PDF's dates
+this way. dejapdf converts that and RFC 3339 dates and drops the rest;
+`/Producer` is always dejapdf's.
 
 ## 16. Keeping it small, and checking it
 

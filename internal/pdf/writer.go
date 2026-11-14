@@ -135,19 +135,22 @@ func (p *Writer) AddStream(d Dict, data []byte) Ref {
 // Flate compresses data for /FlateDecode.
 func Flate(data []byte) []byte {
 	var b bytes.Buffer
-	z, _ := zlib.NewWriterLevel(&b, zlib.DefaultCompression)
+	z, _ := zlib.NewWriterLevel(&b, zlib.BestCompression)
 	z.Write(data)
 	z.Close()
 	return b.Bytes()
 }
 
 // Page is one page. Width and Height are in points. Content is the
-// unencoded content stream.
+// unencoded content stream. Ref, if not 0, is the page's allocated
+// object; Annots are references to its annotations.
 type Page struct {
+	Ref           Ref
 	Width, Height float64
 	Rotate        int
 	Resources     Dict
 	Content       []byte
+	Annots        Array
 }
 
 // pageFanout is the number of pages per intermediate page tree node.
@@ -178,7 +181,14 @@ func (p *Writer) AddPage(pg Page) Ref {
 	if pg.Rotate != 0 {
 		d["Rotate"] = pg.Rotate
 	}
-	r := p.Add(d)
+	if len(pg.Annots) > 0 {
+		d["Annots"] = pg.Annots
+	}
+	r := pg.Ref
+	if r == 0 {
+		r = p.Alloc()
+	}
+	p.Object(r, d)
 	p.pages = append(p.pages, r)
 	return r
 }
