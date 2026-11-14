@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/sergev/dejapdf/internal/iff"
+	"github.com/sergev/dejapdf/internal/jb2"
 )
 
 // Loader reads a file that an indirect document or an INCL refers to.
@@ -21,6 +22,7 @@ type Document struct {
 
 	load  Loader
 	cache map[string]*iff.Chunk // components by id
+	dicts map[*iff.Chunk]*jb2.Dict
 }
 
 // Page is one FORM:DJVU with its resolved includes.

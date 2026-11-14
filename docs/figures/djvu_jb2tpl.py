@@ -39,8 +39,8 @@ def main():
                                      "their centres (even size: the left or",
                                      "lower of the two middle pixels)"], 10, fill=GREY)
     f.box(680, 60, 250, 102, BLUE)
-    f.lines(805, 84, ["10 bits → 1024 contexts", "11 bits → 2048 contexts", "bit order: confirm in P4",
-                      "against ddjvu"], 10, fill=INK)
+    f.lines(805, 84, ["10 bits → 1024 contexts", "11 bits → 2048 contexts", "pixel 1 is the most",
+                      "significant bit"], 10, fill=INK)
     f.text(470, 284, "rows are coded top to bottom, pixels left to right; 1 = black", 10, fill=INK)
     f.write()
 

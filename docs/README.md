@@ -48,7 +48,7 @@ Appendix 3, ZP coder:
 Appendix 4, BZZ: the estimation speed is one pass-through bit, plus a second
 one only if the first is 1.
 
-Found by comparing our parsing with `djvudump` and `djvused` on the corpus
+Found by comparing our parsing with `djvudump`, `djvused` and `ddjvu` on the corpus
 and on real books:
 
 - 8.3.2 DIRM: component type 3 (bits 0–5 of the flags) is a DJVI of shared
@@ -63,6 +63,13 @@ and on real books:
   The spec lists only column, word and character. Checked with a
   `djvused set-txt` file holding all seven zone types.
 - 8.3.4 ANTz: strings use C escapes such as `\n`, not only `\"`.
+- 11.2.5.2 JB2 integers: in phase 2, decision 0 means v is in the range
+  tested and 1 means go on to the next range; the spec has it reversed.
+- 11.5.8 JB2: the pretend shape before the first one has its left edge on
+  column 0, not on the image's first column (1); otherwise every mask
+  decodes one pixel to the right of `ddjvu -mode=mask`.
+- 11.5.9, 11.5.10 JB2: in the context number, template pixel 1 is the most
+  significant bit (not stated).
 - 10.6.4 IW44: the full prediction step is printed like the lifting step,
   `c[k] -= (… + 16) >> 5`; an interpolating (4,4) filter needs
   `c[k] += (9*(c[k-1] + c[k+1]) - (c[k-3] + c[k+3]) + 8) >> 4`.

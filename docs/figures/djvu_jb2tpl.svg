@@ -57,7 +57,7 @@
 <rect x="680" y="60" width="250" height="102" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
 <text x="805" y="84" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">10 bits → 1024 contexts</text>
 <text x="805" y="105.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">11 bits → 2048 contexts</text>
-<text x="805" y="126.5" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">bit order: confirm in P4</text>
-<text x="805" y="147.75" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">against ddjvu</text>
+<text x="805" y="126.5" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">pixel 1 is the most</text>
+<text x="805" y="147.75" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">significant bit</text>
 <text x="470" y="284" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">rows are coded top to bottom, pixels left to right; 1 = black</text>
 </svg>

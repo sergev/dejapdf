@@ -94,4 +94,13 @@ for f in bundled pdf2djvu; do
     djvused $f.djvu -e output-all > $f.dsed
     djvused $f.djvu -e print-outline > $f.outline
 done
+# SHA-256 of each page's ddjvu mask (PBM), for pages that have one.
+for f in *.djvu; do
+    n=$(djvused "$f" -e n)
+    for p in $(seq 1 "$n"); do
+        ddjvu -mode=mask -format=pbm -page="$p" "$f" "$work/mask.pbm"
+        [ -s "$work/mask.pbm" ] && echo "$(sha256sum < "$work/mask.pbm" | cut -c1-64) $f $p"
+        rm -f "$work/mask.pbm"
+    done
+done > masks.sha256
 ls -l "$out"

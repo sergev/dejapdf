@@ -1,6 +1,6 @@
 # dejapdf — Todo
 
-Sequential plan. Each phase (P4, P5, …) builds on the previous one and ends with a testable
+Sequential plan. Each phase (P5, P6, …) builds on the previous one and ends with a testable
 "Done when" criterion.
 
 ## Ground rules
@@ -43,21 +43,6 @@ Sequential plan. Each phase (P4, P5, …) builds on the previous one and ends wi
 - Real scanned books in `~/Documents` (not redistributable, never committed) for size
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
-
-## P4. JB2 decoder
-
-Produce the *structure*, not just a bitmap.
-
-- [ ] Record types: start of image, new symbol (add to library / to image only / both),
-      matched refinement, matched copy, non-symbol data, shared dictionary import,
-      comments, required dictionary or reset, end of data
-- [ ] Djbz dictionary decoding and reuse across pages via INCL
-- [ ] Output: `Dict{Shapes []Bitmap}` (shared + page-local),
-      `Page{W, H, Blits []{Shape, X, Y}}`; refinement shapes materialised
-      as standalone bitmaps; non-library bitmaps tracked separately
-- [ ] Render helper for tests
-
-Done when: rendered masks are pixel-identical to `ddjvu -mode=mask` on the corpus.
 
 ## P5. Minimal PDF writer
 

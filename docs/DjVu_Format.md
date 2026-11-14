@@ -6,8 +6,8 @@ hidden text, annotations and outlines. Numbers in parentheses are sections of
 the Lizardtech DjVu v3 spec (2005), [DjVu3Spec.djvu](DjVu3Spec.djvu). The
 spec is old and partly wrong; [README.md](README.md) lists its errata. A
 claim marked *checked* was tested on `testdata/corpus` and real books against
-DjVuLibre's tools (`djvudump`, `djvused`, `ddjvu`). A claim marked *P4* or
-*P6* is what the spec says; that phase of [Todo.md](../Todo.md) will confirm it
+DjVuLibre's tools (`djvudump`, `djvused`, `ddjvu`). A claim marked *P6* or
+*P7* is what the spec says; that phase of [Todo.md](../Todo.md) will confirm it
 with a working decoder. The PDF side is in
 [Portable_Document_Format.md](Portable_Document_Format.md).
 
@@ -325,14 +325,23 @@ created when first used. To decode a value n in a known range [low, high]:
 
 1. **Sign**: one decision, 1 for n ≥ 0. Skipped when the range decides it.
 2. **Magnitude class**: v = n for n ≥ 0, −n − 1 for n < 0. Test the ranges 0,
-   1–2, 3–6, 7–14, …, [2^k − 1, 2^(k+1) − 2] in turn; a 1 means v is in this
-   one (11.2.5.2).
+   1–2, 3–6, 7–14, …, [2^k − 1, 2^(k+1) − 2] in turn; a **0** means v is in
+   this one, a 1 means go on. The spec (11.2.5.2) says the opposite; streams
+   decode only this way (*checked*).
 3. **Value**: the bits of v within its range, MSB first, down a complete
    binary subtree.
 4. Return v, or −v − 1 if negative.
 
-A decision the range already decides is not coded. The exact context layout
-of the tree (*P4*) decides compatibility.
+A decision the range already decides is not coded, but the walk still steps
+to that child node. So a node is fixed by the path of decisions from the
+root, coded or not, and each node has its own context. The phase 3 subtree
+spans the whole range [2^k − 1, 2^(k+1) − 2], even where [low, high] cuts it
+short; its midpoints do not depend on [low, high] (*checked*).
+
+A record 9 after the start record resets all the trees. `internal/jb2`
+implements it, and records 3, 6, 8 and 10, from the spec alone: neither
+cjb2, minidjvu nor pdf2djvu writes them, even for a 12000 × 12000 page of
+50,000 random shapes.
 
 ### Positions
 
@@ -350,7 +359,11 @@ of the image (11.3). A shape is placed in one of three ways:
   shapes on the line, or the first shape's bottom if there are fewer.
 
 The first shape of the image is placed as a new line, relative to a
-pretend shape whose bottom left is the top left pixel of the image (11.5.8).
+pretend shape with its bottom edge on the top row (row = height) and its
+left edge on column **0**, one left of the image. The spec (11.5.8) puts it
+on column 1; every mask then decodes one pixel too far right (*checked*).
+The previous shape's right edge is its left column + width − 1. Library
+copies place the library shape, which has its empty edges removed.
 
 ### Bitmaps
 
@@ -369,9 +382,14 @@ shape, centred on the pixel being coded.](figures/djvu_jb2tpl.svg)
   contexts. For an even size, the centre is the left (or lower) of the two
   middle pixels.
 
-The order of the bits in the context number is not given (*P4*). Both pixel
+The spec does not give the order of the bits in the context number. The pixel
+numbered 1 in the figure is the most significant bit, 10 (or 11) the least
+(*checked*). Both pixel
 templates are close to JBIG2's generic and refinement templates, but not the
 same, so dejapdf decodes JB2 bitmaps and re-encodes them as JBIG2.
+
+Decoded this way, every mask of the corpus and all 2420 masked pages of 8
+books are pixel-identical to `ddjvu -mode=mask` (*checked*).
 
 ## 9. IW44: background and foreground
 
@@ -503,7 +521,8 @@ colour from a palette (8.3.10). The layout (*checked*, `palette.djvu`):
 
 The spec suggests that the blit count is inside the BZZ data; it is not.
 `palette.djvu` has 4 colours, 2055 blits, and 4110 bytes of BZZ output.
-Index k colours the k-th shape placed on the page, in record order (*P4*).
+Index k colours the k-th shape placed on the page, in record order (*P7*;
+the JB2 decoder finds 2055 blits there, the same count).
 dejapdf splits the blits by colour into one stencil per palette entry.
 
 ## 11. Alternative encodings
@@ -675,5 +694,6 @@ without a target.
 
 The spec errata found so far, collected in [README.md](README.md): the ZP
 state table and decoder figures, the BZZ speed field, the DIRM type 3, the
-FGbz blit count, the TXTz text start and region placement, and the ANTz
-escapes.
+FGbz blit count, the TXTz text start and region placement, the ANTz
+escapes, and three JB2 details: the phase-2 decision, the first shape's
+column and the context bit order.
