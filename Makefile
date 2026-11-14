@@ -16,13 +16,14 @@ lint:
 	go vet ./...
 
 # Run every fuzz target for FUZZTIME. Few workers and a memory cap:
-# one worker per CPU can exhaust memory.
+# one worker per CPU can exhaust memory. macOS cannot limit virtual memory
+# (ulimit -v), so there only GOMEMLIMIT applies.
 FUZZTIME ?= 60s
 fuzz:
 	@for pkg in $$(go list ./internal/...); do \
 		for t in $$(go test $$pkg -list '^Fuzz' | grep '^Fuzz'); do \
 			echo "$$pkg $$t"; \
-			out=$$( ulimit -v 16000000; GOMEMLIMIT=1GiB go test $$pkg -run '^$$' -fuzz "^$$t$$" \
+			out=$$( ulimit -v 16000000 2>/dev/null; GOMEMLIMIT=1GiB go test $$pkg -run '^$$' -fuzz "^$$t$$" \
 				-fuzztime $(FUZZTIME) -parallel 4 2>&1 ) || { echo "$$out"; exit 1; }; \
 			echo "$$out" | tail -1; \
 		done; \

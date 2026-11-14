@@ -90,6 +90,45 @@ go install github.com/sergev/dejapdf/cmd/dejapdf@latest
 
 or, in a clone, `make build`. Go 1.27 or later.
 
+## Prerequisites
+
+Building needs only Go. The tests, `make corpus` and `make docs` also run
+external tools; a test skips when its tool is missing.
+
+| Tool | Used by | Debian/Ubuntu | macOS (Homebrew) |
+|---|---|---|---|
+| `go` 1.27+ | build | `golang` or [go.dev/dl](https://go.dev/dl/) | `go` |
+| `ddjvu`, `djvused`, `djvudump`, `c44`, `cjb2`, `djvm` | tests, corpus | `djvulibre-bin` | `djvulibre` |
+| `jbig2dec` | tests | `jbig2dec` | `jbig2dec` |
+| `qpdf` | tests | `qpdf` | `qpdf` |
+| `mutool` | tests | `mupdf-tools` | `mupdf-tools` |
+| `pdftoppm` | tests | `poppler-utils` | `poppler` |
+| `opj_decompress` | tests | `libopenjp2-tools` | `openjpeg` |
+| `gs` | tests, corpus | `ghostscript` | `ghostscript` |
+| `python3`, `pandoc`, `typst` | `make docs` | `python3`, `pandoc`, `typst` | `python`, `pandoc`, `typst` |
+
+Debian/Ubuntu:
+
+```
+sudo apt install golang djvulibre-bin jbig2dec qpdf mupdf-tools \
+    poppler-utils libopenjp2-tools ghostscript
+sudo apt install python3 pandoc typst      # for make docs
+```
+
+The distribution's `golang` may be older than 1.27; if so, install Go from
+[go.dev/dl](https://go.dev/dl/). On older releases without a `typst` package,
+use the binary from [typst releases](https://github.com/typst/typst/releases).
+
+macOS:
+
+```
+brew install go djvulibre jbig2dec qpdf mupdf-tools poppler openjpeg ghostscript
+brew install pandoc typst                  # for make docs
+```
+
+`acroread` (Adobe Reader 9.5.5) exists only for Linux (i386); on macOS that
+check is skipped.
+
 ## Testing
 
 `go test ./...` runs the unit tests and checks the output against external
