@@ -34,16 +34,18 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
 - `internal/zp`: the ZP arithmetic decoder, used by BZZ, JB2 and IW44.
 - `internal/bzz`: decompresses DIRM, TXTz, ANTz and NAVM.
 - `internal/jb2`: decodes to **structure** (shape dictionary + blits of shape
-  index and x,y), not just a bitmap. That structure is what lets the JBIG2 output
-  stay as small as JB2. Shared `Djbz` dictionaries map to PDF `/JBIG2Globals`.
+  index and x,y, and which shape each refined shape refines), not just a
+  bitmap. That structure is what lets the JBIG2 output stay as small as JB2.
+  Shared `Djbz` dictionaries map to PDF `/JBIG2Globals`.
 - `internal/iw44`: decodes BG44/FG44 to pixels at their native low resolution.
 - `internal/mq` + `internal/jbig2`: JBIG2 encoder (MQ coder, generic region,
-  symbol dictionary, text region). Produces the PDF-embedded format with no file
-  header.
+  symbol dictionary, refinement dictionary, text region). Produces the
+  PDF-embedded format with no file header.
 - `internal/jpx`: JPEG 2000 encoder with PCRD-opt rate control to a byte
   budget; the only codec for re-encoded images.
 - `internal/pdf`: our own minimal PDF writer. It embeds already-encoded streams
-  with any filter and DecodeParms.
+  with any filter and DecodeParms; other objects go into object streams, with
+  an xref stream.
 - `internal/convert`: lays out each page in PDF:
   - background JPX stretched to the page;
   - mask as a stencil (`/ImageMask true`; JBIG2 decodes black as 0, so no

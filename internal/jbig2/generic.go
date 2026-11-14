@@ -36,24 +36,39 @@ func GenericRegion(b *Bitmap, x, y int) []byte {
 // sltpContext is the TPGDON context of template 0 (6.2.5.5, Figure 8).
 const sltpContext = 0x9b25
 
-// encodeGeneric codes b with template 0 and TPGDON (6.2.5). The context
-// holds, from bit 0: the 4 pixels left in this row, 7 of the row above
-// (x+3 down to x-3) and 5 of the row above that (x+2 down to x-2), the
-// spec's order with the AT pixels at their nominal places.
+// generic codes bitmaps with template 0 and nominal AT pixels (6.2.5).
+// Its contexts persist across bitmaps, as in a symbol dictionary. The
+// context holds, from bit 0: the 4 pixels left in this row, 7 of the row
+// above (x+3 down to x-3) and 5 of the row above that (x+2 down to x-2),
+// the spec's order with the AT pixels at their nominal places.
+type generic struct {
+	cx [1 << 16]mq.Context
+}
+
+// encodeGeneric codes a whole generic region with TPGDON.
 func encodeGeneric(img *Bitmap) []byte {
-	cx := make([]mq.Context, 1<<16)
+	var g generic
 	e := mq.New()
+	g.code(e, img, true)
+	return append([]byte(nil), e.FlushJBIG2()...)
+}
+
+// code codes img, with typical prediction if tpgdon.
+func (g *generic) code(e *mq.Encoder, img *Bitmap, tpgdon bool) {
+	cx := &g.cx
 	ltp := 0
 	for y := range img.H {
 		row, prev := img.Row(y), img.Row(y-1)
-		typical := 0
-		if equalRows(row, prev, img.W) {
-			typical = 1
-		}
-		e.Encode(&cx[sltpContext], typical^ltp)
-		ltp = typical
-		if ltp != 0 {
-			continue
+		if tpgdon {
+			typical := 0
+			if equalRows(row, prev, img.W) {
+				typical = 1
+			}
+			e.Encode(&cx[sltpContext], typical^ltp)
+			ltp = typical
+			if ltp != 0 {
+				continue
+			}
 		}
 		older := img.Row(y - 2)
 		c := pixel(prev, 3, img.W)<<4 | pixel(prev, 2, img.W)<<5 | pixel(prev, 1, img.W)<<6 |
@@ -66,7 +81,6 @@ func encodeGeneric(img *Bitmap) []byte {
 				pixel(prev, x+4, img.W)<<4 | pixel(older, x+3, img.W)<<11
 		}
 	}
-	return append([]byte(nil), e.FlushJBIG2()...)
 }
 
 // pixel returns pixel x of a packed row; 0 outside it.

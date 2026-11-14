@@ -1,6 +1,6 @@
 # dejapdf — Todo
 
-Sequential plan. Each phase (P9, P10, …) builds on the previous one and ends with a testable
+Sequential plan. Each phase (P10, P11, …) builds on the previous one and ends with a testable
 "Done when" criterion.
 
 ## Ground rules
@@ -43,21 +43,6 @@ Sequential plan. Each phase (P9, P10, …) builds on the previous one and ends w
 - Real scanned books in `~/Documents` (not redistributable, never committed) for size
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
-
-## P9. JBIG2 symbol dictionary + text region
-
-- [ ] Symbol dictionary segment: arithmetic coding, height classes, generic-coded symbols, no refinement
-- [ ] Text region segment: arithmetic IA* contexts, SBSYMCODELEN, REFCORNER, no transposition
-- [ ] Djbz shapes → `/JBIG2Globals` stream shared by all pages using it
-- [ ] Page-local shapes → per-page symbol dictionary segment
-- [ ] Non-symbol bitmaps → generic region or single-use symbols
-- [ ] Verify polarity in our output: JBIG2 stencils use the default `/Decode` (checked by
-      experiment, see docs/Portable_Document_Format.md §8); same sense for FG44 `/Mask`
-
-- [ ] Object streams and a cross-reference stream for the small dictionaries
-      (docs/Portable_Document_Format.md §4): ~100 KB less per 500 pages
-
-**Milestone C**: mask bytes ≈ JB2 bytes; whole PDF 1–1.5× the DjVu size.
 
 ## P10. Extras
 

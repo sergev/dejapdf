@@ -11,22 +11,40 @@ import (
 	"io"
 )
 
-// Writer writes a PDF file in one pass: objects as they come, then the
-// page tree, catalog, cross-reference table and trailer.
+// Writer writes a PDF file in one pass: streams as they come, other
+// objects packed into object streams, then the page tree, catalog and a
+// cross-reference stream (7.5.7, 7.5.8).
 type Writer struct {
 	w       *bufio.Writer
 	pos     int
-	offsets []int // by object number; -1 = allocated, not written
+	xref    []entry // by object number
 	pages   []Ref
 	tree    Ref   // root of the page tree
 	nodes   []Ref // its kids, pageFanout pages each
+	pending []packed
 	err     error
 	buf     []byte
 }
 
+// entry is where an object is: at an offset, or in an object stream.
+type entry struct {
+	written bool
+	stream  Ref // object stream, 0 if at an offset
+	off     int // offset, or index in the object stream
+}
+
+// packed is an object waiting for its object stream.
+type packed struct {
+	r    Ref
+	text []byte
+}
+
+// objStmSize is the number of objects per object stream.
+const objStmSize = 100
+
 // NewWriter starts a PDF 1.5 file.
 func NewWriter(w io.Writer) *Writer {
-	p := &Writer{w: bufio.NewWriterSize(w, 1<<16), offsets: []int{0}}
+	p := &Writer{w: bufio.NewWriterSize(w, 1<<16), xref: []entry{{written: true}}}
 	p.raw([]byte("%PDF-1.5\n%\xe2\xe3\xcf\xd3\n"))
 	p.tree = p.Alloc()
 	return p
@@ -43,24 +61,48 @@ func (p *Writer) raw(b []byte) {
 
 // Alloc reserves an object number.
 func (p *Writer) Alloc() Ref {
-	p.offsets = append(p.offsets, -1)
-	return Ref(len(p.offsets) - 1)
+	p.xref = append(p.xref, entry{})
+	return Ref(len(p.xref) - 1)
+}
+
+func (p *Writer) check(r Ref) {
+	if int(r) <= 0 || int(r) >= len(p.xref) || p.xref[r].written {
+		panic(fmt.Sprintf("pdf: object %d not allocated or written twice", r))
+	}
+	p.xref[r].written = true
 }
 
 func (p *Writer) begin(r Ref) {
-	if int(r) <= 0 || int(r) >= len(p.offsets) || p.offsets[r] >= 0 {
-		panic(fmt.Sprintf("pdf: object %d not allocated or written twice", r))
-	}
-	p.offsets[r] = p.pos
+	p.check(r)
+	p.xref[r].off = p.pos
 	p.raw(fmt.Appendf(p.buf[:0], "%d 0 obj\n", int(r)))
 }
 
-// Object writes object r.
+// Object writes object r into an object stream.
 func (p *Writer) Object(r Ref, v any) {
-	p.begin(r)
-	p.buf = appendObject(p.buf[:0], v)
-	p.buf = append(p.buf, "\nendobj\n"...)
-	p.raw(p.buf)
+	p.check(r)
+	p.pending = append(p.pending, packed{r, appendObject(nil, v)})
+	if len(p.pending) == objStmSize {
+		p.flushObjects()
+	}
+}
+
+// flushObjects writes the pending objects as an object stream.
+func (p *Writer) flushObjects() {
+	if len(p.pending) == 0 {
+		return
+	}
+	s := p.Alloc()
+	var head, body []byte
+	for i, o := range p.pending {
+		head = fmt.Appendf(head, "%d %d ", int(o.r), len(body))
+		body = append(append(body, o.text...), '\n')
+		p.xref[o.r].stream, p.xref[o.r].off = s, i
+	}
+	d := Dict{"Type": Name("ObjStm"), "N": len(p.pending), "First": len(head),
+		"Filter": Name("FlateDecode")}
+	p.Stream(s, d, Flate(append(head, body...)))
+	p.pending = p.pending[:0]
 }
 
 // Stream writes stream object r with already encoded data; d gets its
@@ -168,20 +210,36 @@ func (p *Writer) Close(catalog, info Dict) error {
 	if info != nil {
 		trailer["Info"] = p.Add(info)
 	}
-	for i, off := range p.offsets[1:] {
-		if off < 0 {
+	p.flushObjects()
+	x := p.Alloc()
+	p.xref[x].written = true
+	p.xref[x].off = p.pos
+	for i, e := range p.xref[1:] {
+		if !e.written {
 			return fmt.Errorf("pdf: object %d allocated but not written", i+1)
 		}
 	}
-	xref := p.pos
-	b := fmt.Appendf(nil, "xref\n0 %d\n0000000000 65535 f \n", len(p.offsets))
-	for _, off := range p.offsets[1:] {
-		b = fmt.Appendf(b, "%010d 00000 n \n", off)
+	// Rows of W [1 4 2]: type, offset or object stream, generation or index.
+	rows := []byte{0, 0, 0, 0, 0, 0xff, 0xff}
+	for _, e := range p.xref[1:] {
+		if e.stream != 0 {
+			rows = append(rows, 2, byte(e.stream>>24), byte(e.stream>>16), byte(e.stream>>8), byte(e.stream),
+				byte(e.off>>8), byte(e.off))
+		} else {
+			rows = append(rows, 1, byte(e.off>>24), byte(e.off>>16), byte(e.off>>8), byte(e.off), 0, 0)
+		}
 	}
-	trailer["Size"] = len(p.offsets)
-	b = append(b, "trailer\n"...)
+	trailer["Type"] = Name("XRef")
+	trailer["Size"] = len(p.xref)
+	trailer["W"] = Array{1, 4, 2}
+	trailer["Filter"] = Name("FlateDecode")
+	data := Flate(rows)
+	trailer["Length"] = len(data)
+	b := fmt.Appendf(nil, "%d 0 obj\n", int(x))
 	b = appendObject(b, trailer)
-	b = fmt.Appendf(b, "\nstartxref\n%d\n%%%%EOF\n", xref)
+	b = append(b, "\nstream\n"...)
+	b = append(b, data...)
+	b = fmt.Appendf(b, "\nendstream\nendobj\nstartxref\n%d\n%%%%EOF\n", p.xref[x].off)
 	p.raw(b)
 	if p.err == nil {
 		p.err = p.w.Flush()

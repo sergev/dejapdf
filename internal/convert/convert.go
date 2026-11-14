@@ -11,7 +11,6 @@ import (
 	"github.com/sergev/dejapdf/internal/djvu"
 	"github.com/sergev/dejapdf/internal/iw44"
 	"github.com/sergev/dejapdf/internal/jb2"
-	"github.com/sergev/dejapdf/internal/jbig2"
 	jpxenc "github.com/sergev/dejapdf/internal/jpx"
 	"github.com/sergev/dejapdf/internal/pdf"
 )
@@ -39,11 +38,12 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		results[i] = make(chan result, 1)
 	}
 	window := make(chan struct{}, 2*runtime.GOMAXPROCS(0))
+	dicts := &sharedDicts{}
 	go func() {
 		for i, pg := range doc.Pages {
 			window <- struct{}{}
 			go func(c chan result) {
-				b, err := build(doc, pg, &opt)
+				b, err := build(doc, pg, &opt, dicts)
 				c <- result{b, err}
 			}(results[i])
 		}
@@ -81,6 +81,7 @@ type pageBuilder struct {
 	objs    []object
 	xobj    pdf.Dict // name to local
 	content []byte
+	shared  *sharedDicts
 }
 
 // object is a stream to write; local values in its dictionary refer to
@@ -105,10 +106,19 @@ func (b *pageBuilder) emit(p *pdf.Writer) {
 	for i := range refs {
 		refs[i] = p.Alloc()
 	}
-	resolve := func(d pdf.Dict) {
+	var resolve func(d pdf.Dict)
+	resolve = func(d pdf.Dict) {
 		for k, v := range d {
-			if l, ok := v.(local); ok {
-				d[k] = refs[l]
+			switch v := v.(type) {
+			case local:
+				d[k] = refs[v]
+			case *shared:
+				if v.ref == 0 {
+					v.ref = p.AddStream(pdf.Dict{}, v.data)
+				}
+				d[k] = v.ref
+			case pdf.Dict:
+				resolve(v)
 			}
 		}
 	}
@@ -165,12 +175,12 @@ func (b *pageBuilder) fill(c [3]byte) {
 func channel(v byte) string { return num(float64(v) / 255) }
 
 // build prepares a page.
-func build(doc *djvu.Document, pg *djvu.Page, opt *Options) (*pageBuilder, error) {
+func build(doc *djvu.Document, pg *djvu.Page, opt *Options, dicts *sharedDicts) (*pageBuilder, error) {
 	in := pg.Info
 	if in.Width <= 0 || in.Height <= 0 {
 		return nil, fmt.Errorf("bad size %dx%d", in.Width, in.Height)
 	}
-	b := &pageBuilder{in: in, xobj: pdf.Dict{},
+	b := &pageBuilder{in: in, xobj: pdf.Dict{}, shared: dicts,
 		w: float64(in.Width) * 72 / float64(in.DPI),
 		h: float64(in.Height) * 72 / float64(in.DPI)}
 	mask, err := doc.Mask(pg)
@@ -227,8 +237,10 @@ func background(b *pageBuilder, pg *djvu.Page, opt *Options) error {
 // FGjp, or in black.
 func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) error {
 	whole := func(c [3]byte, keep func(int) bool) {
-		b.fill(c)
-		b.draw(b.add("Sm", b.obj(stencil(mask.RenderSome(mask.W, mask.H, keep)))), mask.W, mask.H)
+		if d, data := b.maskImage(mask, mask.W, mask.H, keep); d != nil {
+			b.fill(c)
+			b.draw(b.add("Sm", b.obj(d, data)), mask.W, mask.H)
+		}
 	}
 	black := [3]byte{}
 	if opt.MaskOnly {
@@ -263,7 +275,12 @@ func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) er
 		if err != nil {
 			return fmt.Errorf("FGjp: %w", err)
 		}
-		d["Mask"] = b.obj(stencil(layerMask(b, mask, w, h)))
+		mw, mh := layerSize(b, mask, w, h)
+		md, mdata := b.maskImage(mask, mw, mh, nil)
+		if md == nil {
+			return nil
+		}
+		d["Mask"] = b.obj(md, mdata)
 		b.draw(b.add("Fg", b.obj(d, c.Data)), w, h)
 		return nil
 	}
@@ -275,11 +292,9 @@ func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) er
 		whole(black, nil)
 		return nil
 	}
-	m := mask.RenderSome(mask.W, mask.H, nil)
+	mw, mh := layerSize(b, mask, fg.W, fg.H)
 	if k := reduction(b.in.Width, b.in.Height, fg.W, fg.H); k > 0 {
-		// Pad to the layer's area: at the top and right.
-		m = mask.RenderSome(k*fg.W, k*fg.H, nil)
-		fillUnused(fg, m, k)
+		fillUnused(fg, mask.RenderSome(mw, mh, nil), k)
 	}
 	if c, ok := uniform(fg); ok {
 		whole(c, nil)
@@ -289,19 +304,22 @@ func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) er
 	if err != nil {
 		return fmt.Errorf("FG44: %w", err)
 	}
-	d["Mask"] = b.obj(stencil(m))
+	md, mdata := b.maskImage(mask, mw, mh, nil)
+	if md == nil {
+		return nil
+	}
+	d["Mask"] = b.obj(md, mdata)
 	b.draw(b.add("Fg", b.obj(d, data)), fg.W, fg.H)
 	return nil
 }
 
-// layerMask renders the mask over the same area as a layer of iw×ih
-// pixels: padded at the top and right to k·iw × k·ih.
-func layerMask(b *pageBuilder, mask *jb2.Image, iw, ih int) *jb2.Bitmap {
-	w, h := mask.W, mask.H
+// layerSize is the size of the mask over the same area as a layer of
+// iw×ih pixels: padded at the top and right to k·iw × k·ih.
+func layerSize(b *pageBuilder, mask *jb2.Image, iw, ih int) (int, int) {
 	if k := reduction(b.in.Width, b.in.Height, iw, ih); k > 0 {
-		w, h = k*iw, k*ih
+		return k * iw, k * ih
 	}
-	return mask.RenderSome(w, h, nil)
+	return mask.W, mask.H
 }
 
 // uniform reports whether a layer is one colour, within ±2.
@@ -369,28 +387,6 @@ func jpx(im *iw44.Image, budget int) (pdf.Dict, []byte, error) {
 		"Filter":           pdf.Name("JPXDecode"),
 	}
 	return d, data, nil
-}
-
-// stencil makes a JBIG2-coded image mask that paints a bitmap's black
-// pixels: JBIG2Decode gives black as 0, which a stencil paints with the
-// default Decode.
-func stencil(b *jb2.Bitmap) (pdf.Dict, []byte) {
-	m := jbig2.NewBitmap(b.W, b.H)
-	for r := range b.H {
-		row := m.Pix[r*m.Stride:]
-		for c, v := range b.Pix[r*b.W : (r+1)*b.W] {
-			row[c>>3] |= v << (7 - c&7)
-		}
-	}
-	return pdf.Dict{
-		"Type":             pdf.Name("XObject"),
-		"Subtype":          pdf.Name("Image"),
-		"Width":            b.W,
-		"Height":           b.H,
-		"ImageMask":        true,
-		"BitsPerComponent": 1,
-		"Filter":           pdf.Name("JBIG2Decode"),
-	}, jbig2.GenericPage(m, 0)
 }
 
 // num formats a coordinate.

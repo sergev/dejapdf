@@ -274,10 +274,31 @@ reused.](figures/jbig2_gr.svg)
 JBIG2 can refine in a text region (SBREFINE: a symbol instance is a refined
 copy of a symbol) or in a dictionary (SDREFAGG: each new symbol is a
 refinement or an aggregate of earlier ones). Either way the refinement data
-must be coded afresh. dejapdf starts without refinement: a refined JB2 shape
-is decoded to its bitmap and stored as an ordinary symbol. If the size test
-in P9 shows refined shapes are common, SBREFINE with template 1 is the next
-step.
+must be coded afresh.
+
+JB2 refines a lot in scanned books: of the shapes coded anew, 83% are
+refinements in one book and 79% in another (*checked*, counting record
+types). dejapdf keeps them as refinements, in a dictionary with SDREFAGG = 1
+where every symbol is REFAGGNINST = 1 (6.5.8.2.2): IAAI 1, then IAID the
+reference (SBSYMCODELEN = ⌈log2(inputs + new symbols)⌉ bits, the same for
+the whole dictionary), IARDX and IARDY its offset, then the bitmap by generic
+refinement (6.3) with GRTEMPLATE 0, AT pixels nominal at (−1, −1), no TPGRON.
+The reference is an input symbol or an earlier new one, so these symbols are
+coded in JB2's order, not sorted, and a height class changes whenever the
+height does (IADH and IADW may be negative). Directly coded shapes stay in a
+dictionary of their own (SDREFAGG = 0), which the refinement dictionary
+imports and does not export.
+
+Offsets: JB2 lays the reference over the new bitmap by their centres; the new
+pixel (r, c) (rows from the top) sees the reference's (r + ⌊Hr/2⌋ − ⌊h/2⌋,
+c + ⌊(Wr−1)/2⌋ − ⌊(w−1)/2⌋). JBIG2's reference pixel is (x − DX, y − DY), so
+DX and DY are those two shifts negated, less the columns and rows JB2 then
+trims from the new bitmap's left and top.
+
+GRTEMPLATE 0's reference pixels include all 7 of JB2's, and it codes 1–2%
+smaller than template 1 on the scanned books. A refinement dictionary
+starts with cold contexts: with fewer than 100 refined shapes (a typeset
+book has ~10 a page), coding them directly is smaller, and dejapdf does.
 
 ## 9. Text region
 
@@ -329,9 +350,9 @@ onwards for the page's (*checked*).
 counts from the top, starting at 0. For a page of height H, a blit whose
 bottom row is b (JB2) has T = H − b (JBIG2) and S = its left column − 1. Sort
 the blits by T and then S: JB2 coding goes line by line, so the strips follow
-its text lines. SBDSOFFSET can be set to the most common gap. The first
-version uses strips of 1 and SBDSOFFSET 0; the best values are a P9
-experiment.
+its text lines. SBDSOFFSET can be set to the most common gap. Measured on four
+books: strips of 2 with SBDSOFFSET 3 are best, but every choice of 1, 2, 4,
+8 and 0–3 is within 0.2% of the total, so it hardly matters.
 
 ## 10. Putting a DjVu mask into PDF
 
@@ -345,7 +366,8 @@ regions.](figures/jbig2_pdf.svg)
   page that includes that Djbz.
 - **Image stream**: the segments of one page, each with page association 1,
   even for the 50th page (PDF 7.4.7). In order: page information, the page's
-  own symbol dictionary, the text region, the generic regions.
+  own symbol dictionaries, the text region. Generic regions are not needed:
+  JB2's non-symbol bitmaps become single-use symbols.
 - **Numbers**: each image is decoded alone, with its globals. Segment numbers
   only need to be unique and increasing within globals + one stream.
 - **No** file header, end-of-page, end-of-file, or the optional 0xFF 0xAA/0xAB
@@ -363,6 +385,21 @@ colour gets its own image stream. Each stream holds the page information, a
 text region with that colour's blits, and a dictionary of only the shapes
 those blits use.
 
+What `internal/convert` writes, for the globals and for each image stream
+alike: a dictionary of the directly coded shapes, sorted by height then
+width; a refinement dictionary of the refined ones (§8), when there are 100
+or more; then, in an image stream, the text region referring to all of
+them, the globals first. Empty shapes are left out; their blits draw nothing.
+A shape is refined only from a shape the stream defines anyway; otherwise it
+is coded directly, so no undrawn reference is pulled in. Symbol numbers
+follow the dictionaries' export order, which is why the shapes are renumbered.
+
+*Checked*: every corpus mask and sample pages of the books render
+pixel-identical to `ddjvu -mode=mask` in MuPDF and Poppler; 14 books pass
+`qpdf --check`. Masks are 1.04–1.13× the size of their JB2 data (Sjbz plus
+Djbz): one generic region per page was 1.0–4.6× the whole DjVu; symbols
+without refinement gave 1.04–1.23×.
+
 ## 11. Checking it
 
 | Tool | Checks |
@@ -378,4 +415,5 @@ not kept in the repository; `internal/mq` and `internal/jbig2` carry the
 checks as Go tests, with `jbig2dec` as the oracle.
 
 Generic regions alone (P8), one per mask: the books' PDFs went from 1.9–13.6×
-to 1.04–4.6× the DjVu size, masks still pixel-exact in MuPDF and Poppler.
+to 1.04–4.6× the DjVu size. Symbol dictionaries, text regions and
+refinement (P9) bring them to 0.79–1.08×, masks still pixel-exact.

@@ -162,6 +162,11 @@ dictionary, two or three image dictionaries, a content stream and their xref
 entries: a few hundred bytes. Over 500 pages that is ~100 KB; object streams
 shrink it several times. We never update files incrementally (7.5.6).
 
+`internal/pdf` packs every non-stream object into object streams of 100 and
+ends with a Flate-coded xref stream, `/W [1 4 2]` (*checked*: `qpdf --check`,
+MuPDF and Poppler read it). On three books it saves 164–182 bytes a page,
+about 100 KB per book.
+
 ## 5. Document structure
 
 ![The objects of a two-page output. The catalog leads to the page tree and the
@@ -316,9 +321,11 @@ photo pages 45–54 dB (the JPX at 1×); compound pages 29.5 dB, the JPEG page
 interpolate an FG layer upscaled 12 times, ddjvu takes the nearest sample.
 Sample pages of the books: text pages identical, colour pages 39–47 dB.
 
-All 14 books convert and pass `qpdf --check`, in 1–25 s on 16 threads. With
-each mask one JBIG2 generic region (P8) the PDFs are 1.04–4.6× the DjVu size
-(1.9–13.6× with Flate masks); symbol dictionaries (P9) are the next step.
+All 14 books convert and pass `qpdf --check`, in 0.4–13 s on 16 threads.
+The PDFs are 0.79–1.08× the DjVu size (1.9–13.6× with Flate masks, 1.04–4.6×
+with one JBIG2 generic region a page); the masks are 1.04–1.13× their JB2
+data, the colour layers 0.65–1.00× their IW44 data. The DjVu figure includes
+the hidden text, which the PDF does not carry yet (P10).
 
 ## 10. JBIG2Decode
 

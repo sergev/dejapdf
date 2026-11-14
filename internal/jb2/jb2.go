@@ -32,6 +32,14 @@ func (b *Bitmap) at(r, c int) int {
 // Dict is a shape library, from a Djbz chunk.
 type Dict struct {
 	Shapes []*Bitmap
+	Refs   []Ref // how each shape was coded
+}
+
+// Ref tells how a shape was coded: Shape < 0 for directly, else as a
+// refinement of shape Shape, whose pixel (x−DX, y−DY) lay over this
+// shape's (x, y), rows from the top.
+type Ref struct {
+	Shape, DX, DY int
 }
 
 // Blit draws a shape with its lower-left corner at (X, Y): pixels from
@@ -49,7 +57,16 @@ type Image struct {
 	Dict   *Dict
 	NDict  int       // shapes of Dict in use (record 9)
 	Shapes []*Bitmap // the page's own shapes, in the library or not
+	Refs   []Ref     // how each of Shapes was coded
 	Blits  []Blit
+}
+
+// ShapeRef returns how shape i was coded.
+func (im *Image) ShapeRef(i int) Ref {
+	if i < im.NDict {
+		return im.Dict.Refs[i]
+	}
+	return im.Refs[i-im.NDict]
 }
 
 // Shape returns the bitmap a blit index refers to.
@@ -175,8 +192,17 @@ func DecodeDict(data []byte, parent *Dict) (*Dict, error) {
 		return nil, err
 	}
 	d := &Dict{}
+	pos := map[int]int{} // shape number → library position
+	for i, e := range r.lib {
+		pos[e.shape] = i
+	}
 	for _, e := range r.lib {
 		d.Shapes = append(d.Shapes, e.bm)
+		ref := r.ShapeRef(e.shape)
+		if ref.Shape >= 0 {
+			ref.Shape = pos[ref.Shape] // a reference is always in the library
+		}
+		d.Refs = append(d.Refs, ref)
 	}
 	return d, nil
 }
@@ -218,19 +244,22 @@ func decode(data []byte, dict *Dict) (result, error) {
 			if bm, err = d.directBitmap(w, h); err != nil {
 				return result{}, err
 			}
-			d.add(bm, t != recNewLib, t != recNewImage)
+			d.add(bm, t != recNewLib, t != recNewImage, Ref{Shape: -1})
 		case recRefLibImage, recRefLib, recRefImage:
 			if len(d.lib) == 0 {
 				return result{}, errors.New("jb2: refinement with an empty library")
 			}
-			ref := d.lib[d.num[numMatch].decode(d.zp, 0, len(d.lib)-1)].bm
+			e := d.lib[d.num[numMatch].decode(d.zp, 0, len(d.lib)-1)]
+			ref := e.bm
 			w := ref.W + d.num[numWidthDiff].decode(d.zp, -maxSize-1, maxSize)
 			h := ref.H + d.num[numHeightDiff].decode(d.zp, -maxSize-1, maxSize)
 			var bm *Bitmap
 			if bm, err = d.refineBitmap(w, h, ref); err != nil {
 				return result{}, err
 			}
-			d.add(bm, t != recRefLib, t != recRefImage)
+			// Pixel (r, c) lay over ref's (r+dr, c+dc), as in refineBitmap.
+			dr, dc := ref.H/2-h/2, (ref.W-1)/2-(w-1)/2
+			d.add(bm, t != recRefLib, t != recRefImage, Ref{e.shape, -dc, -dr})
 		case recCopy:
 			if len(d.lib) == 0 {
 				return result{}, errors.New("jb2: copy from an empty library")
@@ -280,7 +309,8 @@ func decode(data []byte, dict *Dict) (result, error) {
 
 // add places a new bitmap on the image at a relative location and/or
 // into the library.
-func (d *decoder) add(bm *Bitmap, image, library bool) {
+// ref is how bm was coded, its offsets for bm before trimming.
+func (d *decoder) add(bm *Bitmap, image, library bool, ref Ref) {
 	var left, bottom int
 	if image {
 		left, bottom = d.locate(bm.W, bm.H)
@@ -288,6 +318,12 @@ func (d *decoder) add(bm *Bitmap, image, library bool) {
 	t, dl, db := trim(bm)
 	shape := d.im.NDict + len(d.im.Shapes)
 	d.im.Shapes = append(d.im.Shapes, t)
+	if ref.Shape >= 0 {
+		top := bm.H - t.H - db // rows trimmed from the top
+		ref.DX -= dl
+		ref.DY -= top
+	}
+	d.im.Refs = append(d.im.Refs, ref)
 	if library {
 		d.lib = append(d.lib, libEntry{t, shape})
 	}
@@ -301,6 +337,7 @@ func (d *decoder) placeAt(bm *Bitmap, left, bottom int) {
 	t, dl, db := trim(bm)
 	shape := d.im.NDict + len(d.im.Shapes)
 	d.im.Shapes = append(d.im.Shapes, t)
+	d.im.Refs = append(d.im.Refs, Ref{Shape: -1})
 	d.blit(shape, t, left+dl, bottom+db)
 }
 
