@@ -33,6 +33,8 @@ func (d *Document) Mask(p *Page) (*jb2.Image, error) {
 }
 
 func (d *Document) dict(c *iff.Chunk) (*jb2.Dict, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if k, ok := d.dicts[c]; ok {
 		return k, nil
 	}

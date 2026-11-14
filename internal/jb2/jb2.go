@@ -62,10 +62,19 @@ func (im *Image) Shape(i int) *Bitmap {
 
 // Render draws the image.
 func (im *Image) Render() *Bitmap {
-	p := newBitmap(im.W, im.H)
-	for _, b := range im.Blits {
+	return im.RenderSome(im.W, im.H, nil)
+}
+
+// RenderSome draws the blits i with keep(i) true (all if keep is nil)
+// into a w×h bitmap whose bottom-left corner is the image's.
+func (im *Image) RenderSome(w, h int, keep func(i int) bool) *Bitmap {
+	p := newBitmap(w, h)
+	for i, b := range im.Blits {
+		if keep != nil && !keep(i) {
+			continue
+		}
 		s := im.Shape(b.Shape)
-		top := im.H - b.Y - s.H // page row of the shape's top row
+		top := h - b.Y - s.H // bitmap row of the shape's top row
 		for r := range s.H {
 			pr := top + r
 			if pr < 0 || pr >= p.H {

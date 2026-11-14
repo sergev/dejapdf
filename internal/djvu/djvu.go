@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/sergev/dejapdf/internal/iff"
 	"github.com/sergev/dejapdf/internal/jb2"
@@ -26,6 +27,7 @@ type Document struct {
 	load  Loader
 	cache map[string]*iff.Chunk // components by id
 	dicts map[*iff.Chunk]*jb2.Dict
+	mu    sync.Mutex // guards dicts
 }
 
 // Page is one FORM:DJVU with its resolved includes.

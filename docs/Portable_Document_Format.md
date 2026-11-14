@@ -114,7 +114,7 @@ both chain filters (7.4). The filters dejapdf uses:
 | JBIG2Decode | 1.4 | the mask (§10) | `JBIG2Globals` |
 | JPXDecode | 1.5 | background, foreground (§11) | none: the JP2 file carries them |
 | DCTDecode | 1.0 | BGjp/FGjp layers, as is | `ColorTransform` only if the JPEG lacks the Adobe marker |
-| CCITTFaxDecode | 1.0 | Smmr masks, once DjVu's MMR header is removed (to check in P7) | `K -1` (G4), `Columns`, `Rows`, `BlackIs1` |
+| CCITTFaxDecode | 1.0 | Smmr masks, with DjVu's 8-byte MMR header removed (*checked*) | `K -1` (G4), `Columns`, `Rows`, `BlackIs1` |
 
 JBIG2Decode and JPXDecode only work in image XObjects, never in inline images
 (7.4.7, 7.4.9). DCT data is baseline or progressive JPEG with one byte per
@@ -280,16 +280,45 @@ links lie on top.](figures/pdf_layers.svg)
 The content stream of a compound page (W × H in points):
 
 ```
-q W 0 0 H 0 0 cm /Bg Do Q          % background, JPX
-q W 0 0 H 0 0 cm /Fg Do Q          % foreground JPX with /Mask = stencil
+q W 0 0 H 0 0 cm /Bg0 Do Q         % background, JPX
+q W 0 0 H 0 0 cm /Fg1 Do Q         % foreground JPX with /Mask = stencil
 BT 3 Tr ... ET                     % hidden text (§12)
 ```
 
-Without FG44, step two is `0 g q W 0 0 H 0 0 cm /Sm Do Q`: the stencil in
+Without FG44, step two is `0 g q W 0 0 H 0 0 cm /Sm1 Do Q`: the stencil in
 black. With an FGbz palette, the blits are split by colour, one stencil each:
 `r g b rg q W 0 0 H 0 0 cm /Sm1 Do Q`, then the next. Bitonal pages have only
 the stencil; photo pages only the background. Annotations are not in the
-content: they are in `/Annots`.
+content: they are in `/Annots`. What `internal/convert` adds:
+
+- **Layer geometry.** A layer reduced k times is ⌈W/k⌉ × ⌈H/k⌉ pixels, each
+  covering k × k page pixels from the bottom left, so its image is drawn
+  k·⌈W/k⌉ by k·⌈H/k⌉ pixels large and sticks out at the top and right; the
+  MediaBox clips it. The stencil used as FG44's `/Mask` is padded to the same
+  size, since an explicit mask fills the image's unit square. A layer whose
+  size is no reduction of the page is stretched to it.
+- **Uniform layers.** A layer whose samples all lie within ±2 is painted as
+  one colour: a filled rectangle for the background (nothing if white), the
+  stencil in that colour for the foreground. Most book pages are white with
+  black or one-colour text.
+- **Unused foreground.** FG44 samples under no mask pixel are never shown.
+  dejapdf replaces them with their shown neighbours' average, spreading out
+  breadth-first, before the uniform test and the JPX coding: black text with
+  noise around it becomes one colour.
+- **Budget.** A JPX layer gets the bytes of its IW44 chunks times `-q`.
+- **Parallel.** Pages are built concurrently and written in order; output is
+  the same for any number of threads.
+
+*Checked* against `ddjvu` at the page resolution, rendering with `mutool draw`:
+the bilevel, Smmr and pdf2djvu text pages are identical; palette pages 69 dB;
+photo pages 45–54 dB (the JPX at 1×); compound pages 29.5 dB, the JPEG page
+35 dB. On mask pixels the difference is the viewers': MuPDF and Poppler
+interpolate an FG layer upscaled 12 times, ddjvu takes the nearest sample.
+Sample pages of the books: text pages identical, colour pages 39–47 dB.
+
+All 14 books convert and pass `qpdf --check`, in 0.6–23 s on 16 threads. With
+masks still Flate-coded the PDFs are 1.9–13.6× the DjVu size; JBIG2 (P8, P9)
+is what brings them down.
 
 ## 10. JBIG2Decode
 

@@ -2,7 +2,7 @@
 # Copyright (c) 2026 Serge Vakulenko
 # SPDX-License-Identifier: MIT
 # Generate testdata/corpus from testdata/src/pages.ps.
-# Needs: ghostscript, djvulibre-bin, pdf2djvu, minidjvu.
+# Needs: ghostscript, djvulibre-bin, pdf2djvu, minidjvu, python3.
 set -eu
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -11,7 +11,7 @@ out=$here/corpus
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
-for t in gs cjb2 c44 cpaldjvu djvumake djvuextract djvm djvmcvt djvused djvudump pdf2djvu minidjvu; do
+for t in gs cjb2 c44 cpaldjvu djvumake djvuextract djvm djvmcvt djvused djvudump pdf2djvu minidjvu python3; do
     command -v $t >/dev/null || { echo "missing: $t" >&2; exit 1; }
 done
 
@@ -28,6 +28,10 @@ render ppmraw 300 'p%d.ppm'
 render ppmraw 100 'bg%d.ppm'
 render pgmraw 100 'gray%d.pgm'
 render ppmraw 25  'fg%d.ppm'
+render jpeg 100 'bg%d.jpg'
+render jpeg 25 'fg%d.jpg'
+gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=tiffg4 -dMaxStripSize=0 -r300 \
+    -dFirstPage=1 -dLastPage=1 -sOutputFile=p1.tif "$src"
 render pdfwrite 72 pages.pdf
 
 # Single-page documents, one per layer kind.
@@ -46,6 +50,26 @@ djvuextract bg.djvu BG44=bg.bg44
 c44 -slice 74 fg3.ppm fg.djvu
 djvuextract fg.djvu BG44=fg.fg44
 djvumake "$out/compound.djvu" INFO=2550,3300,300 Sjbz=mask.sjbz FG44=fg.fg44 BG44=bg.bg44
+
+# JPEG layers: BGjp + Sjbz + FGjp.
+djvumake "$out/jpeg.djvu" INFO=2550,3300,300 Sjbz=mask.sjbz FGjp=fg3.jpg BGjp=bg2.jpg
+
+# MMR mask: the G4 strip of a one-strip TIFF behind the Smmr header.
+python3 - p1.tif p1.mmr <<'EOF'
+import struct, sys
+d = open(sys.argv[1], 'rb').read()
+e = '<' if d[:2] == b'II' else '>'
+off = struct.unpack(e + 'I', d[4:8])[0]
+tags = {}
+for i in range(struct.unpack(e + 'H', d[off:off + 2])[0]):
+    t, typ, cnt, val = struct.unpack(e + 'HHII', d[off + 2 + 12 * i:off + 14 + 12 * i])
+    if typ == 3:  # SHORT, left-justified in the field
+        val = val & 0xffff if e == '<' else val >> 16
+    tags[t] = val
+s = d[tags[273]:tags[273] + tags[279]]
+open(sys.argv[2], 'wb').write(b'MMR\0' + struct.pack('>HH', tags[256], tags[257]) + s)
+EOF
+djvumake "$out/mmr.djvu" INFO=2550,3300,300 Smmr=p1.mmr
 
 # Bundled multi-page document with text layer, outline and annotations.
 djvm -c "$out/bundled.djvu" "$out/bilevel.djvu" "$out/photo.djvu" \

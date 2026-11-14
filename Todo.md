@@ -1,6 +1,6 @@
 # dejapdf — Todo
 
-Sequential plan. Each phase (P7, P8, …) builds on the previous one and ends with a testable
+Sequential plan. Each phase (P8, P9, …) builds on the previous one and ends with a testable
 "Done when" criterion.
 
 ## Ground rules
@@ -44,27 +44,9 @@ Sequential plan. Each phase (P7, P8, …) builds on the previous one and ends wi
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
 
-## P7. Layered page assembly
-
-- [x] `internal/jpx` with PCRD-opt rate control to a byte budget (docs/JPEG_2000_Image_Coding.md
-      §7, §10, §12); `internal/mq` MQ encoder shared with P8. At the same size as `opj_compress -r`
-      it is within 0.1 dB or better on all six study layers, 0.5–2× IW44; files decode with
-      `opj_decompress`
-- [ ] Background → JPEG 2000 via `internal/jpx` (`/JPXDecode`), `-q` quality, stretched to the page;
-      write JP2 files, not bare codestreams (PDF requires it; Poppler warns otherwise)
-- [ ] Single-colour layers: paint the colour (nothing for white) instead of embedding a JP2
-- [ ] Mask → stencil (`/ImageMask true`) painted black
-- [ ] FG44 → JPEG 2000 colour image with explicit `/Mask` pointing to the full-resolution stencil
-- [ ] FGbz palette → split blits by colour index, one stencil per colour
-- [ ] BGjp/FGjp (JPEG-coded layers, rare) → passthrough as `/DCTDecode`, no re-encode
-- [ ] Smmr (MMR mask) → `/CCITTFaxDecode` if feasible
-- [ ] Pages with no mask, no background, or photo-only pages
-
-**Milestone B**: renders visually match `ddjvu` on the whole corpus; record size ratio per file.
-
 ## P8. MQ encoder + JBIG2 generic region
 
-- [ ] MQ arithmetic encoder (T.88 Annex E), borrowed from `tmp/jbig2/jbig2_arith_encoder.go`
+- [x] MQ arithmetic encoder (T.88 Annex E): `internal/mq`, from `tmp/jbig2`, done in P7
 - [ ] Generic region encoding, template 0, TPGDON, from `tmp/jbig2/jbig2_grd_encoder.go`
 - [ ] Segment headers; PDF-embedded format (no file header, no end-of-file segment)
 - [ ] Replace Flate masks with JBIG2 generic regions (`/JBIG2Decode`)
@@ -96,16 +78,21 @@ Done when: PDF is searchable and copyable in viewers; bookmarks and links work.
 
 ## P11. Background rate tuning
 
-- [ ] Choose JPX `CompressionRatio`/quality from the IW44 chunk size so the image ≈ IW44 bytes
+- [x] JPX byte budget = IW44 chunk size × `-q` (done in P7, PCRD-opt in `internal/jpx`)
 - [ ] Check JPX rendering in pdf.js, MuPDF, Poppler, Acrobat
 
 Done when: background bytes within ~1.2× of IW44 bytes at comparable visual quality.
 
 ## P12. Hardening and UX
 
-- [ ] Page-parallel decode/encode
-- [ ] Options: page range, quality, progress, verbose size report
+- [x] Page-parallel decode/encode (done in P7)
+- [ ] Options: page range, progress, verbose size report (`-q` exists)
 - [ ] Graceful handling of broken or unknown chunks
+- [ ] Striped Smmr masks (one CCITT stencil per stripe); an Smmr page with a varying FG44
+      (now painted black)
+- [ ] FG layers in viewers: MuPDF and Poppler interpolate a 12× upscaled FG44, blending
+      neighbouring colours into the shapes (ddjvu does not); consider upsampling small FG
+      layers or other mitigation
 - [ ] Fuzz tests for iff, zp, bzz, jb2, iw44
 - [ ] Size-report tool comparing DjVu vs PDF per layer
 - [ ] CI (build, test, vet)

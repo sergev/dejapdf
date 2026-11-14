@@ -40,6 +40,14 @@ func stepIndex(i int) int {
 	return 13 + (i-256)/256
 }
 
+// stepOf caches stepIndex.
+var stepOf = func() (t [1024]uint8) {
+	for i := range t {
+		t[i] = uint8(stepIndex(i))
+	}
+	return
+}()
+
 // Initial step sizes (Table 4).
 var initialStep = [16]int32{
 	0x04000, 0x08000, 0x08000, 0x10000, 0x10000, 0x10000, 0x20000, 0x20000,
@@ -55,6 +63,7 @@ type component struct {
 	ctxBuck  [10][8]byte
 	ctxAct   [16]byte
 	ctxRef   byte
+	live     bool // some step of the current band is in range
 }
 
 // Decoder decodes the chunks of one layer (all BG44, or one FG44).
@@ -109,6 +118,7 @@ func (d *Decoder) Decode(b []byte) error {
 		}
 		for range n {
 			c := &component{coef: make([][1024]int16, d.bw*d.bh), step: initialStep}
+			c.setLive()
 			d.comps = append(d.comps, c)
 		}
 		d.started = true
@@ -150,16 +160,34 @@ func (c *component) endSlice() {
 		c.step[i] >>= 1
 	}
 	c.band = (c.band + 1) % 10
+	c.setLive()
+}
+
+// setLive notes whether the current band has a step in range.
+func (c *component) setLive() {
+	lo, hi := c.band+6, c.band+6
+	if c.band == 0 {
+		lo = 0
+	}
+	c.live = false
+	for i := lo; i <= hi; i++ {
+		if s := c.step[i]; s > 0 && s < 0x8000 {
+			c.live = true
+		}
+	}
 }
 
 // blockBand decodes the current band of one block (10.5).
 func (d *Decoder) blockBand(c *component, co *[1024]int16) {
+	if !c.live {
+		return
+	}
 	band := c.band
 	first, nb := bandStart[band], bandBuckets[band]
 	// Flags (10.5.1).
 	var bActive, bPotent bool
 	for i := first; i < first+16*nb; i++ {
-		s := c.step[stepIndex(i)]
+		s := c.step[stepOf[i]]
 		ok := s > 0 && s < 0x8000
 		d.active[i] = ok && co[i] != 0
 		d.potent[i] = ok && co[i] == 0
@@ -233,7 +261,7 @@ func (d *Decoder) activate(c *component, co *[1024]int16, first, k int) {
 			continue
 		}
 		if d.zp.Decode(&c.ctxAct[min(7, np)+act]) == 1 {
-			s := c.step[stepIndex(i)]
+			s := c.step[stepOf[i]]
 			a := s + s>>1 - s>>3
 			if d.zp.DecodePassthroughIW44() == 1 {
 				a = -a
@@ -255,7 +283,7 @@ func (d *Decoder) refine(c *component, co *[1024]int16, first, nb int) {
 		if !d.active[i] {
 			continue
 		}
-		s := c.step[stepIndex(i)]
+		s := c.step[stepOf[i]]
 		a := int32(co[i])
 		neg := a < 0
 		if neg {

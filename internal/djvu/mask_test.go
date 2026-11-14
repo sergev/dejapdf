@@ -52,6 +52,9 @@ func TestMaskCorpus(t *testing.T) {
 			docs[w[1]] = d
 		}
 		p := d.Pages[page-1]
+		if p.Form.Find("Smmr") != nil {
+			continue // G4, passed through to PDF undecoded
+		}
 		im, err := d.Mask(p)
 		if err != nil {
 			t.Fatalf("%s page %d: %v", w[1], page, err)

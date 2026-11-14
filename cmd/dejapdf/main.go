@@ -25,6 +25,7 @@ func usage() {
 func main() {
 	showVersion := flag.Bool("version", false, "print version and exit")
 	dump := flag.Bool("dump", false, "print the chunk tree, like djvudump")
+	quality := flag.Float64("q", 1, "colour layer size as a multiple of the DjVu size")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -47,13 +48,13 @@ func main() {
 		usage()
 		os.Exit(2)
 	}
-	if err := convertFile(flag.Arg(0), flag.Arg(1)); err != nil {
+	if err := convertFile(flag.Arg(0), flag.Arg(1), *quality); err != nil {
 		fmt.Fprintln(os.Stderr, "dejapdf:", err)
 		os.Exit(1)
 	}
 }
 
-func convertFile(in, out string) error {
+func convertFile(in, out string, quality float64) error {
 	doc, err := djvu.Open(in)
 	if err != nil {
 		return err
@@ -62,7 +63,7 @@ func convertFile(in, out string) error {
 	if err != nil {
 		return err
 	}
-	err = convert.Convert(doc, f, convert.Options{Producer: "dejapdf " + version})
+	err = convert.Convert(doc, f, convert.Options{Producer: "dejapdf " + version, Quality: quality})
 	if cerr := f.Close(); err == nil {
 		err = cerr
 	}

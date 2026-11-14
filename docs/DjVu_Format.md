@@ -6,9 +6,7 @@ hidden text, annotations and outlines. Numbers in parentheses are sections of
 the Lizardtech DjVu v3 spec (2005), [DjVu3Spec.djvu](DjVu3Spec.djvu). The
 spec is old and partly wrong; [README.md](README.md) lists its errata. A
 claim marked *checked* was tested on `testdata/corpus` and real books against
-DjVuLibre's tools (`djvudump`, `djvused`, `ddjvu`). A claim marked
-*P7* is what the spec says; that phase of [Todo.md](../Todo.md) will confirm it
-with a working decoder. The PDF side is in
+DjVuLibre's tools (`djvudump`, `djvused`, `ddjvu`). The PDF side is in
 [Portable_Document_Format.md](Portable_Document_Format.md).
 
 Where each part goes, in one table:
@@ -545,14 +543,17 @@ colour from a palette (8.3.10). The layout (*checked*, `palette.djvu`):
 
 The spec suggests that the blit count is inside the BZZ data; it is not.
 `palette.djvu` has 4 colours, 2055 blits, and 4110 bytes of BZZ output.
-Index k colours the k-th shape placed on the page, in record order (*P7*;
-the JB2 decoder finds 2055 blits there, the same count).
+Index k colours the k-th shape placed on the page, in record order, empty
+shapes included (*checked*: the page renders within 1 level of ddjvu, and
+FGbz pages of the books identical). Without indices (bit 7 clear) every
+shape takes colour 0; the books have many such one-colour palettes.
 dejapdf splits the blits by colour into one stencil per palette entry.
 
 ## 11. Alternative encodings
 
 **BGjp, FGjp** hold a plain JPEG/JFIF file (8.3.13–14). It goes into the PDF
-unchanged as a DCTDecode image.
+unchanged as a DCTDecode image (*checked*: `jpeg.djvu`, made with
+`djvumake` from Ghostscript JPEGs).
 
 **Smmr** holds a G4 (T.6) fax mask (8.3.15):
 
@@ -564,8 +565,11 @@ unchanged as a DCTDecode image.
 | 2 | height, big-endian |
 | … | if striped: rows per stripe (2 bytes), then for each stripe a 4-byte length and its G4 data; else one G4 stream |
 
-A non-striped Smmr can pass through as CCITTFaxDecode with K −1 (*P7*); a
-striped one needs the stripes joined or decoded.
+A non-striped Smmr passes through as CCITTFaxDecode with K −1 (*checked*:
+`mmr.djvu`, the G4 strip of a Ghostscript `tiffg4` file behind this header,
+renders identical to ddjvu in MuPDF and Poppler). Each stripe of a striped
+one is a separate G4 stream, so it would need one stencil per stripe; dejapdf
+does not handle it yet.
 
 ## 12. Hidden text
 
