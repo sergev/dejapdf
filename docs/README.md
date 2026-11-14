@@ -4,6 +4,9 @@ Articles:
 
 - [DjVu_Format.md](DjVu_Format.md): the parts of DjVu that dejapdf
   decodes, from the container to JB2, IW44, text and annotations.
+- [JPEG_2000_Image_Coding.md](JPEG_2000_Image_Coding.md): JPEG 2000 for the
+  IW44 colour layers: pipeline, codestream, JP2 boxes, and a size study
+  that sets the byte budget.
 - [JBIG2_Coding.md](JBIG2_Coding.md): the subset of JBIG2 that dejapdf
   encodes (MQ coder, generic region, symbol dictionary, text region) and how
   it goes into PDF.

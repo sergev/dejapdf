@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="450" viewBox="0 0 940 450">
+<rect width="940" height="450" fill="white"/>
+<line x1="90" y1="380" x2="640" y2="380" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="385" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="end">30</text>
+<line x1="90" y1="323.33" x2="640" y2="323.33" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="328.33" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="end">35</text>
+<line x1="90" y1="266.67" x2="640" y2="266.67" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="271.67" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="end">40</text>
+<line x1="90" y1="210" x2="640" y2="210" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="215" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="end">45</text>
+<line x1="90" y1="153.33" x2="640" y2="153.33" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="158.33" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="end">50</text>
+<line x1="90" y1="96.67" x2="640" y2="96.67" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="101.67" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="end">55</text>
+<line x1="90" y1="40" x2="640" y2="40" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="45" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="end">60</text>
+<line x1="90" y1="380" x2="90" y2="385" stroke="#808080" stroke-width="1"/>
+<text x="90" y="404" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="middle">0.5×</text>
+<line x1="181.67" y1="380" x2="181.67" y2="385" stroke="#808080" stroke-width="1"/>
+<text x="181.67" y="404" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="middle">0.75×</text>
+<line x1="273.33" y1="380" x2="273.33" y2="385" stroke="#808080" stroke-width="1"/>
+<text x="273.33" y="404" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="middle">1×</text>
+<line x1="456.67" y1="380" x2="456.67" y2="385" stroke="#808080" stroke-width="1"/>
+<text x="456.67" y="404" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="middle">1.5×</text>
+<line x1="640" y1="380" x2="640" y2="385" stroke="#808080" stroke-width="1"/>
+<text x="640" y="404" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="middle">2×</text>
+<line x1="90" y1="380" x2="640" y2="380" stroke="#808080" stroke-width="1"/>
+<text x="30" y="26" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">PSNR vs the IW44 decode, dB</text>
+<text x="365" y="430" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">JP2 size as a multiple of the IW44 chunks' size</text>
+<line x1="273.33" y1="40" x2="273.33" y2="380" stroke="#808080" stroke-width="1" stroke-dasharray="4 3"/>
+<path d="M90.0,160.1 L181.7,110.3 L273.3,87.6 L456.7,71.7 L640.0,63.8" fill="none" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="90.0" cy="160.1" r="4.5" fill="#2a78d6" stroke="white" stroke-width="2"/>
+<circle cx="181.7" cy="110.3" r="4.5" fill="#2a78d6" stroke="white" stroke-width="2"/>
+<circle cx="273.3" cy="87.6" r="4.5" fill="#2a78d6" stroke="white" stroke-width="2"/>
+<circle cx="456.7" cy="71.7" r="4.5" fill="#2a78d6" stroke="white" stroke-width="2"/>
+<circle cx="640.0" cy="63.8" r="4.5" fill="#2a78d6" stroke="white" stroke-width="2"/>
+<text x="654" y="68.8" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">Klabnik p1 BG</text>
+<line x1="642" y1="63.8" x2="650" y2="63.8" stroke="#2a78d6" stroke-width="1.5"/>
+<path d="M90.0,254.2 L181.7,220.2 L273.3,193.0 L456.7,156.7 L640.0,135.2" fill="none" stroke="#eb6834" stroke-width="2"/>
+<circle cx="90.0" cy="254.2" r="4.5" fill="#eb6834" stroke="white" stroke-width="2"/>
+<circle cx="181.7" cy="220.2" r="4.5" fill="#eb6834" stroke="white" stroke-width="2"/>
+<circle cx="273.3" cy="193.0" r="4.5" fill="#eb6834" stroke="white" stroke-width="2"/>
+<circle cx="456.7" cy="156.7" r="4.5" fill="#eb6834" stroke="white" stroke-width="2"/>
+<circle cx="640.0" cy="135.2" r="4.5" fill="#eb6834" stroke="white" stroke-width="2"/>
+<text x="654" y="140.2" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">corpus BG</text>
+<line x1="642" y1="135.2" x2="650" y2="135.2" stroke="#eb6834" stroke-width="1.5"/>
+<path d="M90.0,289.3 L181.7,246.3 L273.3,212.3 L456.7,165.8 L640.0,136.3" fill="none" stroke="#1baf7a" stroke-width="2"/>
+<circle cx="90.0" cy="289.3" r="4.5" fill="#1baf7a" stroke="white" stroke-width="2"/>
+<circle cx="181.7" cy="246.3" r="4.5" fill="#1baf7a" stroke="white" stroke-width="2"/>
+<circle cx="273.3" cy="212.3" r="4.5" fill="#1baf7a" stroke="white" stroke-width="2"/>
+<circle cx="456.7" cy="165.8" r="4.5" fill="#1baf7a" stroke="white" stroke-width="2"/>
+<circle cx="640.0" cy="136.3" r="4.5" fill="#1baf7a" stroke="white" stroke-width="2"/>
+<text x="654" y="159.33" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">Kaihlavirta cover</text>
+<line x1="642" y1="136.33" x2="650" y2="154.33" stroke="#1baf7a" stroke-width="1.5"/>
+<path d="M90.0,316.5 L181.7,281.4 L273.3,254.2 L456.7,203.2 L640.0,168.1" fill="none" stroke="#eda100" stroke-width="2"/>
+<circle cx="90.0" cy="316.5" r="4.5" fill="#eda100" stroke="white" stroke-width="2"/>
+<circle cx="181.7" cy="281.4" r="4.5" fill="#eda100" stroke="white" stroke-width="2"/>
+<circle cx="273.3" cy="254.2" r="4.5" fill="#eda100" stroke="white" stroke-width="2"/>
+<circle cx="456.7" cy="203.2" r="4.5" fill="#eda100" stroke="white" stroke-width="2"/>
+<circle cx="640.0" cy="168.1" r="4.5" fill="#eda100" stroke="white" stroke-width="2"/>
+<text x="654" y="191.07" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">Yunyi cover 2325×2850</text>
+<line x1="642" y1="168.07" x2="650" y2="186.07" stroke="#eda100" stroke-width="1.5"/>
+<path d="M90.0,338.1 L181.7,307.5 L273.3,289.3 L456.7,246.3 L640.0,216.8" fill="none" stroke="#e87ba4" stroke-width="2"/>
+<circle cx="90.0" cy="338.1" r="4.5" fill="#e87ba4" stroke="white" stroke-width="2"/>
+<circle cx="181.7" cy="307.5" r="4.5" fill="#e87ba4" stroke="white" stroke-width="2"/>
+<circle cx="273.3" cy="289.3" r="4.5" fill="#e87ba4" stroke="white" stroke-width="2"/>
+<circle cx="456.7" cy="246.3" r="4.5" fill="#e87ba4" stroke="white" stroke-width="2"/>
+<circle cx="640.0" cy="216.8" r="4.5" fill="#e87ba4" stroke="white" stroke-width="2"/>
+<text x="654" y="221.8" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">corpus FG 213×275</text>
+<line x1="642" y1="216.8" x2="650" y2="216.8" stroke="#e87ba4" stroke-width="1.5"/>
+</svg>

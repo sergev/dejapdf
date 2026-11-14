@@ -55,9 +55,10 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
 ## Docs
 
 `docs/` holds the specs (DjVu v3, T.88, T.800, PDF 1.7; PDFs git-ignored, see
-`docs/README.md`, which also lists the DjVu spec errata) and three articles:
+`docs/README.md`, which also lists the DjVu spec errata) and four articles:
 `docs/DjVu_Format.md` (what we decode), `docs/JBIG2_Coding.md` (how we encode
-the mask) and `docs/Portable_Document_Format.md` (what we write). Figures are `docs/figures/NAME.py` scripts
+the mask), `docs/JPEG_2000_Image_Coding.md` (how we encode the colour layers)
+and `docs/Portable_Document_Format.md` (what we write). Figures are `docs/figures/NAME.py` scripts
 printing `NAME.svg` via `docs/figures/svg.py`; `make docs` regenerates them
 and formats the articles to PDF (pandoc + typst; `make docs-pdf` for the PDFs only).
 

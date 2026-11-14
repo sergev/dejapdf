@@ -109,6 +109,10 @@ Done when: decoded background matches `ddjvu -mode=background` (PSNR near exact)
       HTJ2K and progressive APIs; keep upstream unit tests for ported parts
 - [ ] Background → JPEG 2000 via `internal/jpx` (`/JPXDecode`), `-q` quality, stretched to the page;
       write JP2 files, not bare codestreams (PDF requires it; Poppler warns otherwise)
+- [ ] Add PCRD-opt rate control to `internal/jpx` (go-jpeg2000 has none: `CompressionRatio`
+      is unused); byte budget = the IW44 chunks' size, scaled by `-q`
+      (see docs/JPEG_2000_Image_Coding.md §10)
+- [ ] Single-colour layers: paint the colour (nothing for white) instead of embedding a JP2
 - [ ] Mask → stencil (`/ImageMask true`) painted black
 - [ ] FG44 → JPEG 2000 colour image with explicit `/Mask` pointing to the full-resolution stencil
 - [ ] FGbz palette → split blits by colour index, one stencil per colour

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="450" viewBox="0 0 940 450">
+<rect width="940" height="450" fill="white"/>
+<text x="20" y="26" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="start" font-weight="bold">Code-block bit-streams, one column each; passes bottom up</text>
+<rect x="40" y="289.5" width="52" height="10.5" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="40" y="274.8" width="52" height="14.7" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="40" y="255.9" width="52" height="18.9" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="40" y="232.8" width="52" height="23.1" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="40" y="205.5" width="52" height="27.3" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<rect x="40" y="174" width="52" height="31.5" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<rect x="40" y="136.2" width="52" height="37.8" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<text x="66" y="318" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">B1</text>
+<line x1="34" y1="232.8" x2="98" y2="232.8" stroke="#d62728" stroke-width="2"/>
+<rect x="116" y="293.7" width="52" height="6.3" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="116" y="285.3" width="52" height="8.4" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="116" y="272.7" width="52" height="12.6" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="116" y="255.9" width="52" height="16.8" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<rect x="116" y="234.9" width="52" height="21" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<text x="142" y="318" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">B2</text>
+<line x1="110" y1="272.7" x2="174" y2="272.7" stroke="#d62728" stroke-width="2"/>
+<rect x="192" y="287.4" width="52" height="12.6" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="192" y="270.6" width="52" height="16.8" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="192" y="247.5" width="52" height="23.1" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="192" y="218.1" width="52" height="29.4" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="192" y="182.4" width="52" height="35.7" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="192" y="140.4" width="52" height="42" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<rect x="192" y="92.1" width="52" height="48.3" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<text x="218" y="318" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">B3</text>
+<line x1="186" y1="182.4" x2="250" y2="182.4" stroke="#d62728" stroke-width="2"/>
+<rect x="268" y="295.8" width="52" height="4.2" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="268" y="289.5" width="52" height="6.3" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<text x="294" y="318" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">B4</text>
+<line x1="262" y1="295.8" x2="326" y2="295.8" stroke="#d62728" stroke-width="2"/>
+<rect x="344" y="291.6" width="52" height="8.4" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="344" y="279" width="52" height="12.6" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="344" y="262.2" width="52" height="16.8" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="344" y="241.2" width="52" height="21" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<rect x="344" y="213.9" width="52" height="27.3" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<text x="370" y="318" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">B5</text>
+<line x1="338" y1="262.2" x2="402" y2="262.2" stroke="#d62728" stroke-width="2"/>
+<rect x="420" y="285.3" width="52" height="14.7" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="420" y="266.4" width="52" height="18.9" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="420" y="241.2" width="52" height="25.2" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="420" y="209.7" width="52" height="31.5" fill="#d5e8d4" stroke="#82b366" stroke-width="0.8"/>
+<rect x="420" y="171.9" width="52" height="37.8" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<rect x="420" y="127.8" width="52" height="44.1" fill="#f2f2f2" stroke="#bbbbbb" stroke-width="0.8"/>
+<text x="446" y="318" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">B6</text>
+<line x1="414" y1="209.7" x2="478" y2="209.7" stroke="#d62728" stroke-width="2"/>
+<text x="510" y="60" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start" font-weight="bold">kept (green) up to the red cut:</text>
+<text x="510" y="82" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">each pass lowers the distortion by ΔD</text>
+<text x="510" y="104.31" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">and costs ΔR bytes; keep the passes</text>
+<text x="510" y="126.62" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">whose ΔD/ΔR ≥ λ, and search for the λ</text>
+<text x="510" y="148.94" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">whose total R fits the byte budget</text>
+<text x="510" y="171.25" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">(J.13). One layer: one cut per block.</text>
+<text x="510" y="193.56" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start"></text>
+<text x="510" y="215.88" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">Several layers = several cuts, for</text>
+<text x="510" y="238.19" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="start">progressive display; dejapdf uses one.</text>
+<text x="20" y="344" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="start" font-weight="bold">One packet = (layer, resolution, component, precinct)</text>
+<rect x="20" y="360" width="340" height="56" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="190" y="383.75" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">header: included? new: zero bit-planes;</text>
+<text x="190" y="404.15" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">passes (B.4 codes); byte lengths</text>
+<rect x="360" y="360" width="280" height="56" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="500" y="383.75" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">body: the bytes of each block's</text>
+<text x="500" y="404.15" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">new passes, in order</text>
+<text x="656" y="380" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="start">packet headers are bit-packed</text>
+<text x="656" y="401.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="start">with tag trees; after 0xFF a 0 bit</text>
+</svg>

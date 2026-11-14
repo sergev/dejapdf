@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="400" viewBox="0 0 940 400">
+<rect width="940" height="400" fill="white"/>
+<rect x="190" y="40" width="160" height="160" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="270" y="127.14" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="middle">1HL</text>
+<rect x="30" y="200" width="160" height="160" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="110" y="287.14" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="middle">1LH</text>
+<rect x="190" y="200" width="160" height="160" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="270" y="287.14" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="middle">1HH</text>
+<rect x="110" y="40" width="80" height="80" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="150" y="86.55" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="middle">2HL</text>
+<rect x="30" y="120" width="80" height="80" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="70" y="166.54" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="middle">2LH</text>
+<rect x="110" y="120" width="80" height="80" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="150" y="166.54" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="middle">2HH</text>
+<rect x="70" y="40" width="40" height="40" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.2" rx="3"/>
+<text x="90" y="65.95" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">3HL</text>
+<rect x="30" y="80" width="40" height="40" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.2" rx="3"/>
+<text x="50" y="105.95" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">3LH</text>
+<rect x="70" y="80" width="40" height="40" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.2" rx="3"/>
+<text x="90" y="105.95" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">3HH</text>
+<rect x="30" y="40" width="40" height="40" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="50" y="65.36" font-family="Helvetica, Arial, sans-serif" font-size="15.3" fill="#333333" text-anchor="middle">3LL</text>
+<text x="190" y="388" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#808080" text-anchor="middle">one tile-component after NL = 3 levels</text>
+<text x="400" y="52" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="start" font-weight="bold">resolution levels (B.5)</text>
+<rect x="400" y="70" width="70" height="34" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="435" y="93.25" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="middle">r = 0</text>
+<text x="486" y="92" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="start">3LL</text>
+<text x="700" y="92" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="start">decode up to here: 1/8 size</text>
+<rect x="400" y="116" width="70" height="34" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.2" rx="3"/>
+<text x="435" y="139.25" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="middle">r = 1</text>
+<text x="486" y="138" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="start">3HL 3LH 3HH</text>
+<text x="700" y="138" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="start">decode up to here: 1/4 size</text>
+<rect x="400" y="162" width="70" height="34" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="435" y="185.25" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="middle">r = 2</text>
+<text x="486" y="184" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="start">2HL 2LH 2HH</text>
+<text x="700" y="184" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="start">decode up to here: 1/2 size</text>
+<rect x="400" y="208" width="70" height="34" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="435" y="231.25" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="middle">r = 3</text>
+<text x="486" y="230" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="start">1HL 1LH 1HH</text>
+<text x="700" y="230" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="start">decode up to here: full size</text>
+<text x="650" y="286" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">First letter: filter along x, second: along y; HL is high-pass in x.</text>
+<text x="650" y="307.25" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">Sub-band gains (E.1): LL 1, HL and LH 2, HH 4 → the step</text>
+<text x="650" y="328.5" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">sizes and bit depths differ per band. QCD lists them in this</text>
+<text x="650" y="349.75" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="middle">order: 3LL, 3HL, 3LH, 3HH, 2HL, …, 1HH.</text>
+</svg>

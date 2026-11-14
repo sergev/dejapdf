@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="480" viewBox="0 0 940 480">
+<rect width="940" height="480" fill="white"/>
+<text x="20" y="26" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="start" font-weight="bold">JP2 file (Annex I): every box is length (4) + type (4) + contents</text>
+<rect x="20" y="40" width="420" height="56" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="32" y="62" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="start" font-weight="bold">jP␣␣  signature, 12 bytes</text>
+<text x="32" y="82" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#808080" text-anchor="start">00 00 00 0C 6A 50 20 20 0D 0A 87 0A</text>
+<rect x="20" y="104" width="420" height="56" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="32" y="126" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="start" font-weight="bold">ftyp  file type, 20 bytes</text>
+<text x="32" y="146" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#808080" text-anchor="start">brand 'jp2 ', minor 0, compat 'jp2 '</text>
+<rect x="20" y="168" width="420" height="180" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="32" y="190" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="start" font-weight="bold">jp2h  header superbox, 45 bytes</text>
+<rect x="36" y="202" width="388" height="70" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="48" y="224" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="start" font-weight="bold">ihdr  image header, 22 bytes</text>
+<text x="48" y="244" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#808080" text-anchor="start">H 32, W 64; NC 3; BPC 7; C 7;</text>
+<text x="48" y="264" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#808080" text-anchor="start">UnkC 0; IPR 0  (BPC = depth − 1)</text>
+<rect x="36" y="280" width="388" height="56" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="48" y="302" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="start" font-weight="bold">colr  colour, 15 bytes</text>
+<text x="48" y="322" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#808080" text-anchor="start">METH 1, PREC 0, APPROX 0, EnumCS 16</text>
+<rect x="20" y="356" width="420" height="56" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.2" rx="3"/>
+<text x="32" y="378" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="start" font-weight="bold">jp2c  contiguous codestream</text>
+<text x="32" y="398" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="16.15" fill="#808080" text-anchor="start">length = codestream + 8</text>
+<text x="230" y="440" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="middle">85 bytes before the codestream starts</text>
+<text x="230" y="462" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="middle">EnumCS 16 = sRGB, 17 = greyscale; C 7 = JPEG 2000</text>
+<text x="480" y="66" font-family="Helvetica, Arial, sans-serif" font-size="20.4" fill="#333333" text-anchor="start" font-weight="bold">codestream (Annex A)</text>
+<rect x="480" y="80" width="140" height="38" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="550" y="105.25" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="middle">FF4F  SOC</text>
+<text x="632" y="105" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">start of codestream</text>
+<rect x="480" y="124" width="140" height="38" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="550" y="149.25" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="middle">FF51  SIZ</text>
+<text x="632" y="149" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">size, tile = image, components, depth</text>
+<rect x="480" y="168" width="140" height="38" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="550" y="193.25" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="middle">FF52  COD</text>
+<text x="632" y="193" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">layers, MCT, levels, block size, 9/7</text>
+<rect x="480" y="212" width="140" height="38" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="550" y="237.25" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="middle">FF5C  QCD</text>
+<text x="632" y="237" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">guard bits, a step per sub-band</text>
+<rect x="480" y="256" width="140" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="550" y="281.25" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="middle">FF90  SOT</text>
+<text x="632" y="281" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">tile 0, its length</text>
+<rect x="480" y="300" width="140" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="550" y="325.25" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="middle">FF93  SOD</text>
+<text x="632" y="325" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">then the packets</text>
+<rect x="480" y="344" width="140" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="550" y="369.25" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="middle">packets</text>
+<text x="632" y="369" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">header + code-block bytes</text>
+<rect x="480" y="388" width="140" height="38" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="550" y="413.25" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17.85" fill="#333333" text-anchor="middle">FFD9  EOC</text>
+<text x="632" y="413" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">end of codestream</text>
+<text x="700" y="448" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#808080" text-anchor="middle">main header: SIZ, COD, QCD; tile-part header: SOT … SOD</text>
+</svg>
