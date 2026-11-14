@@ -176,6 +176,18 @@ type decoder struct {
 	prevRight              int
 	bottoms                [3]int // most recent first
 	onLine                 int
+
+	scratch []byte // padded bitmaps, reused
+}
+
+// buffers returns two scratch slices of n and m bytes, the first zeroed.
+func (d *decoder) buffers(n, m int) ([]byte, []byte) {
+	if cap(d.scratch) < n+m {
+		d.scratch = make([]byte, n+m)
+	}
+	b := d.scratch[:n+m]
+	clear(b[:n])
+	return b[:n:n], b[n:]
 }
 
 // Decode decodes an Sjbz chunk. dict is the shared dictionary the
@@ -423,7 +435,7 @@ func (d *decoder) directBitmap(w, h int) (*Bitmap, error) {
 	}
 	// Padded: 2 white rows on top, 2 columns left, 3 right.
 	pw := w + 5
-	buf := make([]byte, pw*(h+2))
+	buf, _ := d.buffers(pw*(h+2), 0)
 	for r := range h {
 		if d.zp.Overrun() > maxOver {
 			return nil, errors.New("jb2: truncated bitmap")
@@ -463,8 +475,7 @@ func (d *decoder) refineBitmap(w, h int, ref *Bitmap) (*Bitmap, error) {
 	// Both padded by 1 row on top and 1 column left, 2 right; m also by
 	// 1 row below. m holds ref aligned with the new bitmap.
 	pw := w + 3
-	buf := make([]byte, pw*(h+1))
-	m := make([]byte, pw*(h+2))
+	buf, m := d.buffers(pw*(h+1), pw*(h+2)) // m is filled below
 	for r := -1; r <= h; r++ {
 		for c := -1; c <= w+1; c++ {
 			m[(r+1)*pw+c+1] = byte(ref.at(r+dr, c+dc))

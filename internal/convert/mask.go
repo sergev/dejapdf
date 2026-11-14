@@ -24,12 +24,22 @@ const (
 var minRefined = 100
 
 // shared is a Djbz dictionary coded once as a JBIG2Globals stream.
+// Its data is coded in the background: pages need only its numbering.
 type shared struct {
-	data []byte
 	ids  []int           // symbol number of each shape, -1 for an empty one
 	syms []*jbig2.Bitmap // the symbols by number
 	segs int             // segments in data
 	ref  pdf.Ref
+
+	once  sync.Once
+	done  chan struct{}
+	coded []byte
+}
+
+// data waits for the coded segments.
+func (s *shared) data() []byte {
+	<-s.done
+	return s.coded
 }
 
 // sharedDicts caches the document's coded Djbz dictionaries.
@@ -40,10 +50,21 @@ type sharedDicts struct {
 
 func (sd *sharedDicts) get(d *jb2.Dict) *shared {
 	sd.mu.Lock()
-	defer sd.mu.Unlock()
-	if s, ok := sd.m[d]; ok {
-		return s
+	s, ok := sd.m[d]
+	if !ok {
+		s = &shared{}
+		if sd.m == nil {
+			sd.m = map[*jb2.Dict]*shared{}
+		}
+		sd.m[d] = s
 	}
+	sd.mu.Unlock()
+	s.once.Do(func() { s.layout(d) })
+	return s
+}
+
+// layout numbers d's symbols and starts coding them.
+func (s *shared) layout(d *jb2.Dict) {
 	var want []int
 	for i, b := range d.Shapes {
 		if b.W > 0 && b.H > 0 {
@@ -52,35 +73,55 @@ func (sd *sharedDicts) get(d *jb2.Dict) *shared {
 	}
 	set := codeShapes(want, func(i int) *jb2.Bitmap { return d.Shapes[i] },
 		func(i int) jb2.Ref { return d.Refs[i] }, nil, nil, 0, 0)
-	s := &shared{data: set.segs, ids: make([]int, len(d.Shapes)), syms: set.syms, segs: set.nsegs}
+	s.ids, s.syms, s.segs = make([]int, len(d.Shapes)), set.syms, set.nsegs
 	for i := range s.ids {
 		s.ids[i] = -1
 	}
 	for i, id := range set.ids {
 		s.ids[i] = id
 	}
-	if sd.m == nil {
-		sd.m = map[*jb2.Dict]*shared{}
-	}
-	sd.m[d] = s
-	return s
+	s.done = make(chan struct{})
+	go func() {
+		s.coded = set.codeParallel()
+		close(s.done)
+	}()
 }
 
 // symbolSet is shapes coded as up to two symbol dictionary segments:
 // the directly coded shapes, then the refined ones.
 type symbolSet struct {
-	segs  []byte
+	jobs  []func() []byte // each codes one segment
 	nsegs int
 	ids   map[int]int     // shape → symbol number, after the inputs
 	syms  []*jbig2.Bitmap // inputs then the new symbols, by number
 	refs  []uint32        // the segments a text region refers to
 }
 
-// codeShapes codes shapes want (in increasing order, refinement
-// references included) as segments numbered from first, of page page.
-// Shapes refined from outside the set refer to the input symbols: ext
-// gives their numbers, extSyms their bitmaps, extSegs the segments that
-// define them.
+// code returns the segments.
+func (set *symbolSet) code() []byte {
+	var segs []byte
+	for _, job := range set.jobs {
+		segs = append(segs, job()...)
+	}
+	return segs
+}
+
+// codeParallel is code with the segments coded concurrently.
+func (set *symbolSet) codeParallel() []byte {
+	parts := make([][]byte, len(set.jobs))
+	var wg sync.WaitGroup
+	for k, job := range set.jobs {
+		wg.Go(func() { parts[k] = job() })
+	}
+	wg.Wait()
+	return slices.Concat(parts...)
+}
+
+// codeShapes lays out shapes want (in increasing order, refinement
+// references included) as segments numbered from first, of page page;
+// its jobs code them. Shapes refined from outside the set refer to the
+// input symbols: ext gives their numbers, extSyms their bitmaps, extSegs
+// the segments that define them.
 func codeShapes(want []int, shape func(int) *jb2.Bitmap, ref func(int) jb2.Ref,
 	ext func(int) int, extSyms []*jbig2.Bitmap, first uint32, page uint32, extSegs ...uint32) *symbolSet {
 	set := &symbolSet{ids: map[int]int{}, syms: append([]*jbig2.Bitmap(nil), extSyms...),
@@ -118,15 +159,19 @@ func codeShapes(want []int, shape func(int) *jb2.Bitmap, ref func(int) jb2.Ref,
 		for k, i := range direct {
 			bms[k] = pack(shape(i))
 		}
-		data, ids := jbig2.SymbolDict(bms)
+		ids := jbig2.SymbolIDs(bms)
 		base := len(set.syms)
 		set.syms = append(set.syms, make([]*jbig2.Bitmap, len(bms))...)
 		for k, i := range direct {
 			set.ids[i] = base + ids[k]
 			set.syms[base+ids[k]] = bms[k]
 		}
-		seg := jbig2.Segment{Number: n, Type: jbig2.TypeSymbolDict, Page: page, Data: data, Retain: true}
-		set.segs = seg.Append(set.segs)
+		num := n
+		set.jobs = append(set.jobs, func() []byte {
+			data, _ := jbig2.SymbolDict(bms)
+			seg := jbig2.Segment{Number: num, Type: jbig2.TypeSymbolDict, Page: page, Data: data, Retain: true}
+			return seg.Append(nil)
+		})
 		set.refs = append(set.refs, n)
 		n++
 	}
@@ -144,12 +189,15 @@ func codeShapes(want []int, shape func(int) *jb2.Bitmap, ref func(int) jb2.Ref,
 			refs[k] = jbig2.Ref{ID: id, DX: r.DX, DY: r.DY}
 			set.ids[i] = len(inputs) + k
 		}
-		data := jbig2.RefineDict(bms, refs, inputs)
 		set.syms = append(append([]*jbig2.Bitmap(nil), inputs...), bms...)
 		// The text region refers to the inputs too.
-		seg := jbig2.Segment{Number: n, Type: jbig2.TypeSymbolDict, Refs: set.refs, Page: page, Data: data,
-			Retain: true, KeepRefs: true}
-		set.segs = seg.Append(set.segs)
+		num, segRefs := n, set.refs
+		set.jobs = append(set.jobs, func() []byte {
+			data := jbig2.RefineDict(bms, refs, inputs)
+			seg := jbig2.Segment{Number: num, Type: jbig2.TypeSymbolDict, Refs: segRefs, Page: page, Data: data,
+				Retain: true, KeepRefs: true}
+			return seg.Append(nil)
+		})
 		set.refs = append(set.refs, n)
 		n++
 	}
@@ -223,7 +271,7 @@ func (b *pageBuilder) maskImage(mask *jb2.Image, x0, y0, w, h int, keep func(int
 	pi := jbig2.Segment{Number: n, Type: jbig2.TypePageInfo, Page: 1, Data: jbig2.PageInfo(w, h, 0)}
 	segs := pi.Append(nil)
 	set := codeShapes(want, mask.Shape, mask.ShapeRef, ext, extSyms, n+1, 1, extSegs...)
-	segs = append(segs, set.segs...)
+	segs = append(segs, set.code()...)
 	ins := make([]jbig2.Instance, len(blits))
 	for j, i := range blits {
 		bl := mask.Blits[i]

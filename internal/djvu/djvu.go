@@ -13,7 +13,6 @@ import (
 	"sync"
 
 	"github.com/sergev/dejapdf/internal/iff"
-	"github.com/sergev/dejapdf/internal/jb2"
 )
 
 // Loader reads a file that an indirect document or an INCL refers to.
@@ -31,8 +30,8 @@ type Document struct {
 
 	load  Loader
 	cache map[string]*iff.Chunk // components by id
-	dicts map[*iff.Chunk]*jb2.Dict
-	mu    sync.Mutex // guards dicts
+	dicts map[*iff.Chunk]*dictEntry
+	mu    sync.Mutex // guards dicts and Warnings
 }
 
 // Page is one FORM:DJVU with its resolved includes. A page that cannot

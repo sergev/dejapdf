@@ -75,7 +75,8 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 	blank := blankSizes(doc)
 	tg := newTargets(doc, pages)
 	font := &textFont{}
-	// Pages are built in parallel and written in order.
+	// Pages are built in parallel and written in order. Built pages wait
+	// for their turn: they hold only coded streams.
 	type result struct {
 		b   *pageBuilder
 		err error
@@ -84,36 +85,45 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 	for i := range results {
 		results[i] = make(chan result, 1)
 	}
-	window := make(chan struct{}, 2*runtime.GOMAXPROCS(0))
+	weight := make([]int64, len(sel))
+	for k, i := range sel {
+		weight[k] = chunkSize(doc.Pages[i].Form)
+	}
+	sch := newScheduler(doc, sel, weight)
 	dicts := &sharedDicts{}
-	go func() {
-		for k, i := range sel {
-			window <- struct{}{}
-			go func(i int, c chan result) {
-				defer func() {
-					// A decoder bug must not take down the whole file.
-					if e := recover(); e != nil {
-						err := fmt.Errorf("internal error: %v", e)
-						if opt.Warn == nil {
-							c <- result{nil, err}
-							return
+	for range runtime.GOMAXPROCS(0) {
+		go func() {
+			for {
+				k, ok := sch.take()
+				if !ok {
+					return
+				}
+				i, c := sel[k], results[k]
+				func() {
+					defer sch.done(k)
+					defer func() {
+						// A decoder bug must not take down the whole file.
+						if e := recover(); e != nil {
+							err := fmt.Errorf("internal error: %v", e)
+							if opt.Warn == nil {
+								c <- result{nil, err}
+								return
+							}
+							opt.Warn(i, err)
+							c <- result{blankPage(blank[i], dicts), nil}
 						}
-						opt.Warn(i, err)
-						c <- result{blankPage(blank[i], dicts), nil}
-					}
+					}()
+					b, err := build(doc, doc.Pages[i], i, &opt, dicts, tg, blank[i])
+					c <- result{b, err}
 				}()
-				b, err := build(doc, doc.Pages[i], i, &opt, dicts, tg, blank[i])
-				c <- result{b, err}
-			}(i, results[k])
-		}
-	}()
+			}
+		}()
+	}
 	var err error
 	var pr Progress
-	weight := make([]int64, len(sel))
 	if opt.Progress != nil {
 		pr.Pages = len(sel)
-		for k, i := range sel {
-			weight[k] = chunkSize(doc.Pages[i].Form)
+		for k := range sel {
 			pr.Total += weight[k]
 		}
 	}
@@ -129,7 +139,6 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 				opt.Progress(pr)
 			}
 		}
-		<-window
 	}
 	if err != nil {
 		return err
@@ -219,9 +228,10 @@ func (b *pageBuilder) emit(p *pdf.Writer, r pdf.Ref, pages []pdf.Ref, font *text
 			return pages[v]
 		case *shared:
 			if v.ref == 0 {
-				v.ref = p.AddStream(pdf.Dict{}, v.data)
+				data := v.data()
+				v.ref = p.AddStream(pdf.Dict{}, data)
 				if st != nil {
-					st.PDF[Mask] += int64(len(v.data))
+					st.PDF[Mask] += int64(len(data))
 				}
 			}
 			return v.ref

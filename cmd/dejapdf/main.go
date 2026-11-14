@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/pprof"
+	"runtime/trace"
 	"strconv"
 	"strings"
 	"time"
@@ -33,6 +35,8 @@ func main() {
 	pages := flag.String("p", "", "pages to convert, like 1-10,15 (default all)")
 	verbose := flag.Bool("v", false, "show a size report by layer")
 	quiet := flag.Bool("quiet", false, "print nothing but warnings and errors")
+	cpuProfile := flag.String("cpuprofile", "", "write a CPU profile to `file`")
+	traceFile := flag.String("trace", "", "write an execution trace to `file`")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -55,10 +59,54 @@ func main() {
 		usage()
 		os.Exit(2)
 	}
-	if err := convertFile(flag.Arg(0), flag.Arg(1), *quality, *pages, *verbose, *quiet); err != nil {
+	stop, err := startProfiles(*cpuProfile, *traceFile)
+	if err == nil {
+		err = convertFile(flag.Arg(0), flag.Arg(1), *quality, *pages, *verbose, *quiet)
+		stop()
+	}
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "dejapdf:", err)
 		os.Exit(1)
 	}
+}
+
+// startProfiles starts the CPU profile and execution trace asked for;
+// stop ends them.
+func startProfiles(cpu, tr string) (stop func(), err error) {
+	var files []*os.File
+	stop = func() {
+		if cpu != "" {
+			pprof.StopCPUProfile()
+		}
+		if tr != "" {
+			trace.Stop()
+		}
+		for _, f := range files {
+			f.Close()
+		}
+	}
+	open := func(name string, start func(*os.File) error) error {
+		f, err := os.Create(name)
+		if err != nil {
+			return err
+		}
+		files = append(files, f)
+		return start(f)
+	}
+	if cpu != "" {
+		if err = open(cpu, func(f *os.File) error { return pprof.StartCPUProfile(f) }); err != nil {
+			cpu = ""
+		}
+	}
+	if err == nil && tr != "" {
+		if err = open(tr, func(f *os.File) error { return trace.Start(f) }); err != nil {
+			tr = ""
+		}
+	}
+	if err != nil {
+		stop()
+	}
+	return stop, err
 }
 
 func convertFile(in, out string, quality float64, pages string, verbose, quiet bool) error {

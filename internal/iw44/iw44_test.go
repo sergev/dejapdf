@@ -79,3 +79,13 @@ func FuzzDecode(f *testing.F) {
 		}
 	})
 }
+
+func TestSize(t *testing.T) {
+	if _, _, ok := Size([]byte{1, 0}); ok {
+		t.Error("Size of a later chunk")
+	}
+	w, h, ok := Size([]byte{0, 74, 1, 2, 0x0d, 0xee, 0x15, 0xae, 0})
+	if !ok || w != 3566 || h != 5550 {
+		t.Errorf("Size = %d, %d, %v", w, h, ok)
+	}
+}

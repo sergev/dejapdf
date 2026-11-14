@@ -86,6 +86,14 @@ type Decoder struct {
 	decoding   [64]bool
 }
 
+// Size returns the image size from the first chunk's header.
+func Size(b []byte) (w, h int, ok bool) {
+	if len(b) < 9 || b[0] != 0 {
+		return 0, 0, false
+	}
+	return int(b[4])<<8 | int(b[5]), int(b[6])<<8 | int(b[7]), true
+}
+
 // Decode adds one chunk.
 func (d *Decoder) Decode(b []byte) error {
 	if len(b) < 2 {

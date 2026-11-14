@@ -16,17 +16,7 @@ import (
 // symbol gets: symbols are coded by height class, then by width (6.5).
 // Arithmetic coding, template 0, no refinement, no imports.
 func SymbolDict(syms []*Bitmap) (data []byte, ids []int) {
-	order := make([]int, len(syms))
-	for i := range order {
-		order[i] = i
-	}
-	sort.SliceStable(order, func(a, b int) bool {
-		sa, sb := syms[order[a]], syms[order[b]]
-		if sa.H != sb.H {
-			return sa.H < sb.H
-		}
-		return sa.W < sb.W
-	})
+	order := symbolOrder(syms)
 	ids = make([]int, len(syms))
 	for k, i := range order {
 		ids[i] = k
@@ -59,6 +49,31 @@ func SymbolDict(syms []*Bitmap) (data []byte, ids []int) {
 	ex.encode(e, 0)
 	ex.encode(e, len(syms))
 	return append(d, e.FlushJBIG2()...), ids
+}
+
+// SymbolIDs returns the numbers SymbolDict gives syms, without coding.
+func SymbolIDs(syms []*Bitmap) []int {
+	ids := make([]int, len(syms))
+	for k, i := range symbolOrder(syms) {
+		ids[i] = k
+	}
+	return ids
+}
+
+// symbolOrder sorts symbol indexes by height, then width.
+func symbolOrder(syms []*Bitmap) []int {
+	order := make([]int, len(syms))
+	for i := range order {
+		order[i] = i
+	}
+	sort.SliceStable(order, func(a, b int) bool {
+		sa, sb := syms[order[a]], syms[order[b]]
+		if sa.H != sb.H {
+			return sa.H < sb.H
+		}
+		return sa.W < sb.W
+	})
+	return order
 }
 
 // SDTemplate is the generic template of symbol bitmaps.

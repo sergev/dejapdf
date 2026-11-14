@@ -5,6 +5,7 @@ package djvu
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/sergev/dejapdf/internal/iff"
 	"github.com/sergev/dejapdf/internal/jb2"
@@ -40,19 +41,29 @@ func (d *Document) Mask(p *Page) (*jb2.Image, error) {
 	return im, nil
 }
 
+// dictEntry is a Djbz decoded once.
+type dictEntry struct {
+	once sync.Once
+	dict *jb2.Dict
+	err  error
+}
+
 func (d *Document) dict(c *iff.Chunk) (*jb2.Dict, error) {
 	d.mu.Lock()
-	defer d.mu.Unlock()
-	if k, ok := d.dicts[c]; ok {
-		return k, nil
+	e, ok := d.dicts[c]
+	if !ok {
+		e = &dictEntry{}
+		if d.dicts == nil {
+			d.dicts = map[*iff.Chunk]*dictEntry{}
+		}
+		d.dicts[c] = e
 	}
-	k, err := jb2.DecodeDict(c.Data, nil)
-	if err != nil {
-		return nil, fmt.Errorf("djvu: Djbz: %w", err)
-	}
-	if d.dicts == nil {
-		d.dicts = map[*iff.Chunk]*jb2.Dict{}
-	}
-	d.dicts[c] = k
-	return k, nil
+	d.mu.Unlock()
+	e.once.Do(func() {
+		e.dict, e.err = jb2.DecodeDict(c.Data, nil)
+		if e.err != nil {
+			e.err = fmt.Errorf("djvu: Djbz: %w", e.err)
+		}
+	})
+	return e.dict, e.err
 }
