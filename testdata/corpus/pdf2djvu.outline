@@ -1,0 +1,11 @@
+(bookmarks
+ ("Text"
+  "#p0001.djvu" )
+ ("Pictures"
+  "#p0002.djvu"
+  ("Background"
+   "#p0002.djvu" )
+  ("Coloured text"
+   "#p0003.djvu" ) )
+ ("More text"
+  "#p0004.djvu" ) )

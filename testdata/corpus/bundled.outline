@@ -1,0 +1,11 @@
+(bookmarks
+ ("Text"
+  "#1" )
+ ("Pictures"
+  "#2"
+  ("Background"
+   "#2" )
+  ("Colours"
+   "#3" ) )
+ ("Compound"
+  "#4" ) )

@@ -92,5 +92,6 @@ for f in *.djvu indirect/index.djvu; do
 done
 for f in bundled pdf2djvu; do
     djvused $f.djvu -e output-all > $f.dsed
+    djvused $f.djvu -e print-outline > $f.outline
 done
 ls -l "$out"

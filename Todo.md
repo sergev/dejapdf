@@ -1,6 +1,6 @@
 # dejapdf — Todo
 
-Sequential plan. Each phase (P2, P3, …) builds on the previous one and ends with a testable
+Sequential plan. Each phase (P4, P5, …) builds on the previous one and ends with a testable
 "Done when" criterion.
 
 ## Ground rules
@@ -44,28 +44,6 @@ Sequential plan. Each phase (P2, P3, …) builds on the previous one and ends wi
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
 
-## P2. ZP-coder decoder
-
-- [x] Probability/threshold tables from the spec, adaptive context bits
-      (table re-read from the scan; garbled entries reconstructed, see `docs/README.md`)
-- [x] Decoder API: `Decode(ctx *byte) int`, `DecodePassthrough() int`,
-      `DecodePassthroughIW44() int`; decoding rules corrected against DjVuLibre streams
-- [x] Test vectors: `bzz -e` streams (zeros, random, text, multi-block) and raw vectors
-      from the MIT `djvu-zp` encoder (`tmp/zpgen`, run only as a generator)
-
-Done when: unit tests pass on known streams; fuzz test runs clean.
-Status: done. IW44 pass-through is checked only against `djvu-zp`; confirm in P6 with `c44`.
-
-## P3. BZZ decompressor
-
-- [x] ZP-coded block decoding, MTF, inverse Burrows–Wheeler (pulled forward to
-      validate P2; round-trips `bzz -e` on varied inputs and block sizes)
-- [x] Finish DIRM: `-dump` matches `djvudump` exactly on the corpus and all 9 books;
-      `djvu.Open` opens bundled and indirect documents
-- [ ] Raw decode of TXTz, ANTz, NAVM
-
-Done when: decoded text and outlines match `djvused -e print-txt` / `print-outline`.
-
 ## P4. JB2 decoder
 
 Produce the *structure*, not just a bitmap.
@@ -99,19 +77,26 @@ Done when: `qpdf --check` passes; `pdftoppm` render matches `ddjvu` render.
 - [ ] Grayscale and colour (YCbCr→RGB, chroma delay, half-resolution chroma)
 - [ ] Multiple BG44/FG44 chunks (progressive refinement); ignore TH44
 - [ ] Output layer at its native (low) resolution
+- [ ] Confirm the ZP IW44 pass-through (checked only against `djvu-zp`) on `c44` streams
 
 Done when: decoded background matches `ddjvu -mode=background` (PSNR near exact).
 
 ## P7. Layered page assembly
 
-- [ ] `internal/jpx`: port the encoder path of `tmp/go-jpeg2000` (codestream, dwt 9/7,
-      entropy/EBCOT encoder, mct, tcd, t2 packets, jp2 boxes); drop decoder, float/half,
-      HTJ2K and progressive APIs; keep upstream unit tests for ported parts
+- [ ] `internal/jpx` with rate control, first (see docs/JPEG_2000_Image_Coding.md §7, §10, §12):
+  - port the encoder path of `tmp/go-jpeg2000` (codestream, dwt 9/7, entropy/EBCOT encoder,
+    mct, tcd, t2 packets, jp2 boxes); drop decoder, float/half, HTJ2K and progressive APIs;
+    keep upstream unit tests for ported parts; take planar component data (no alpha)
+  - make tier 1 record bytes and distortion reduction at every pass end
+  - add PCRD-opt rate control (go-jpeg2000 has none: `CompressionRatio` is unused): port
+    OpenJPEG's rate allocator (`opj_tcd_rateallocate` and helpers in `tcd.c`, BSD-2: keep its
+    header, credit in NOTICE); one layer; byte budget = the IW44 chunks' size, scaled by `-q`
+  - only if the gap below remains: tune step sizes / tier-1 distortion estimates
+  - Done when: rerunning the §10 size study with `internal/jpx`, each layer's PSNR at
+    1× the IW44 size is within 1 dB of `opj_compress -r` at the same size, and files
+    decode with `opj_decompress`
 - [ ] Background → JPEG 2000 via `internal/jpx` (`/JPXDecode`), `-q` quality, stretched to the page;
       write JP2 files, not bare codestreams (PDF requires it; Poppler warns otherwise)
-- [ ] Add PCRD-opt rate control to `internal/jpx` (go-jpeg2000 has none: `CompressionRatio`
-      is unused); byte budget = the IW44 chunks' size, scaled by `-q`
-      (see docs/JPEG_2000_Image_Coding.md §10)
 - [ ] Single-colour layers: paint the colour (nothing for white) instead of embedding a JP2
 - [ ] Mask → stencil (`/ImageMask true`) painted black
 - [ ] FG44 → JPEG 2000 colour image with explicit `/Mask` pointing to the full-resolution stencil
