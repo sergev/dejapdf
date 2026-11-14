@@ -264,9 +264,9 @@ to twice the IW44 size. At 1×, every layer is above 38 dB, and most above
 | corpus BG | 850×1100 | 16 560 | 41.1 | 44.1 | 46.5 | 49.7 | 51.6 |
 | corpus FG | 213×275 | 5 372 | 33.7 | 36.4 | 38.0 | 41.8 | 44.4 |
 | corpus grey BG | 850×1100 | 9 662 | 47.2 | 51.4 | 54.3 | 58.0 | 60.6 |
-| Kaihlavirta cover BG | 850×1100 | 67 041 | 38.0 | 41.8 | 44.8 | 48.9 | 51.5 |
-| Yunyi cover BG | 2325×2850 | 313 392 | 35.6 | 38.7 | 41.1 | 45.6 | 48.7 |
-| Klabnik p1 BG | 700×925 | 2 404 | 49.4 | 53.8 | 55.8 | 57.2 | 57.9 |
+| book A cover BG | 850×1100 | 67 041 | 38.0 | 41.8 | 44.8 | 48.9 | 51.5 |
+| book B cover BG | 2325×2850 | 313 392 | 35.6 | 38.7 | 41.1 | 45.6 | 48.7 |
+| book C page BG | 700×925 | 2 404 | 49.4 | 53.8 | 55.8 | 57.2 | 57.9 |
 
 What follows for dejapdf:
 
@@ -296,19 +296,19 @@ What follows for dejapdf:
   encoder settings do not change this: 6 or 7 levels instead of 5, and base
   steps of half or twice the size, all give the same PSNR to 0.01 dB.
 
-  dejapdf therefore defaults to `-q 1.2`. Of the colour layers' bytes in
-  the books, this adds 20%. Whole books become 1.06–1.17× the DjVu instead
-  of 0.99–1.11×; one book with many palette stencils is 1.29× (Portable_Document_Format.md §9). `-q 1` gives the smallest
-  files, and `-q 1.5` the closest copy.
+  dejapdf therefore defaults to `-q 1.2`, which adds 20% to the colour
+  layers' bytes; whole books come out 1.06–1.18× the DjVu size
+  (Portable_Document_Format.md §9). `-q 1` gives the smallest files, and
+  `-q 1.5` the closest copy.
 - **Rate control is required.** go-jpeg2000 has no rate control: its
   `CompressionRatio` option is declared but unused, and `Quality` only sets
   the step sizes from an error bound. At its lowest Quality, on the corpus
   background, it writes 107 KB (6.5× IW44) at 52 dB. At the same PSNR,
-  OpenJPEG needs 26 KB. On the Kaihlavirta cover the figures are 214 KB and
+  OpenJPEG needs 26 KB. On book A's cover the figures are 214 KB and
   108 KB. internal/jpx adds PCRD-opt truncation to a byte budget (§7, §12).
 - **Uniform layers.** Many book pages have a background of one flat colour
   (white paper). IW44 codes it in 79–1117 bytes; the smallest JP2 is about
-  260–330 bytes. dejapdf should test for a single colour and paint it, or
+  260–330 bytes. dejapdf tests for a single colour and paints it, or
   nothing for white, instead of embedding an image.
 - **Small layers**: 85 bytes of JP2 boxes plus about 120 bytes of marker
   segments (SIZ, COD, a QCD with 16 step sizes, SOT) per image. They matter
@@ -335,7 +335,7 @@ What follows for dejapdf:
   Poppler).
 - No `/SMaskInData`: there is no alpha channel. Encoders that take an RGBA
   image may add a fourth component; go-jpeg2000 does for `image.RGBA`
-  (*checked*), so `internal/jpx` should take planar component data instead.
+  (*checked*), so `internal/jpx` takes planar component data instead.
 
 ## 12. What `internal/jpx` is
 
@@ -370,13 +370,13 @@ Results with the same layers and the same file sizes as `opj_compress -r`
 | corpus BG | 41.16 / 41.13 | 46.48 / 46.44 | 51.60 / 51.57 |
 | corpus FG | 19.92 / 19.87 | 27.40 / 27.04 | 34.03 / 34.01 |
 | corpus grey BG | 47.26 / 47.18 | 54.37 / 54.29 | 60.63 / 60.61 |
-| Kaihlavirta cover BG | 37.99 / 37.96 | 44.80 / 44.78 | 51.50 / 51.47 |
-| Yunyi cover BG | 35.61 / 35.58 | 41.14 / 41.10 | 48.72 / 48.72 |
-| Klabnik p1 BG | 50.18 / 49.37 | 55.84 / 55.85 | 57.86 / 57.83 |
+| book A cover BG | 37.99 / 37.96 | 44.80 / 44.78 | 51.50 / 51.47 |
+| book B cover BG | 35.61 / 35.58 | 41.14 / 41.10 | 48.72 / 48.72 |
+| book C page BG | 50.18 / 49.37 | 55.84 / 55.85 | 57.86 / 57.83 |
 
 (The FG reference here is the IW44 decode itself; §10's FG row used
 `ddjvu -mode=foreground`, which paints through the mask.) An 850×1100 RGB
-layer encodes in about 80 ms, the 2325×2850 Yunyi cover in 0.4 s.
+layer encodes in about 80 ms, the 2325×2850 cover of book B in 0.4 s.
 
 Borrowed files keep their copyright header and are credited in `NOTICE`.
 

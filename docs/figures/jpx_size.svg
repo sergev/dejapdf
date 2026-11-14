@@ -34,7 +34,7 @@
 <circle cx="273.3" cy="87.6" r="4.5" fill="#2a78d6" stroke="white" stroke-width="2"/>
 <circle cx="456.7" cy="71.7" r="4.5" fill="#2a78d6" stroke="white" stroke-width="2"/>
 <circle cx="640.0" cy="63.8" r="4.5" fill="#2a78d6" stroke="white" stroke-width="2"/>
-<text x="654" y="68.8" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">Klabnik p1 BG</text>
+<text x="654" y="68.8" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">book C page BG</text>
 <line x1="642" y1="63.8" x2="650" y2="63.8" stroke="#2a78d6" stroke-width="1.5"/>
 <path d="M90.0,254.2 L181.7,220.2 L273.3,193.0 L456.7,156.7 L640.0,135.2" fill="none" stroke="#eb6834" stroke-width="2"/>
 <circle cx="90.0" cy="254.2" r="4.5" fill="#eb6834" stroke="white" stroke-width="2"/>
@@ -50,7 +50,7 @@
 <circle cx="273.3" cy="212.3" r="4.5" fill="#1baf7a" stroke="white" stroke-width="2"/>
 <circle cx="456.7" cy="165.8" r="4.5" fill="#1baf7a" stroke="white" stroke-width="2"/>
 <circle cx="640.0" cy="136.3" r="4.5" fill="#1baf7a" stroke="white" stroke-width="2"/>
-<text x="654" y="159.33" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">Kaihlavirta cover</text>
+<text x="654" y="159.33" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">book A cover</text>
 <line x1="642" y1="136.33" x2="650" y2="154.33" stroke="#1baf7a" stroke-width="1.5"/>
 <path d="M90.0,316.5 L181.7,281.4 L273.3,254.2 L456.7,203.2 L640.0,168.1" fill="none" stroke="#eda100" stroke-width="2"/>
 <circle cx="90.0" cy="316.5" r="4.5" fill="#eda100" stroke="white" stroke-width="2"/>
@@ -58,7 +58,7 @@
 <circle cx="273.3" cy="254.2" r="4.5" fill="#eda100" stroke="white" stroke-width="2"/>
 <circle cx="456.7" cy="203.2" r="4.5" fill="#eda100" stroke="white" stroke-width="2"/>
 <circle cx="640.0" cy="168.1" r="4.5" fill="#eda100" stroke="white" stroke-width="2"/>
-<text x="654" y="191.07" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">Yunyi cover 2325×2850</text>
+<text x="654" y="191.07" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="start">book B cover 2325×2850</text>
 <line x1="642" y1="168.07" x2="650" y2="186.07" stroke="#eda100" stroke-width="1.5"/>
 <path d="M90.0,338.1 L181.7,307.5 L273.3,289.3 L456.7,246.3 L640.0,216.8" fill="none" stroke="#e87ba4" stroke-width="2"/>
 <circle cx="90.0" cy="338.1" r="4.5" fill="#e87ba4" stroke="white" stroke-width="2"/>

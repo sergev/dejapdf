@@ -5,9 +5,9 @@ coder, the integer coders, generic regions, symbol dictionaries and text
 regions, and how they go into a PDF. Numbers in parentheses are sections of
 ITU-T T.88 (02/2000), [T-REC-T.88-200002.pdf](T-REC-T.88-200002.pdf).
 T.88 defines only the decoder; an encoder is right when that decoder gets
-back the same bits. A claim marked *checked* was tested with a throwaway Python
-encoder: its output decoded pixel-exact with `jbig2dec`, and inside a PDF with
-MuPDF and Poppler. The DjVu side is in [DjVu_Format.md](DjVu_Format.md), the
+back the same bits. A claim marked *checked* was tested by encoding a
+stream that way and decoding it pixel-exact with `jbig2dec`, and inside a
+PDF with MuPDF and Poppler. The DjVu side is in [DjVu_Format.md](DjVu_Format.md), the
 PDF side in [Portable_Document_Format.md](Portable_Document_Format.md).
 
 JBIG2 can code a page in many ways. dejapdf uses one small subset, chosen to
@@ -17,10 +17,11 @@ carry DjVu's JB2 structure over unchanged:
 |:---|:---|
 | arithmetic coding (MQ) | yes, everywhere |
 | Huffman coding, MMR | no |
-| generic region | yes: non-symbol bitmaps, and every symbol bitmap |
+| generic region | yes: every symbol bitmap, and decoded Smmr masks |
 | symbol dictionary | yes: one shared (Djbz) and one per page |
 | text region | yes: the blits of a page |
-| refinement, aggregation | not at first (§8) |
+| refinement | yes, in a dictionary, for shapes that keep their size (§8) |
+| aggregation | no |
 | halftone, pattern dictionary | no |
 | striping, end-of-stripe, unknown page height | no |
 
@@ -31,9 +32,11 @@ And the mapping from JB2:
 | Djbz shape dictionary | symbol dictionary in the PDF's JBIG2Globals |
 | shapes added to the library by the page (records 1, 2, 4, 5) | the page's own symbol dictionary |
 | blit of a library shape (records 1, 4, 7) | a symbol instance in a text region |
-| shape placed on the page only (records 3, 6) | a symbol, or a generic region |
-| non-symbol bitmap (record 8) | a generic region |
-| refined shape | its decoded bitmap, as a plain symbol |
+| shape placed on the page only (records 3, 6) | a single-use symbol |
+| non-symbol bitmap (record 8) | a single-use symbol |
+| refined shape, same size as its reference | a refinement symbol (§8) |
+| refined shape, other size | its decoded bitmap, as a plain symbol |
+| Smmr (G4) mask, decoded | a generic region |
 
 ## 1. The model
 
@@ -210,8 +213,8 @@ to the right and 128 rows up.](figures/jbig2_gb.svg)
 
 The order in which the pixels form the context number is not fixed (6.2.5.7):
 any consistent order gives the same code, since a context is only a label
-for its probability state. The prototype uses its own order and decodes
-correctly (*checked*, all four templates).
+for its probability state (*checked*: an encoder with its own order decodes
+correctly, all four templates).
 
 **TPGDON** (typical prediction, 6.2.5.5): before each row, code one bit,
 SLTP, that tells whether this row differs in "typicality" from the previous
@@ -312,9 +315,8 @@ pixel-exact. Same-size refinements, with any offsets, work everywhere
 SerenityOS refinement samples pass too). The usual spec readings of the
 offset for a size change, ⌊ΔW/2⌋ either way and rounded up or down, all
 fail in Reader too, so dejapdf codes a size-changing shape directly. In
-four books 78–82% of JB2's refinements change the size (*checked*): on
-a colour book the PDF grows 3% (1.15× → 1.18× the DjVu), against 4% with no
-refinement at all.
+four books 78–82% of JB2's refinements change the size (*checked*), so this
+costs about 3% of a book's PDF, against 4% with no refinement at all.
 
 ## 9. Text region
 
@@ -382,8 +384,8 @@ regions.](figures/jbig2_pdf.svg)
   page that includes that Djbz.
 - **Image stream**: the segments of one page, each with page association 1,
   even for the 50th page (PDF 7.4.7). In order: page information, the page's
-  own symbol dictionaries, the text region. Generic regions are not needed:
-  JB2's non-symbol bitmaps become single-use symbols.
+  own symbol dictionaries, the text region. JB2's non-symbol bitmaps become
+  single-use symbols, so generic regions serve only Smmr masks.
 - **Numbers**: each image is decoded alone, with its globals. Segment numbers
   only need to be unique and increasing within globals + one stream.
 - **No** file header, end-of-page, end-of-file, or the optional 0xFF 0xAA/0xAB
@@ -399,9 +401,9 @@ the globals have page association 0 or 1.
 For FGbz pages, each palette colour is a separate stencil image, so each
 colour gets its own image stream (sharing one stencil among the colours by
 clipping fails in MuPDF and Poppler; see Portable_Document_Format.md §9).
-An Smmr mask, decoded, is one generic region (§5) the size of the stencil. Each stream holds the page information, a
-text region with that colour's blits, and a dictionary of only the shapes
-those blits use.
+Each stream holds the page information, a text region with that colour's
+blits, and a dictionary of only the shapes those blits use. An Smmr mask,
+decoded, is one generic region (§6) the size of the stencil.
 
 What `internal/convert` writes, for the globals and for each image stream
 alike: a dictionary of the directly coded shapes, sorted by height then
@@ -415,8 +417,8 @@ follow the dictionaries' export order, which is why the shapes are renumbered.
 *Checked*: every corpus mask and sample pages of the books render
 pixel-identical to `ddjvu -mode=mask` in MuPDF and Poppler; 14 books pass
 `qpdf --check`. Masks are 1.06–1.15× the size of their JB2 data (Sjbz plus
-Djbz): one generic region per page was 1.0–4.6× the whole DjVu; symbols
-without refinement gave 1.04–1.23×.
+Djbz). One generic region per page instead would make the PDF 1.0–4.6× the
+whole DjVu: the symbol structure is what keeps it small.
 
 ## 11. Checking it
 
@@ -429,10 +431,5 @@ without refinement gave 1.04–1.23×.
 | `acroread -toPostScript`, `gs` | Adobe's decoder (Reader 9): it prints the page, or nothing |
 | Annex H.2 test sequence | the MQ encoder, byte for byte |
 
-The prototype that checked this article was a few hundred lines of Python,
-not kept in the repository; `internal/mq` and `internal/jbig2` carry the
-checks as Go tests, with `jbig2dec` as the oracle.
-
-Generic regions alone (P8), one per mask: the books' PDFs went from 1.9–13.6×
-to 1.04–4.6× the DjVu size. Symbol dictionaries, text regions and
-refinement (P9) bring them to 0.79–1.08×, masks still pixel-exact.
+The tests of `internal/mq` and `internal/jbig2` carry these checks, with
+`jbig2dec` as the oracle.

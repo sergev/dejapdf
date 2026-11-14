@@ -8,10 +8,10 @@ from svg import Figure, LARGE, GREY, INK
 MULT = [0.5, 0.75, 1.0, 1.5, 2.0]
 # PSNR in dB, measured with opj_compress -r / opj_decompress (see the article, §10).
 SERIES = [
-    ("Klabnik p1 BG", "#2a78d6", [49.4, 53.8, 55.8, 57.2, 57.9]),
+    ("book C page BG", "#2a78d6", [49.4, 53.8, 55.8, 57.2, 57.9]),
     ("corpus BG", "#eb6834", [41.1, 44.1, 46.5, 49.7, 51.6]),
-    ("Kaihlavirta cover", "#1baf7a", [38.0, 41.8, 44.8, 48.9, 51.5]),
-    ("Yunyi cover 2325×2850", "#eda100", [35.6, 38.7, 41.1, 45.6, 48.7]),
+    ("book A cover", "#1baf7a", [38.0, 41.8, 44.8, 48.9, 51.5]),
+    ("book B cover 2325×2850", "#eda100", [35.6, 38.7, 41.1, 45.6, 48.7]),
     ("corpus FG 213×275", "#e87ba4", [33.7, 36.4, 38.0, 41.8, 44.4]),
 ]
 X0, X1, Y0, Y1 = 90, 640, 40, 380   # plot box

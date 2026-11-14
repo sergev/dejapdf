@@ -93,7 +93,8 @@ Eight types (7.3):
 An *indirect object* is `N G obj … endobj`; it is referred to as `N G R`.
 Generation G is always 0 in a file written once. Whitespace is space, tab, CR,
 LF, FF, NUL; `%` starts a comment to the end of the line. Delimiters
-`( ) < > [ ] { } / %` end a token, so `/Type/Page` needs no space. Keep lines
+`( ) < > [ ] { } / %` end a token, so `/Type/Page` needs no space; dejapdf
+writes none before a delimiter (7.2.2), which saves 4 bytes a stencil. Keep lines
 outside streams under 255 bytes (7.5.1).
 
 Write numbers without needless digits: `0.5`, not `0.500000`. Coordinates need
@@ -264,8 +265,9 @@ mask; the rest of the page is untouched. With the default `/Decode [0 1]`
 **Explicit mask** (8.9.6.3, PDF 1.3): the base image's `/Mask` is a stencil
 image. The base image is painted only where the stencil would paint, with the
 same Decode rule. The two need not have the same resolution: both fill the unit
-square (*checked*: an 8 × 8 mask over a 1 × 1 image). This is FG44 over its
-JB2 mask: the low-resolution colours appear only on the shapes.
+square (*checked*: an 8 × 8 mask over a 1 × 1 image). This is the obvious way
+to show FG44 only on the shapes of its mask, but Poppler renders it badly;
+see the pattern fill below.
 
 **Colour key** (8.9.6.4): `/Mask [min max ...]`, a colour range to skip.
 Unreliable with lossy JPX; not used.
@@ -281,14 +283,14 @@ stencil, gives the same picture as the image with the stencil as `/Mask`.
 dejapdf uses it for FG44 and FGjp because Poppler mishandles explicit masks:
 it blends the masked image into the background along the mask's edges, which
 on thin text strokes is most of the mask. On the corpus compound page,
-Poppler's render was 27.5 dB from ddjvu with `/Mask` (17.4 on mask pixels,
-30.9 off them). It is 36.9 dB with the pattern (24.9 and 46.1). `/SMask` and
+Poppler's render is 27.5 dB from ddjvu with `/Mask` (17.4 on mask pixels,
+30.9 off them) and 36.9 dB with the pattern (24.9 and 46.1). `/SMask` and
 switching off Poppler's anti-aliasing change nothing; MuPDF, Ghostscript and
 pdf.js render both constructions alike (*checked*). The cost is one small
-pattern object a page, 0.1% of a book with FG44 on most pages. The stencil
-also no longer needs padding to the layer's size.
+pattern object a page, 0.1% of a book with FG44 on most pages, and the
+stencil needs no padding to the layer's size.
 
-**What remains: upscaling.** ddjvu shows each FG44 sample as a solid k × k
+**Upscaling.** ddjvu shows each FG44 sample as a solid k × k
 block (*checked*: identical on all mask pixels to the decoded FG44 upscaled
 by pixel replication). Viewers interpolate an image upscaled 12 times, so
 colours blend across sample boundaries; MuPDF on the corpus compound page is
@@ -305,8 +307,7 @@ colours blend across sample boundaries; MuPDF on the corpus compound page is
 
 So dejapdf keeps the FG budget at `-q` × the FG44 size; `-q` raises it for
 all colour layers. On that book's pages the FG pixels are 27–30 dB from ddjvu
-in MuPDF and 30–33 dB in Poppler (16.7–18.8 before the pattern), the
-background 42–46 dB in both.
+in MuPDF and 30–33 dB in Poppler, the background 42–46 dB in both.
 
 **Polarity, checked.** JBIG2Decode delivers *black as 0*, the PDF convention:
 a JBIG2 image used as a DeviceGray image or as a stencil with the *default*
@@ -359,29 +360,23 @@ photo pages 45–54 dB (the JPX at 1×); compound pages 29.5 dB, the JPEG page
 interpolate an FG layer upscaled 12 times, ddjvu takes the nearest sample.
 Sample pages of the books: text pages identical, colour pages 39–47 dB.
 
-All 15 books convert and pass `qpdf --check`, in 0.5–14 s on 16 threads.
+Scanned books convert and pass `qpdf --check`, in 0.5–14 s on 16 threads.
 With hidden text, bookmarks and links, and the colour layers at the default
-`-q 1.2`, the PDFs are 1.06–1.17× the DjVu size; at `-q 1`, 0.99–1.11×.
-Refining only same-size shapes, for Acrobat (JBIG2_Coding.md §8), later
-added 0–7% to the masks: the nine books re-measured are 1.06–1.18×. One
-scanned book stands out at 1.29× (1.22× at `-q 1`). Its FGbz palettes average
-about six grey shades a page, and each shade is a stencil. That costs about
-210 bytes of image dictionary, segment headers and page information per
-stencil, or 0.6 MB in a 7.5 MB book.
+`-q 1.2`, the PDFs are 1.06–1.18× the DjVu size. The masks are 1.06–1.15×
+their JB2 data, the colour layers 0.65–1.00× their IW44 data, the hidden
+text 0.90–1.08× its TXTz. A book with many FGbz colours costs more: one
+with about six grey shades a page is about 1.3×, since each shade is a
+stencil with about 210 bytes of image dictionary, segment headers and page
+information, 0.6 MB in a 7.5 MB book.
 
-*Tried and dropped*: packing a page's colours into one stencil, each colour
-cropped to its blits' bounding box and the boxes stacked, then drawing that
-sheet once per colour, clipped to the colour's box and shifted into place.
-That would cost a few operators per colour instead of an image. Ghostscript
-renders it pixel-exact; MuPDF misplaces rows (71 060 pixels differ on the
-corpus palette page) and Poppler blurs clip edges (1 160 pixels). Both
-appear to mishandle drawing part of a large image. Separate stencils render
-exactly everywhere, so they stay.
-Writing no space before a delimiter (`/Subtype/Image`, `[1 0 R/XYZ]`, 7.2.2)
-saves 4 bytes a stencil, and 0.1% of that book. Before symbol
-dictionaries they were 1.9–13.6× with Flate masks, 1.04–4.6× with one JBIG2
-generic region a page. The masks are 1.06–1.15× their JB2 data, the colour
-layers 0.65–1.00× their IW44 data, the hidden text 0.90–1.08× its TXTz.
+**Why one stencil per colour.** A page's colours could share one stencil:
+each colour cropped to its blits' bounding box, the boxes stacked, and the
+sheet drawn once per colour, clipped to the colour's box and shifted into
+place, a few operators per colour instead of an image. Ghostscript renders
+that pixel-exact, but MuPDF misplaces rows (71 060 pixels differ on the
+corpus palette page) and Poppler blurs clip edges (1 160 pixels): both
+mishandle drawing part of a large image. Separate stencils render exactly
+everywhere.
 
 ## 10. JBIG2Decode
 
@@ -402,9 +397,9 @@ blits.](figures/pdf_jbig2.svg)
 
 The image dictionary: `/Width`, `/Height` (equal to the page information
 segment's), `/BitsPerComponent 1`, and `/ImageMask true` or
-`/ColorSpace /DeviceGray`. The experiment split a T.88 file this way
-(header dropped, page association rewritten to 1, end-of-page and end-of-file
-dropped) and both MuPDF and Poppler rendered it exactly (*checked*).
+`/ColorSpace /DeviceGray`. A T.88 file split this way (header dropped, page
+association rewritten to 1, end-of-page and end-of-file dropped) renders
+exactly in MuPDF and Poppler (*checked*).
 
 ## 11. JPXDecode
 
@@ -455,8 +450,8 @@ ET Q
 - Integer pixel coordinates and integer `Tz`; strings are literal binary
   UTF-16BE (only `(`, `)`, `\` and CR escaped).
 
-Compared with `Tm` per word in points and hex strings, this halves the
-text's size: from 1.5–1.9× the TXTz chunks to 0.90–1.08×. Flate at its
+This is half the size of a `Tm` per word in points with hex strings: the
+text comes to 0.90–1.08× its TXTz chunks instead of 1.5–1.9×. Flate at its
 best level saves another 1.6% of the whole file at no visible cost in time.
 
 **Fonts.** The 14 standard fonts (Helvetica …) need no embedding but cover

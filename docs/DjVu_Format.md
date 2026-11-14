@@ -399,9 +399,9 @@ plane, most significant first. Each extra chunk sharpens the image.
 `internal/iw44` decodes to pixels; dejapdf then re-encodes as JPEG 2000 at
 the same resolution.
 
-The spec gets several details of IW44 wrong (marked *erratum* below). They
-were found by testing against ddjvu, partly guided by the MIT-licensed
-djvu-rs decoder (`crates/djvu-iw44`, read as a reference; no code copied).
+The spec gets several details of IW44 wrong (marked *erratum* below),
+found by testing against ddjvu, with the MIT-licensed djvu-rs decoder
+(`crates/djvu-iw44`) as a reference; no code is copied.
 Decoded this way, every layer of the corpus and all 289 backgrounds of 8
 books are identical to ddjvu's (*checked*).
 
@@ -527,10 +527,10 @@ mask.
 
 ## 10. Foreground colour
 
-With FG44, the foreground is an ordinary IW44 image, usually at 1/12 scale.
-dejapdf paints it through the mask: the JBIG2 stencil filled with a pattern
-whose cell is the JPX image. ddjvu upscales FG44 by pixel replication
-(*checked*: identical on every mask pixel).
+With FG44, the foreground is an ordinary IW44 image, usually at 1/12 scale,
+and gives the colour of each mask pixel under it. ddjvu upscales FG44 by
+pixel replication (*checked*: identical on every mask pixel). How it is
+painted in PDF: [PDF article §8](Portable_Document_Format.md#8-masks).
 
 With FGbz, every *blit* of the mask (every shape placed on the page) gets one
 colour from a palette (8.3.10). The layout (*checked*, `palette.djvu`):
@@ -548,8 +548,9 @@ The spec suggests that the blit count is inside the BZZ data; it is not.
 Index k colours the k-th shape placed on the page, in record order, empty
 shapes included (*checked*: the page renders within 1 level of ddjvu, and
 FGbz pages of the books identical). Without indices (bit 7 clear) every
-shape takes colour 0; the books have many such one-colour palettes.
-dejapdf splits the blits by colour into one stencil per palette entry.
+shape takes colour 0; scanned books have many such one-colour palettes.
+In PDF, each palette colour becomes a stencil of its blits ([PDF article
+§9](Portable_Document_Format.md#9-a-djvu-page-in-pdf)).
 
 ## 11. Alternative encodings
 
@@ -576,14 +577,10 @@ big-endian.
 
 dejapdf decodes Smmr with the G4 decoder of `golang.org/x/image/ccitt`,
 copied into `internal/ccitt` (BSD), into a bitmap that becomes a mask of one
-blit, so it goes the way of a JB2 mask: palettes, FG44 with the mask as
-`/Mask`, page selection. The mask is coded as one JBIG2 generic region,
-38% smaller than the G4 data on the corpus pages. Passing the G4 data
-through as CCITTFaxDecode, as dejapdf first did, works only for an
-unstriped mask under a single colour. Corpus files:
-`mmr.djvu` (one G4 stream), `mmr-striped.djvu` (132 stripes of 25 rows)
-and `mmr-compound.djvu` (G4 mask, FG44 and BG44). All three masks are
-identical to `ddjvu -mode=mask`.
+blit. From there it is handled like a JB2 mask, with FGbz, FG44 and page
+selection. Corpus files: `mmr.djvu` (one G4 stream), `mmr-striped.djvu`
+(132 stripes of 25 rows) and `mmr-compound.djvu` (G4 mask, FG44 and BG44).
+All three masks are identical to `ddjvu -mode=mask`.
 
 djvulibre's own decoder fails ("Invalid G4/MMR Data") on striped halftone
 pages when the stripes are under about 100 rows, though the data decodes
@@ -668,7 +665,7 @@ Unknown or broken expressions are ignored.
 | Expression | Meaning | dejapdf |
 |:---|:---|:---|
 | `(background #RRGGBB)` | viewer background (8.3.4.1.1) | ignored |
-| `(zoom page)`, `(zoom d300)` | initial zoom: stretch, one2one, width, page, or d1–d999 | could set /OpenAction |
+| `(zoom page)`, `(zoom d300)` | initial zoom: stretch, one2one, width, page, or d1–d999 | ignored |
 | `(mode bw)` | initial layer: color, bw, fore, black | ignored |
 | `(align h v)` | page alignment | ignored |
 | `(maparea url comment area options…)` | a link or highlight (8.3.4.2) | Link annotation |
@@ -738,7 +735,7 @@ without a target.
 | `bzz -e`, `bzz -d` | BZZ streams |
 | `djvu-zp` (Rust, MIT) | ZP test vectors, in `internal/zp/testdata` |
 
-The spec errata found so far, collected in [README.md](README.md): the ZP
+The spec errata, collected in [README.md](README.md): the ZP
 state table and decoder figures, the BZZ speed field, the DIRM type 3, the
 FGbz blit count, the TXTz text start and region placement, the ANTz
 escapes, three JB2 details (the phase-2 decision, the first shape's
