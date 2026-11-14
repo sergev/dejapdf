@@ -49,7 +49,6 @@ func jpeg(b []byte) (pdf.Dict, int, int, error) {
 		return nil, 0, 0, errors.New("unsupported JPEG")
 	}
 	d := pdf.Dict{
-		"Type":             pdf.Name("XObject"),
 		"Subtype":          pdf.Name("Image"),
 		"Width":            w,
 		"Height":           h,

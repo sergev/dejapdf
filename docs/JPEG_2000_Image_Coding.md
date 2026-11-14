@@ -275,6 +275,31 @@ What follows for dejapdf:
   lossy original, and JPEG 2000 at the same size reproduces it closely. This
   keeps the layer at 1× its DjVu size, as the project's 1–1.5× target needs.
   A `-q` option can scale the budget.
+- **Generation loss, and the default 1.2×.** PSNR against the IW44 decode
+  says how closely the copy follows IW44, not what re-encoding costs against
+  the scan. A second study started from originals (photos and document
+  scans, 600–1550 pixels wide): c44 made the IW44 layer, internal/jpx coded
+  its decode at q × the IW44 size, and both were measured against the
+  original.
+
+  | IW44 rate | IW44 | q = 0.8 | 1 | 1.2 | 1.5 | JPX of the original, 1× |
+  |:---|---:|---:|---:|---:|---:|---:|
+  | c44 default (8 images) | 31.7–37.0 | −0.4 to −2.1 | −0.3 to −1.0 | −0.1 to −0.6 | 0 to −0.3 | +1.1 to +2.9 |
+  | c44 `-slice 74,84` (4) | 26.8–28.2 | −0.4 to −2.3 | −0.2 to −1.5 | −0.1 to −1.0 | 0 to −0.5 | +0.7 to +1.9 |
+
+  The IW44 column is in dB; the others are dB relative to it. JPEG 2000 is
+  the better codec: coding the original at the same size beats IW44 by
+  1–3 dB. But the copy also has to reproduce IW44's own errors, and that
+  costs up to 1.5 dB at 1×. On photos the difference is not visible at 1×.
+  On scanned text in a background layer, a faint halo around the letters is
+  visible at 1× and nearly gone at 1.2×; 1.5× looks the same as IW44. The
+  encoder settings do not change this: 6 or 7 levels instead of 5, and base
+  steps of half or twice the size, all give the same PSNR to 0.01 dB.
+
+  dejapdf therefore defaults to `-q 1.2`. Of the colour layers' bytes in
+  the books, this adds 20%. Whole books become 1.06–1.17× the DjVu instead
+  of 0.99–1.11×; one book with many palette stencils is 1.29× (Portable_Document_Format.md §9). `-q 1` gives the smallest
+  files, and `-q 1.5` the closest copy.
 - **Rate control is required.** go-jpeg2000 has no rate control: its
   `CompressionRatio` option is declared but unused, and `Quality` only sets
   the step sizes from an error bound. At its lowest Quality, on the corpus

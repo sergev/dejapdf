@@ -24,14 +24,12 @@ func mmrStencil(b []byte) (pdf.Dict, []byte, error) {
 		return nil, nil, errors.New("Smmr: empty")
 	}
 	d := pdf.Dict{
-		"Type":             pdf.Name("XObject"),
-		"Subtype":          pdf.Name("Image"),
-		"Width":            w,
-		"Height":           h,
-		"ImageMask":        true,
-		"BitsPerComponent": 1,
-		"Filter":           pdf.Name("CCITTFaxDecode"),
-		"DecodeParms":      pdf.Dict{"K": -1, "Columns": w, "Rows": h},
+		"Subtype":     pdf.Name("Image"),
+		"Width":       w,
+		"Height":      h,
+		"ImageMask":   true,
+		"Filter":      pdf.Name("CCITTFaxDecode"),
+		"DecodeParms": pdf.Dict{"K": -1, "Columns": w, "Rows": h},
 	}
 	// CCITTFaxDecode gives black as 0, which a stencil paints; reverse
 	// video swaps the colours.

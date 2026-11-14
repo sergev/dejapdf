@@ -25,7 +25,7 @@ func usage() {
 func main() {
 	showVersion := flag.Bool("version", false, "print version and exit")
 	dump := flag.Bool("dump", false, "print the chunk tree, like djvudump")
-	quality := flag.Float64("q", 1, "colour layer size as a multiple of the DjVu size")
+	quality := flag.Float64("q", convert.DefaultQuality, "colour layer size as a multiple of the DjVu size")
 	flag.Usage = usage
 	flag.Parse()
 

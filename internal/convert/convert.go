@@ -15,17 +15,22 @@ import (
 	"github.com/sergev/dejapdf/internal/pdf"
 )
 
+// DefaultQuality is the default JPX size relative to IW44. Re-encoding
+// IW44 output loses 0.3–1.5 dB against the original at 1×, 0.1–1 dB at
+// 1.2× (docs/JPEG_2000_Image_Coding.md §10).
+const DefaultQuality = 1.2
+
 // Options control the conversion.
 type Options struct {
 	Producer string  // document info /Producer
-	Quality  float64 // JPX size as a multiple of the IW44 size; 0 means 1
+	Quality  float64 // JPX size as a multiple of the IW44 size; 0 means DefaultQuality
 	MaskOnly bool    // paint only the mask, in black
 }
 
 // Convert writes doc as PDF to w.
 func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 	if opt.Quality <= 0 {
-		opt.Quality = 1
+		opt.Quality = DefaultQuality
 	}
 	p := pdf.NewWriter(w)
 	pages := make([]pdf.Ref, len(doc.Pages))
@@ -415,13 +420,11 @@ func jpx(im *iw44.Image, budget int) (pdf.Dict, []byte, error) {
 		return nil, nil, err
 	}
 	d := pdf.Dict{
-		"Type":             pdf.Name("XObject"),
-		"Subtype":          pdf.Name("Image"),
-		"Width":            im.W,
-		"Height":           im.H,
-		"ColorSpace":       pdf.Name(cs),
-		"BitsPerComponent": 8,
-		"Filter":           pdf.Name("JPXDecode"),
+		"Subtype":    pdf.Name("Image"),
+		"Width":      im.W,
+		"Height":     im.H,
+		"ColorSpace": pdf.Name(cs),
+		"Filter":     pdf.Name("JPXDecode"),
 	}
 	return d, data, nil
 }

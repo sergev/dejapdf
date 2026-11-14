@@ -224,13 +224,11 @@ func (b *pageBuilder) maskImage(mask *jb2.Image, w, h int, keep func(int) bool) 
 		Data: jbig2.TextRegion(w, h, ins, len(set.syms), sbStrips, sbDSOffset)}
 	segs = tr.Append(segs)
 	d := pdf.Dict{
-		"Type":             pdf.Name("XObject"),
-		"Subtype":          pdf.Name("Image"),
-		"Width":            w,
-		"Height":           h,
-		"ImageMask":        true,
-		"BitsPerComponent": 1,
-		"Filter":           pdf.Name("JBIG2Decode"),
+		"Subtype":   pdf.Name("Image"),
+		"Width":     w,
+		"Height":    h,
+		"ImageMask": true,
+		"Filter":    pdf.Name("JBIG2Decode"),
 	}
 	if useGlob {
 		d["DecodeParms"] = pdf.Dict{"JBIG2Globals": glob}

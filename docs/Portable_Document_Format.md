@@ -246,6 +246,10 @@ high-order bit first. Each row starts on a byte boundary; the unused bits at
 the end of a row are ignored (8.9.3). Inline images (`BI … ID … EI`, 8.9.7)
 save an object but cannot use JBIG2 or JPX: avoid them.
 
+`/Type /XObject` is optional in a stream's dictionary, and `BitsPerComponent`
+is optional for masks and JPX. dejapdf leaves them out. That saves 33 bytes an
+image, which matters for pages with many palette stencils.
+
 ## 8. Masks
 
 ![Stencil: the mask paints the current fill colour. Explicit mask: it decides
@@ -322,8 +326,12 @@ interpolate an FG layer upscaled 12 times, ddjvu takes the nearest sample.
 Sample pages of the books: text pages identical, colour pages 39–47 dB.
 
 All 15 books convert and pass `qpdf --check`, in 0.5–14 s on 16 threads.
-With hidden text, bookmarks and links, the PDFs are 0.99–1.11× the DjVu size
-(one scanned book with large colour layers: 1.22×). Before symbol
+With hidden text, bookmarks and links, and the colour layers at the default
+`-q 1.2`, the PDFs are 1.06–1.17× the DjVu size; at `-q 1`, 0.99–1.11×. One
+scanned book stands out at 1.29× (1.22× at `-q 1`). Its FGbz palettes average
+about six grey shades a page, and each shade is a stencil. That costs about
+210 bytes of image dictionary, segment headers and page information per
+stencil, or 0.6 MB in a 7.5 MB book. Before symbol
 dictionaries they were 1.9–13.6× with Flate masks, 1.04–4.6× with one JBIG2
 generic region a page. The masks are 1.04–1.13× their JB2 data, the colour
 layers 0.65–1.00× their IW44 data, the hidden text 0.90–1.08× its TXTz.
@@ -523,6 +531,7 @@ Checks, run but never linked:
 | `mutool draw -o p.png file.pdf 3` | renders a page (MuPDF) |
 | `pdftoppm -r 300 file.pdf p` | renders pages (Poppler) |
 | `pdftotext -bbox file.pdf -` | text and word boxes |
+| `firefox --headless --screenshot p.png file:///…/f.pdf` | renders page 1 in pdf.js |
 | `mutool show file.pdf outline` | the outline |
 | `jbig2dec -t pbm` | decodes our JBIG2 streams, given a file header |
 | `opj_dump -i f.jp2` | inspects our JP2 files |
