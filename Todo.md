@@ -47,9 +47,9 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
 ## P17. Release
 
 - [x] CI (build, vet, test with the oracle tools installed)
-- [ ] Check a current Acrobat by hand: hidden text selection, links, outline
+- [x] Check a current Acrobat by hand: hidden text selection, links, outline
   (Reader 9 rendering is automated in TestAcrobat; pdf.js, MuPDF, Poppler and
-  Ghostscript done)
+  Ghostscript done; Acrobat 26 on macOS passed)
 - [x] README with real usage and results
 
 Done when: CI passes on GitHub; the README shows the options and the book size table.
