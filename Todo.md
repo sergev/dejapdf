@@ -46,10 +46,11 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
 
 ## P17. Release
 
-- [ ] CI (build, vet, test with the oracle tools installed)
+- [ ] CI (build, vet, test with the oracle tools installed):
+  `.github/workflows/ci.yml` written, not yet run on GitHub
 - [ ] Check a current Acrobat by hand: hidden text selection, links, outline
   (Reader 9 rendering is automated in TestAcrobat; pdf.js, MuPDF, Poppler and
   Ghostscript done)
-- [ ] README with real usage and results
+- [x] README with real usage and results
 
 Done when: CI passes on GitHub; the README shows the options and the book size table.
