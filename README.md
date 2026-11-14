@@ -42,7 +42,10 @@ Early development. See [Todo.md](Todo.md) for the roadmap.
 
 ## Dependencies and licensing
 
-Pure Go. Runtime dependency: [go-jpeg2000](https://github.com/mrjoshuak/go-jpeg2000) (Apache-2.0).
+Pure Go, standard library only. Some Apache-2.0 code is borrowed into `internal/`
+(see `NOTICE`): the JPEG 2000 encoder from
+[go-jpeg2000](https://github.com/mrjoshuak/go-jpeg2000) and the MQ / generic-region
+JBIG2 encoder from [xiaoqidun/jbig2](https://github.com/xiaoqidun/jbig2).
 No GPL or commercial code: DjVu decoding follows the DjVu v3 specification, JBIG2
 encoding follows ITU-T T.88.
 

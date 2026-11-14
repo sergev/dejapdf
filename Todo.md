@@ -9,9 +9,19 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
   spec and ITU-T T.88; never read or copy DjVuLibre source.
 - GPL/AGPL *binaries* (`ddjvu`, `djvudump`, `djvused`, `jbig2dec`) are used only
   as external test oracles, never linked or copied.
-- Runtime dependencies: Go stdlib + `github.com/mrjoshuak/go-jpeg2000` (Apache-2.0).
-- Test-only dependencies: `github.com/dkrisman/gobig2`, `github.com/xiaoqidun/jbig2`
-  (Apache-2.0 JBIG2 decoders, used to round-trip our encoder output).
+- **Prefer borrowing code or writing our own over linking dependencies.**
+  Target: Go stdlib only in `go.mod`.
+- Borrowed Apache-2.0 code goes under `internal/`, keeps its copyright header,
+  and is credited in a top-level `NOTICE` file (Apache-2.0 §4). Upstream clones
+  for reference live in `tmp/` (git-ignored):
+  - `tmp/go-jpeg2000` (mrjoshuak, Apache-2.0) → `internal/jpx`, encoder path only
+  - `tmp/jbig2` (xiaoqidun, Apache-2.0) → `internal/mq`, `internal/jbig2`:
+    MQ arithmetic encoder (`jbig2_arith_encoder.go`), generic region encoder
+    (`jbig2_grd_encoder.go`), segment/bitmap helpers
+  - `tmp/gobig2` (dkrisman, Apache-2.0) → reference for symbol-dictionary and
+    text-region decoding logic, mirrored when writing our encoder; its
+    `testdata/` may serve as fixtures
+- JBIG2 verification uses external decoders (`jbig2dec`, `mutool`), not Go deps.
 
 ## Library survey (summary)
 
@@ -19,15 +29,17 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
 |---|---|---|
 | DjVu decoding | din14970/djvu-go | Rejected: GPL-2.0+, layers not exposed (renders RGBA only) |
 | DjVu decoding | — | Write own (ZP, BZZ, JB2, IW44) |
-| JBIG2 encoding | xiaoqidun/jbig2 (Apache-2.0) | No symbol-dict/text-region encoder; reference only |
+| JBIG2 encoding | xiaoqidun/jbig2 (Apache-2.0) | Borrow MQ + generic-region encoder; write symbol dict / text region ourselves |
+| JBIG2 decoding | dkrisman/gobig2 (Apache-2.0) | Reference for SD/TR semantics; not linked |
 | JBIG2 encoding | UniPDF | Rejected: commercial |
-| JPEG 2000 | mrjoshuak/go-jpeg2000 (Apache-2.0) | Use — the only image codec |
+| JPEG 2000 | mrjoshuak/go-jpeg2000 (Apache-2.0) | Borrow encoder path into `internal/jpx` — the only image codec |
 | PDF writer | boxesandglue/baseline-pdf (BSD-3) | Can't embed pre-encoded JBIG2/JPX streams; write own |
 
 ## 0. Setup
 
 - [ ] `go mod init github.com/sergev/dejapdf`
-- [ ] Layout: `cmd/dejapdf`, `internal/{iff,zp,bzz,jb2,iw44,djvu,mq,jbig2,pdf,convert}`
+- [ ] Layout: `cmd/dejapdf`, `internal/{iff,zp,bzz,jb2,iw44,djvu,mq,jbig2,jpx,pdf,convert}`
+- [ ] `NOTICE` file crediting borrowed Apache-2.0 code
 - [ ] Makefile: `build`, `test`, `lint`
 - [ ] Install oracles: `djvulibre-bin` (ddjvu, djvudump, djvused, cjb2, c44, cpaldjvu, djvm), `jbig2dec`, `qpdf`
 - [ ] Test corpus in `testdata/`: generated with `cjb2`, `c44`, `cpaldjvu`, `djvm`
@@ -100,7 +112,10 @@ Done when: decoded background matches `ddjvu -mode=background` (PSNR near exact)
 
 ## 7. Layered page assembly
 
-- [ ] Background → JPEG 2000 via go-jpeg2000 (`/JPXDecode`), `-q` quality, stretched to the page
+- [ ] `internal/jpx`: port the encoder path of `tmp/go-jpeg2000` (codestream, dwt 9/7,
+      entropy/EBCOT encoder, mct, tcd, t2 packets, jp2 boxes); drop decoder, float/half,
+      HTJ2K and progressive APIs; keep upstream unit tests for ported parts
+- [ ] Background → JPEG 2000 via `internal/jpx` (`/JPXDecode`), `-q` quality, stretched to the page
 - [ ] Mask → stencil (`/ImageMask true`) painted black
 - [ ] FG44 → JPEG 2000 colour image with explicit `/Mask` pointing to the full-resolution stencil
 - [ ] FGbz palette → split blits by colour index, one stencil per colour
@@ -112,12 +127,12 @@ Done when: decoded background matches `ddjvu -mode=background` (PSNR near exact)
 
 ## 8. MQ encoder + JBIG2 generic region
 
-- [ ] MQ arithmetic encoder (T.88 Annex E)
-- [ ] Generic region encoding, template 0, TPGDON
+- [ ] MQ arithmetic encoder (T.88 Annex E), borrowed from `tmp/jbig2/jbig2_arith_encoder.go`
+- [ ] Generic region encoding, template 0, TPGDON, from `tmp/jbig2/jbig2_grd_encoder.go`
 - [ ] Segment headers; PDF-embedded format (no file header, no end-of-file segment)
 - [ ] Replace Flate masks with JBIG2 generic regions (`/JBIG2Decode`)
 
-Done when: output decodes bit-exact with gobig2, xiaoqidun/jbig2 and `jbig2dec`.
+Done when: output decodes bit-exact with `jbig2dec` and renders correctly in `mutool`.
 
 ## 9. JBIG2 symbol dictionary + text region
 
