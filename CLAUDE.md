@@ -8,14 +8,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 layers separate instead of rasterizing each page, so the PDF stays 1–1.5× the
 DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 
-**Status:** planning done, no code yet. [Todo.md](Todo.md) is the roadmap:
-phases 0–12, each ending with a "Done when" check. Work through them in order
-and tick the checkboxes as you go. The original design brief is
+**Status:** [Todo.md](Todo.md) is the roadmap: phases 1–12, each ending with a
+"Done when" check. Work through them in order and tick the checkboxes as you go;
+finished phases are removed from it. The original design brief is
 `tmp/create-djvu-to-pdf.md`.
 
 ## Commands
 
-Standard Go tooling (a Makefile with `build`/`test`/`lint` is planned in phase 0):
+Standard Go tooling (`make build`, `make test`, `make lint`, `make corpus`):
 
 ```
 go build ./cmd/dejapdf
