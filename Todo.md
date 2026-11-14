@@ -107,7 +107,8 @@ Done when: decoded background matches `ddjvu -mode=background` (PSNR near exact)
 - [ ] `internal/jpx`: port the encoder path of `tmp/go-jpeg2000` (codestream, dwt 9/7,
       entropy/EBCOT encoder, mct, tcd, t2 packets, jp2 boxes); drop decoder, float/half,
       HTJ2K and progressive APIs; keep upstream unit tests for ported parts
-- [ ] Background → JPEG 2000 via `internal/jpx` (`/JPXDecode`), `-q` quality, stretched to the page
+- [ ] Background → JPEG 2000 via `internal/jpx` (`/JPXDecode`), `-q` quality, stretched to the page;
+      write JP2 files, not bare codestreams (PDF requires it; Poppler warns otherwise)
 - [ ] Mask → stencil (`/ImageMask true`) painted black
 - [ ] FG44 → JPEG 2000 colour image with explicit `/Mask` pointing to the full-resolution stencil
 - [ ] FGbz palette → split blits by colour index, one stencil per colour
@@ -133,7 +134,8 @@ Done when: output decodes bit-exact with `jbig2dec` and renders correctly in `mu
 - [ ] Djbz shapes → `/JBIG2Globals` stream shared by all pages using it
 - [ ] Page-local shapes → per-page symbol dictionary segment
 - [ ] Non-symbol bitmaps → generic region or single-use symbols
-- [ ] Verify polarity: `/Decode [1 0]` for stencils, correct sense for FG44 `/Mask`
+- [ ] Verify polarity in our output: JBIG2 stencils use the default `/Decode` (checked by
+      experiment, see docs/Portable_Document_Format.md §8); same sense for FG44 `/Mask`
 
 **Milestone C**: mask bytes ≈ JB2 bytes; whole PDF 1–1.5× the DjVu size.
 

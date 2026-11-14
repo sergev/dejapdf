@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="810" height="642" viewBox="0 0 810 642">
+<rect width="810" height="642" fill="white"/>
+<rect x="142" y="21" width="520" height="19" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="70" y="35.5" font-family="Helvetica, Arial, sans-serif" font-size="16.9" fill="#333333" text-anchor="middle">header</text>
+<rect x="142" y="42" width="520" height="313" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="70" y="195.5" font-family="Helvetica, Arial, sans-serif" font-size="16.9" fill="#333333" text-anchor="middle">body:</text>
+<text x="70" y="216.62" font-family="Helvetica, Arial, sans-serif" font-size="16.9" fill="#333333" text-anchor="middle">indirect objects</text>
+<rect x="142" y="357" width="520" height="145" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="70" y="426.5" font-family="Helvetica, Arial, sans-serif" font-size="16.9" fill="#333333" text-anchor="middle">cross-reference</text>
+<text x="70" y="447.62" font-family="Helvetica, Arial, sans-serif" font-size="16.9" fill="#333333" text-anchor="middle">table</text>
+<rect x="142" y="504" width="520" height="103" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="70" y="560.5" font-family="Helvetica, Arial, sans-serif" font-size="16.9" fill="#333333" text-anchor="middle">trailer</text>
+<text x="150" y="35.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">%PDF-1.4</text>
+<text x="240" y="35.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#808080" text-anchor="start">@0</text>
+<text x="150" y="56.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">1 0 obj</text>
+<text x="240" y="56.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#808080" text-anchor="start">@9</text>
+<text x="150" y="77.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">&lt;&lt; /Type /Catalog /Pages 2 0 R &gt;&gt;</text>
+<text x="150" y="98.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">endobj</text>
+<text x="150" y="119.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">2 0 obj</text>
+<text x="240" y="119.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#808080" text-anchor="start">@58</text>
+<text x="150" y="140.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">&lt;&lt; /Type /Pages /Kids [3 0 R] /Count 1 &gt;&gt;</text>
+<text x="150" y="161.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">endobj</text>
+<text x="150" y="182.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">3 0 obj</text>
+<text x="240" y="182.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#808080" text-anchor="start">@115</text>
+<text x="150" y="203.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">&lt;&lt; /Type /Page /Parent 2 0 R ... /Contents 4 0 R &gt;&gt;</text>
+<text x="150" y="224.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">endobj</text>
+<text x="150" y="245.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">4 0 obj</text>
+<text x="240" y="245.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#808080" text-anchor="start">@222</text>
+<text x="150" y="266.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">&lt;&lt; /Length 27 &gt;&gt;</text>
+<text x="150" y="287.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">stream</text>
+<text x="150" y="308.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">0 0 1 rg 72 72 144 144 re f</text>
+<text x="150" y="329.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">endstream</text>
+<text x="150" y="350.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">endobj</text>
+<text x="150" y="371.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">xref</text>
+<text x="240" y="371.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#808080" text-anchor="start">@299</text>
+<text x="150" y="392.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">0 5</text>
+<text x="150" y="413.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">0000000000 65535 f</text>
+<text x="150" y="434.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">0000000009 00000 n</text>
+<text x="150" y="455.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">0000000058 00000 n</text>
+<text x="150" y="476.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">0000000115 00000 n</text>
+<text x="150" y="497.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">0000000222 00000 n</text>
+<text x="150" y="518.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">trailer</text>
+<text x="150" y="539.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">&lt;&lt; /Size 5 /Root 1 0 R &gt;&gt;</text>
+<text x="150" y="560.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">startxref</text>
+<text x="150" y="581.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">299</text>
+<text x="150" y="602.5" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15.6" fill="#333333" text-anchor="start">%%EOF</text>
+<path d="M450,429.5 L690,429.5 L690,51.5 L300,51.5" fill="none" stroke="#b8860b" stroke-width="1.1"/>
+<polygon points="300,51.5 306.45,48.77 306.45,54.23" fill="#b8860b" stroke="none" stroke-width="1"/>
+<path d="M450,450.5 L704,450.5 L704,114.5 L300,114.5" fill="none" stroke="#b8860b" stroke-width="1.1"/>
+<polygon points="300,114.5 306.45,111.77 306.45,117.23" fill="#b8860b" stroke="none" stroke-width="1"/>
+<path d="M450,471.5 L718,471.5 L718,177.5 L300,177.5" fill="none" stroke="#b8860b" stroke-width="1.1"/>
+<polygon points="300,177.5 306.45,174.77 306.45,180.23" fill="#b8860b" stroke="none" stroke-width="1"/>
+<path d="M450,492.5 L732,492.5 L732,240.5 L300,240.5" fill="none" stroke="#b8860b" stroke-width="1.1"/>
+<polygon points="300,240.5 306.45,237.77 306.45,243.23" fill="#b8860b" stroke="none" stroke-width="1"/>
+<path d="M190,576.5 L760,576.5 L760,366.5 L300,366.5" fill="none" stroke="#9673a6" stroke-width="1.1"/>
+<polygon points="300,366.5 306.45,363.77 306.45,369.23" fill="#9673a6" stroke="none" stroke-width="1"/>
+<path d="M400,534.5 L790,534.5 L790,72.5 L480,72.5" fill="none" stroke="#333333" stroke-width="1.1" stroke-dasharray="4 3"/>
+<polygon points="480,72.5 486.45,69.77 486.45,75.23" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="662" y="632" font-family="Helvetica, Arial, sans-serif" font-size="14.3" fill="#808080" text-anchor="end">@n = byte offset from the file start</text>
+</svg>

@@ -1,4 +1,4 @@
-.PHONY: all build test lint corpus clean
+.PHONY: all build test lint corpus docs docs-pdf clean
 
 all: build
 
@@ -15,6 +15,14 @@ lint:
 # Regenerate testdata/corpus; needs djvulibre-bin and ghostscript.
 corpus:
 	testdata/mkcorpus.sh
+
+# docs: the SVG figures and the articles' PDFs; docs-pdf: only the PDFs
+# (pandoc with typst). The PDFs are git-ignored.
+docs:
+	$(MAKE) -C docs
+
+docs-pdf:
+	$(MAKE) -C docs pdf
 
 clean:
 	rm -f dejapdf

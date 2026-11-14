@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="380" viewBox="0 0 900 380">
+<rect width="900" height="380" fill="white"/>
+<text x="195" y="26" font-family="Helvetica, Arial, sans-serif" font-size="19.5" fill="#333333" text-anchor="middle" font-weight="bold">PDF 1.4: objects, xref table</text>
+<rect x="10" y="46" width="370" height="34" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="195" y="68" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="middle">11 0 obj &lt;&lt; /Type /Font ... &gt;&gt;</text>
+<rect x="10" y="92" width="370" height="34" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="195" y="114" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="middle">12 0 obj &lt;&lt; /Type /FontDescriptor ... &gt;&gt;</text>
+<rect x="10" y="138" width="370" height="34" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="195" y="160" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="middle">13 0 obj &lt;&lt; /Type /Font ... &gt;&gt;</text>
+<rect x="10" y="200" width="370" height="110" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="22" y="222" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">xref</text>
+<text x="22" y="248" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">0000001434 00000 n</text>
+<path d="M190,243 L395,243 L395,63 L384,63" fill="none" stroke="#b8860b" stroke-width="1"/>
+<polygon points="384,63 390.45,60.27 390.45,65.73" fill="#b8860b" stroke="none" stroke-width="1"/>
+<text x="22" y="272" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">0000001735 00000 n</text>
+<path d="M190,267 L404,267 L404,109 L384,109" fill="none" stroke="#b8860b" stroke-width="1"/>
+<polygon points="384,109 390.45,106.27 390.45,111.73" fill="#b8860b" stroke="none" stroke-width="1"/>
+<text x="22" y="296" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">0000002155 00000 n</text>
+<path d="M190,291 L413,291 L413,155 L384,155" fill="none" stroke="#b8860b" stroke-width="1"/>
+<polygon points="384,155 390.45,152.27 390.45,157.73" fill="#b8860b" stroke="none" stroke-width="1"/>
+<text x="195" y="336" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#808080" text-anchor="middle">every dictionary is plain text;</text>
+<text x="195" y="355.5" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#808080" text-anchor="middle">20 bytes of text per xref entry</text>
+<text x="680" y="26" font-family="Helvetica, Arial, sans-serif" font-size="19.5" fill="#333333" text-anchor="middle" font-weight="bold">PDF 1.5: object stream, xref stream</text>
+<rect x="470" y="46" width="420" height="140" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="480" y="66" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">15 0 obj &lt;&lt; /Type /ObjStm /N 3 /First 18</text>
+<text x="480" y="86" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">/Filter /FlateDecode &gt;&gt; stream</text>
+<rect x="480" y="96" width="400" height="82" fill="white" stroke="#82b366" stroke-width="1" stroke-dasharray="3 2"/>
+<text x="488" y="114" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#2d6a2d" text-anchor="start">11 0 12 547 13 665</text>
+<text x="874" y="114" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#808080" text-anchor="end">number, offset</text>
+<text x="488" y="134" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">&lt;&lt; /Type /Font ... &gt;&gt;</text>
+<text x="488" y="152" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">&lt;&lt; /Type /FontDescriptor ... &gt;&gt;</text>
+<text x="488" y="170" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">&lt;&lt; /Type /Font ... &gt;&gt;</text>
+<rect x="470" y="200" width="420" height="110" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="480" y="222" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">99 0 obj &lt;&lt; /Type /XRef /W [1 2 2] &gt;&gt;</text>
+<text x="488" y="248" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">02 000F 0000</text>
+<text x="620" y="248" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">in stream 15, index 0</text>
+<text x="488" y="272" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">02 000F 0001</text>
+<text x="620" y="272" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">in stream 15, index 1</text>
+<text x="488" y="296" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#333333" text-anchor="start">02 000F 0002</text>
+<text x="620" y="296" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">in stream 15, index 2</text>
+<path d="M890,240 L898,240 L898,60 L892,60" fill="none" stroke="#9673a6" stroke-width="1"/>
+<polygon points="891,60 897.45,57.27 897.45,62.73" fill="#9673a6" stroke="none" stroke-width="1"/>
+<text x="680" y="336" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#808080" text-anchor="middle">the dictionaries compressed together;</text>
+<text x="680" y="355.5" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#808080" text-anchor="middle">binary xref entries, compressed too</text>
+</svg>

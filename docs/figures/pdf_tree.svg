@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="500" viewBox="0 0 880 500">
+<rect width="880" height="500" fill="white"/>
+<rect x="20" y="20" width="112" height="34" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="76" y="42.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">trailer</text>
+<rect x="20" y="100" width="112" height="34" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="76" y="122.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Info</text>
+<rect x="200" y="20" width="112" height="34" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="256" y="42.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Catalog</text>
+<rect x="400" y="20" width="112" height="34" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="456" y="42.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Outlines</text>
+<rect x="600" y="20" width="112" height="34" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="656" y="42.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">outline items</text>
+<rect x="300" y="100" width="112" height="34" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.2" rx="3"/>
+<text x="356" y="122.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Pages</text>
+<rect x="140" y="190" width="112" height="34" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="196" y="212.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Page 1</text>
+<rect x="480" y="190" width="112" height="34" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="536" y="212.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Page 2</text>
+<rect x="700" y="190" width="112" height="34" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.2" rx="3"/>
+<text x="756" y="212.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Link annot</text>
+<rect x="20" y="290" width="112" height="34" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="76" y="312.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Contents 1</text>
+<rect x="160" y="290" width="112" height="34" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="216" y="312.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Resources 1</text>
+<rect x="330" y="290" width="112" height="34" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="386" y="312.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Font: Type0</text>
+<rect x="500" y="290" width="112" height="34" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="556" y="312.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Resources 2</text>
+<rect x="640" y="290" width="112" height="34" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="696" y="312.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Contents 2</text>
+<rect x="40" y="380" width="112" height="34" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="96" y="402.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Image: JPX</text>
+<rect x="170" y="380" width="112" height="34" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="226" y="402.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Image: JBIG2</text>
+<rect x="330" y="380" width="112" height="34" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="386" y="402.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">CIDFont</text>
+<rect x="490" y="380" width="112" height="34" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="546" y="402.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Image: JBIG2</text>
+<rect x="620" y="380" width="112" height="34" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="676" y="402.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">Image: JPX</text>
+<rect x="330" y="450" width="112" height="34" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="386" y="472.46" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">JBIG2Globals</text>
+<line x1="132" y1="37" x2="194.5" y2="37" stroke="#333333" stroke-width="1.2"/>
+<polygon points="200,37 193.55,39.73 193.55,34.27" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="154" y="34" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">Root</text>
+<line x1="76" y1="54" x2="76" y2="94.5" stroke="#333333" stroke-width="1.2"/>
+<polygon points="76,100 73.27,93.55 78.73,93.55" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="80" y="74" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">Info</text>
+<line x1="312" y1="37" x2="394.5" y2="37" stroke="#333333" stroke-width="1.2"/>
+<polygon points="400,37 393.55,39.73 393.55,34.27" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="334" y="34" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">Outlines</text>
+<line x1="512" y1="37" x2="594.5" y2="37" stroke="#333333" stroke-width="1.2"/>
+<polygon points="600,37 593.55,39.73 593.55,34.27" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="540" y="34" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">First…</text>
+<line x1="256" y1="54" x2="351" y2="97.7" stroke="#333333" stroke-width="1.2"/>
+<polygon points="356,100 349,99.78 351.28,94.83" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="314" y="74" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">Pages</text>
+<line x1="356" y1="134" x2="201.19" y2="188.18" stroke="#333333" stroke-width="1.2"/>
+<polygon points="196,190 201.18,185.3 202.99,190.44" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="236" y="159" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">Kids</text>
+<line x1="356" y1="134" x2="530.75" y2="188.37" stroke="#333333" stroke-width="1.2"/>
+<polygon points="536,190 529.03,190.69 530.65,185.48" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="196" y1="224" x2="80.82" y2="287.35" stroke="#333333" stroke-width="1.2"/>
+<polygon points="76,290 80.34,284.5 82.96,289.28" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="78" y="254" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">Contents</text>
+<line x1="196" y1="224" x2="214.4" y2="284.74" stroke="#333333" stroke-width="1.2"/>
+<polygon points="216,290 211.52,284.62 216.74,283.04" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="212" y="254" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">Resources</text>
+<line x1="536" y1="224" x2="554.4" y2="284.74" stroke="#333333" stroke-width="1.2"/>
+<polygon points="556,290 551.52,284.62 556.74,283.04" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="536" y1="224" x2="690.92" y2="287.9" stroke="#333333" stroke-width="1.2"/>
+<polygon points="696,290 689,290.06 691.08,285.02" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="592" y1="207" x2="694.5" y2="207" stroke="#333333" stroke-width="1.2"/>
+<polygon points="700,207 693.55,209.73 693.55,204.27" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="628" y="204" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">Annots</text>
+<line x1="272" y1="307" x2="324.5" y2="307" stroke="#333333" stroke-width="1.2"/>
+<polygon points="330,307 323.55,309.73 323.55,304.27" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="500" y1="307" x2="447.5" y2="307" stroke="#333333" stroke-width="1.2"/>
+<polygon points="442,307 448.45,304.27 448.45,309.73" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="306" y="300" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="middle">Font</text>
+<line x1="386" y1="324" x2="386" y2="374.5" stroke="#333333" stroke-width="1.2"/>
+<polygon points="386,380 383.27,373.55 388.73,373.55" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="216" y1="324" x2="100.98" y2="377.67" stroke="#333333" stroke-width="1.2"/>
+<polygon points="96,380 100.69,374.8 103,379.74" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="216" y1="324" x2="225.03" y2="374.59" stroke="#333333" stroke-width="1.2"/>
+<polygon points="226,380 222.18,374.13 227.55,373.17" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="227" y="349" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">XObject</text>
+<line x1="556" y1="324" x2="546.97" y2="374.59" stroke="#333333" stroke-width="1.2"/>
+<polygon points="546,380 544.45,373.17 549.82,374.13" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="556" y1="324" x2="671.02" y2="377.67" stroke="#333333" stroke-width="1.2"/>
+<polygon points="676,380 669,379.74 671.31,374.8" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="226" y1="414" x2="325.1" y2="464.5" stroke="#333333" stroke-width="1.2"/>
+<polygon points="330,467 323.02,466.5 325.49,461.64" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="546" y1="414" x2="446.9" y2="464.5" stroke="#333333" stroke-width="1.2"/>
+<polygon points="442,467 446.51,461.64 448.98,466.5" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="560" y="450" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">DecodeParms</text>
+<line x1="656" y1="54" x2="257.14" y2="205.05" stroke="#333333" stroke-width="1.2" stroke-dasharray="3 3"/>
+<polygon points="252,207 257.06,202.17 258.99,207.27" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="500" y="120" font-family="Helvetica, Arial, sans-serif" font-size="13.65" fill="#808080" text-anchor="start">Dest [page …]</text>
+</svg>

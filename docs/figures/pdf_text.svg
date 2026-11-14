@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="300" viewBox="0 0 840 300">
+<rect width="840" height="300" fill="white"/>
+<rect x="130" y="60" width="470" height="90" fill="#fff2cc" stroke="#d6b656" stroke-width="1.4"/>
+<text x="365" y="50" font-family="Helvetica, Arial, sans-serif" font-size="15.6" fill="#333333" text-anchor="middle">word box from TXTz: x0 y0 x1 y1</text>
+<rect x="130" y="66" width="45" height="84" fill="none" stroke="#808080" stroke-width="1" stroke-dasharray="3 2"/>
+<text x="152.5" y="128" font-family="Helvetica, Arial, sans-serif" font-size="39" fill="#bbbbbb" text-anchor="middle">П</text>
+<rect x="175" y="66" width="45" height="84" fill="none" stroke="#808080" stroke-width="1" stroke-dasharray="3 2"/>
+<text x="197.5" y="128" font-family="Helvetica, Arial, sans-serif" font-size="39" fill="#bbbbbb" text-anchor="middle">р</text>
+<rect x="220" y="66" width="45" height="84" fill="none" stroke="#808080" stroke-width="1" stroke-dasharray="3 2"/>
+<text x="242.5" y="128" font-family="Helvetica, Arial, sans-serif" font-size="39" fill="#bbbbbb" text-anchor="middle">и</text>
+<rect x="265" y="66" width="45" height="84" fill="none" stroke="#808080" stroke-width="1" stroke-dasharray="3 2"/>
+<text x="287.5" y="128" font-family="Helvetica, Arial, sans-serif" font-size="39" fill="#bbbbbb" text-anchor="middle">в</text>
+<rect x="310" y="66" width="45" height="84" fill="none" stroke="#808080" stroke-width="1" stroke-dasharray="3 2"/>
+<text x="332.5" y="128" font-family="Helvetica, Arial, sans-serif" font-size="39" fill="#bbbbbb" text-anchor="middle">е</text>
+<rect x="355" y="66" width="45" height="84" fill="none" stroke="#808080" stroke-width="1" stroke-dasharray="3 2"/>
+<text x="377.5" y="128" font-family="Helvetica, Arial, sans-serif" font-size="39" fill="#bbbbbb" text-anchor="middle">т</text>
+<line x1="130" y1="150" x2="130" y2="160" stroke="#6c8ebf" stroke-width="1.2"/>
+<line x1="208.33" y1="150" x2="208.33" y2="160" stroke="#6c8ebf" stroke-width="1.2"/>
+<line x1="286.67" y1="150" x2="286.67" y2="160" stroke="#6c8ebf" stroke-width="1.2"/>
+<line x1="365" y1="150" x2="365" y2="160" stroke="#6c8ebf" stroke-width="1.2"/>
+<line x1="443.33" y1="150" x2="443.33" y2="160" stroke="#6c8ebf" stroke-width="1.2"/>
+<line x1="521.67" y1="150" x2="521.67" y2="160" stroke="#6c8ebf" stroke-width="1.2"/>
+<line x1="600" y1="150" x2="600" y2="160" stroke="#6c8ebf" stroke-width="1.2"/>
+<line x1="130" y1="150" x2="600" y2="150" stroke="#d62728" stroke-width="1.4"/>
+<text x="608" y="154" font-family="Helvetica, Arial, sans-serif" font-size="14.3" fill="#d62728" text-anchor="start">baseline</text>
+<rect x="127" y="147" width="6" height="6" fill="#d62728" stroke="none" stroke-width="1"/>
+<text x="124" y="166" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.3" fill="#d62728" text-anchor="end">Td x0 y0</text>
+<line x1="135.5" y1="180" x2="394.5" y2="180" stroke="#808080" stroke-width="1.2"/>
+<polygon points="400,180 393.55,182.73 393.55,177.27" fill="#808080" stroke="none" stroke-width="1"/>
+<polygon points="130,180 136.45,177.27 136.45,182.73" fill="#808080" stroke="none" stroke-width="1"/>
+<text x="265" y="196" font-family="Helvetica, Arial, sans-serif" font-size="14.95" fill="#808080" text-anchor="middle">natural: n × DW/1000 × size</text>
+<line x1="135.5" y1="212" x2="594.5" y2="212" stroke="#6c8ebf" stroke-width="1.2"/>
+<polygon points="600,212 593.55,214.73 593.55,209.27" fill="#6c8ebf" stroke="none" stroke-width="1"/>
+<polygon points="130,212 136.45,209.27 136.45,214.73" fill="#6c8ebf" stroke="none" stroke-width="1"/>
+<text x="365" y="228" font-family="Helvetica, Arial, sans-serif" font-size="14.95" fill="#6c8ebf" text-anchor="middle">box width = k/100 × natural</text>
+<line x1="620" y1="65.5" x2="620" y2="144.5" stroke="#808080" stroke-width="1.2"/>
+<polygon points="620,150 617.27,143.55 622.73,143.55" fill="#808080" stroke="none" stroke-width="1"/>
+<polygon points="620,60 622.73,66.45 617.27,66.45" fill="#808080" stroke="none" stroke-width="1"/>
+<text x="626" y="105" font-family="Helvetica, Arial, sans-serif" font-size="14.95" fill="#808080" text-anchor="start">size = y1 − y0</text>
+<text x="626" y="184" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.95" fill="#333333" text-anchor="start">BT 3 Tr</text>
+<text x="626" y="202.69" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.95" fill="#333333" text-anchor="start">/F1 size Tf</text>
+<text x="626" y="221.38" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.95" fill="#333333" text-anchor="start">k Tz</text>
+<text x="626" y="240.06" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.95" fill="#333333" text-anchor="start">x0 y0 Td</text>
+<text x="626" y="258.75" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.95" fill="#333333" text-anchor="start">&lt;0420…&gt; Tj</text>
+<text x="626" y="277.44" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="14.95" fill="#333333" text-anchor="start">ET</text>
+</svg>

@@ -45,11 +45,20 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   with any filter and DecodeParms.
 - `internal/convert`: lays out each page in PDF:
   - background JPX stretched to the page;
-  - mask as a stencil (`/ImageMask true`, `/Decode [1 0]`);
+  - mask as a stencil (`/ImageMask true`; JBIG2 decodes black as 0, so no
+    `/Decode`; a raw 1 = black mask needs `/Decode [1 0]`);
   - FG44 as a JPX with the stencil as its `/Mask`;
   - one stencil per FGbz palette colour;
   - TXTz as invisible text, NAVM as outlines, ANTz as links.
 - BGjp/FGjp layers (already JPEG) pass through unchanged as DCTDecode.
+
+## Docs
+
+`docs/` holds the specs (DjVu v3, T.88, T.800, PDF 1.7; PDFs git-ignored, see
+`docs/README.md`, which also lists the DjVu spec errata) and articles such as
+`docs/Portable_Document_Format.md`. Figures are `docs/figures/NAME.py` scripts
+printing `NAME.svg` via `docs/figures/svg.py`; `make docs` regenerates them
+and formats the articles to PDF (pandoc + typst; `make docs-pdf` for the PDFs only).
 
 ## Rules
 

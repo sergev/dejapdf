@@ -1,3 +1,11 @@
+# Docs
+
+Articles:
+
+- [Portable_Document_Format.md](Portable_Document_Format.md): the parts of
+  PDF that dejapdf writes, with figures from `figures/*.py`. `make docs`
+  regenerates the figures and the PDF; `make docs-pdf` only the PDF.
+
 # Specifications
 
 | File | What | Used for | Source |
