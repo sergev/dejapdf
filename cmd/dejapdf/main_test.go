@@ -6,7 +6,23 @@ package main
 import (
 	"fmt"
 	"testing"
+	"time"
 )
+
+func TestSummary(t *testing.T) {
+	for _, c := range []struct {
+		size, djvu int64
+		d          time.Duration
+		want       string
+	}{
+		{12641280, 10534400, 9100 * time.Millisecond, "book.pdf: 12345 kbytes, 1.20x in 9.1s"},
+		{1000, 0, 40 * time.Millisecond, "book.pdf: 1 kbytes in 0.0s"},
+	} {
+		if got := summary("book.pdf", c.size, c.djvu, c.d); got != c.want {
+			t.Errorf("got %q, want %q", got, c.want)
+		}
+	}
+}
 
 func TestParsePages(t *testing.T) {
 	for in, want := range map[string]string{

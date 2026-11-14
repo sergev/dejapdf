@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/sergev/dejapdf/internal/convert"
 	"github.com/sergev/dejapdf/internal/djvu"
@@ -59,6 +60,7 @@ func main() {
 }
 
 func convertFile(in, out string, quality float64, pages string, verbose bool) error {
+	start := time.Now()
 	doc, err := djvu.Open(in)
 	if err != nil {
 		return err
@@ -103,7 +105,19 @@ func convertFile(in, out string, quality float64, pages string, verbose bool) er
 	if verbose {
 		opt.Stats.Report(os.Stderr)
 	}
+	if fi, err := os.Stat(out); err == nil {
+		fmt.Println(summary(out, fi.Size(), convert.DjVuSize(doc, opt.Pages), time.Since(start)))
+	}
 	return nil
+}
+
+// summary is the line printed when a conversion is done.
+func summary(name string, size, djvuSize int64, d time.Duration) string {
+	s := fmt.Sprintf("%s: %d kbytes", name, (size+512)/1024)
+	if djvuSize > 0 {
+		s += fmt.Sprintf(", %.2fx", float64(size)/float64(djvuSize))
+	}
+	return s + fmt.Sprintf(" in %.1fs", d.Seconds())
 }
 
 // parsePages reads a list like "1-10,15,20-" into page indexes from 0.

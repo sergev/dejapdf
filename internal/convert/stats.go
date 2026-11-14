@@ -53,6 +53,23 @@ var chunkKinds = map[string]int{
 	"TXTz": Text, "TXTa": Text,
 }
 
+// DjVuSize returns the DjVu bytes of the pages (all if nil), as djvuSizes counts them.
+func DjVuSize(doc *djvu.Document, pages []int) int64 {
+	if pages == nil {
+		pages = make([]int, len(doc.Pages))
+		for i := range pages {
+			pages[i] = i
+		}
+	}
+	var s Stats
+	djvuSizes(doc, pages, &s)
+	var n int64
+	for _, v := range s.DjVu {
+		n += v
+	}
+	return n
+}
+
 // djvuSizes counts the chunks of the selected pages, each shared chunk
 // once, and the document-level chunks (DIRM, NAVM) as other.
 func djvuSizes(doc *djvu.Document, sel []int, s *Stats) {

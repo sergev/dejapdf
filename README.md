@@ -35,7 +35,10 @@ colour          68172        81594   1.20
 text           209424       189448   0.90
 other            4866        28244   5.80
 total         1438254      1568031   1.09
+book.pdf: 1531 kbytes, 1.09x in 0.5s
 ```
+
+Without `-v`, only the last line is printed.
 
 ## Results
 
