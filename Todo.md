@@ -44,21 +44,46 @@ Sequential plan. Each phase builds on the previous one and ends with a testable
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
 
-## P12. Hardening and UX
+## P13. Robustness
 
-- [x] Page-parallel decode/encode (done in P7)
-- [ ] Options: page range, progress, verbose size report (`-q` exists)
+- [x] A layer that fails to decode is left out with a warning, not the whole file (done in
+      P12: `Options.Warn`; still to test on damaged files)
+- [ ] Damaged documents: truncated files, bad chunk sizes, missing INFO, unknown chunks
+- [ ] Fuzz tests for iff, zp, bzz, jb2, iw44 (and the djvu text, outline, sexp parsers)
+
+Done when: each fuzz target runs for a few minutes with no panic or hang; truncated and
+corrupted corpus files convert with warnings.
+
+## P14. Document extras
+
+- [ ] Page labels from DIRM page titles
+- [ ] XMP metadata (ANTz `xmp`) as the catalog's `/Metadata`
+
+Done when: viewers show the DjVu page titles; `pdfinfo -meta` prints the XMP.
+
+## P15. Remaining mask cases
+
+- [ ] Striped Smmr masks (one CCITT stencil per stripe)
+- [ ] An Smmr page with a varying FG44 (now painted black)
 - [ ] FGbz pages: about 210 B fixed cost per colour stencil (Poia, six grey shades a page:
       1.29× the DjVu); consider merging stencils without changing the rendering
-- [ ] Check rendering in Acrobat (pdf.js, MuPDF, Poppler and Ghostscript done)
-- [ ] Graceful handling of broken or unknown chunks
-- [ ] Page labels from DIRM page titles; XMP metadata (ANTz `xmp`)
-- [ ] Striped Smmr masks (one CCITT stencil per stripe); an Smmr page with a varying FG44
-      (now painted black)
+
+Done when: striped and FG44 Smmr corpus pages render as ddjvu does; Poia is within the
+1–1.5× target with fewer bytes per stencil.
+
+## P16. Viewer fidelity
+
 - [ ] FG layers in viewers: MuPDF and Poppler interpolate a 12× upscaled FG44, blending
       neighbouring colours into the shapes (ddjvu does not); consider upsampling small FG
       layers or other mitigation
-- [ ] Fuzz tests for iff, zp, bzz, jb2, iw44
-- [ ] Size-report tool comparing DjVu vs PDF per layer
-- [ ] CI (build, test, vet)
-- [ ] Update README with real usage and results
+- [ ] Check rendering in Acrobat (pdf.js, MuPDF, Poppler and Ghostscript done)
+
+Done when: compound corpus pages render within a few dB of ddjvu in MuPDF and Poppler at
+no more than a few percent size cost.
+
+## P17. Release
+
+- [ ] CI (build, vet, test with the oracle tools installed)
+- [ ] README with real usage and results
+
+Done when: CI passes on GitHub; the README shows the options and the book size table.

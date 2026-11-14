@@ -8,6 +8,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/sergev/dejapdf/internal/convert"
 	"github.com/sergev/dejapdf/internal/djvu"
@@ -26,6 +28,8 @@ func main() {
 	showVersion := flag.Bool("version", false, "print version and exit")
 	dump := flag.Bool("dump", false, "print the chunk tree, like djvudump")
 	quality := flag.Float64("q", convert.DefaultQuality, "colour layer size as a multiple of the DjVu size")
+	pages := flag.String("p", "", "pages to convert, like 1-10,15 (default all)")
+	verbose := flag.Bool("v", false, "show progress and a size report by layer")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -48,29 +52,89 @@ func main() {
 		usage()
 		os.Exit(2)
 	}
-	if err := convertFile(flag.Arg(0), flag.Arg(1), *quality); err != nil {
+	if err := convertFile(flag.Arg(0), flag.Arg(1), *quality, *pages, *verbose); err != nil {
 		fmt.Fprintln(os.Stderr, "dejapdf:", err)
 		os.Exit(1)
 	}
 }
 
-func convertFile(in, out string, quality float64) error {
+func convertFile(in, out string, quality float64, pages string, verbose bool) error {
 	doc, err := djvu.Open(in)
 	if err != nil {
 		return err
+	}
+	opt := convert.Options{
+		Producer: "dejapdf " + version,
+		Quality:  quality,
+		Warn: func(page int, err error) {
+			fmt.Fprintf(os.Stderr, "dejapdf: page %d: %v\n", page+1, err)
+		},
+	}
+	if pages != "" {
+		if opt.Pages, err = parsePages(pages, len(doc.Pages)); err != nil {
+			return err
+		}
+	}
+	if verbose {
+		opt.Stats = &convert.Stats{}
+		opt.Progress = func(done, total int) {
+			fmt.Fprintf(os.Stderr, "\rpage %d/%d", done, total)
+			if done == total {
+				fmt.Fprintln(os.Stderr)
+			}
+		}
 	}
 	f, err := os.Create(out)
 	if err != nil {
 		return err
 	}
-	err = convert.Convert(doc, f, convert.Options{Producer: "dejapdf " + version, Quality: quality})
+	err = convert.Convert(doc, f, opt)
 	if cerr := f.Close(); err == nil {
 		err = cerr
 	}
 	if err != nil {
 		os.Remove(out)
+		return err
 	}
-	return err
+	if verbose {
+		opt.Stats.Report(os.Stderr)
+	}
+	return nil
+}
+
+// parsePages reads a list like "1-10,15,20-" into page indexes from 0.
+func parsePages(s string, n int) ([]int, error) {
+	var r []int
+	seen := make([]bool, n)
+	for _, part := range strings.Split(s, ",") {
+		lo, hi, isRange := strings.Cut(part, "-")
+		a, b := 1, n
+		var err error
+		if lo != "" || !isRange {
+			if a, err = strconv.Atoi(lo); err != nil {
+				return nil, fmt.Errorf("bad page range %q", part)
+			}
+			b = a
+		}
+		if isRange {
+			b = n
+			if hi != "" {
+				if b, err = strconv.Atoi(hi); err != nil {
+					return nil, fmt.Errorf("bad page range %q", part)
+				}
+			}
+		}
+		if a < 1 || b > n || a > b {
+			return nil, fmt.Errorf("page range %q outside 1-%d", part, n)
+		}
+		for p := a; p <= b; p++ {
+			if !seen[p-1] {
+				seen[p-1] = true
+				r = append(r, p-1)
+			}
+		}
+	}
+	return r, nil
 }
 
 func dumpFile(path string) error {

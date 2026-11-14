@@ -25,6 +25,17 @@ type Options struct {
 	Producer string  // document info /Producer
 	Quality  float64 // JPX size as a multiple of the IW44 size; 0 means DefaultQuality
 	MaskOnly bool    // paint only the mask, in black
+
+	// Pages to convert, indexes from 0 in output order; nil means all.
+	// Links and bookmarks to other pages are dropped.
+	Pages []int
+	// Warn, if not nil, is told of a layer that cannot be converted,
+	// which is then left out; if nil, that is an error.
+	Warn func(page int, err error)
+	// Progress, if not nil, is called after each page is written.
+	Progress func(done, total int)
+	// Stats, if not nil, receives sizes by layer.
+	Stats *Stats
 }
 
 // Convert writes doc as PDF to w.
@@ -32,47 +43,55 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 	if opt.Quality <= 0 {
 		opt.Quality = DefaultQuality
 	}
-	p := pdf.NewWriter(w)
-	pages := make([]pdf.Ref, len(doc.Pages))
-	for i := range pages {
+	sel := opt.Pages
+	if sel == nil {
+		sel = make([]int, len(doc.Pages))
+		for i := range sel {
+			sel[i] = i
+		}
+	}
+	cw := &counter{w: w}
+	p := pdf.NewWriter(cw)
+	pages := make([]pdf.Ref, len(doc.Pages)) // 0 if not converted
+	for _, i := range sel {
+		if i < 0 || i >= len(doc.Pages) || pages[i] != 0 {
+			return fmt.Errorf("bad page selection: %d", i+1)
+		}
 		pages[i] = p.Alloc()
 	}
-	tg := newTargets(doc)
+	tg := newTargets(doc, pages)
 	font := &textFont{}
 	// Pages are built in parallel and written in order.
 	type result struct {
 		b   *pageBuilder
 		err error
 	}
-	results := make([]chan result, len(doc.Pages))
+	results := make([]chan result, len(sel))
 	for i := range results {
 		results[i] = make(chan result, 1)
 	}
 	window := make(chan struct{}, 2*runtime.GOMAXPROCS(0))
 	dicts := &sharedDicts{}
 	go func() {
-		for i, pg := range doc.Pages {
+		for k, i := range sel {
 			window <- struct{}{}
 			go func(i int, c chan result) {
-				b, err := build(doc, pg, &opt, dicts)
-				if err == nil {
-					err = text(b, pg)
-				}
-				if err == nil {
-					err = links(b, pg, tg, i, len(pages))
-				}
+				b, err := build(doc, doc.Pages[i], i, &opt, dicts, tg)
 				c <- result{b, err}
-			}(i, results[i])
+			}(i, results[k])
 		}
 	}()
 	var err error
-	for i := range doc.Pages {
-		r := <-results[i]
+	for k, i := range sel {
+		r := <-results[k]
 		if err == nil && r.err != nil {
 			err = fmt.Errorf("page %d: %w", i+1, r.err)
 		}
 		if err == nil {
-			r.b.emit(p, pages[i], pages, font)
+			r.b.emit(p, pages[i], pages, font, opt.Stats)
+			if opt.Progress != nil {
+				opt.Progress(k+1, len(sel))
+			}
 		}
 		<-window
 	}
@@ -89,12 +108,23 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 	var cat pdf.Dict
 	bms, err := doc.Outline()
 	if err != nil {
-		return err
+		if opt.Warn == nil {
+			return err
+		}
+		opt.Warn(0, err)
 	}
+	bms = tg.prune(bms)
 	if len(bms) > 0 {
 		cat = pdf.Dict{"Outlines": outline(p, bms, tg, pages), "PageMode": pdf.Name("UseOutlines")}
 	}
-	return p.Close(cat, info)
+	if err := p.Close(cat, info); err != nil {
+		return err
+	}
+	if s := opt.Stats; s != nil {
+		djvuSizes(doc, sel, s)
+		s.PDF[Other] = cw.n - s.PDF[Mask] - s.PDF[Colour] - s.PDF[Text]
+	}
+	return nil
 }
 
 // pageBuilder collects a page's content and objects.
@@ -107,6 +137,7 @@ type pageBuilder struct {
 	shared  *sharedDicts
 	font    bool       // the content uses the hidden-text font
 	annots  []pdf.Dict // pageNum values refer to pages
+	text    int        // compressed size of the text operators, if counted
 }
 
 // object is a stream to write; local values in its dictionary refer to
@@ -126,7 +157,7 @@ func (b *pageBuilder) obj(d pdf.Dict, data []byte) local {
 }
 
 // emit writes the page as object r, and its objects.
-func (b *pageBuilder) emit(p *pdf.Writer, r pdf.Ref, pages []pdf.Ref, font *textFont) {
+func (b *pageBuilder) emit(p *pdf.Writer, r pdf.Ref, pages []pdf.Ref, font *textFont, st *Stats) {
 	refs := make([]pdf.Ref, len(b.objs))
 	for i := range refs {
 		refs[i] = p.Alloc()
@@ -141,6 +172,9 @@ func (b *pageBuilder) emit(p *pdf.Writer, r pdf.Ref, pages []pdf.Ref, font *text
 		case *shared:
 			if v.ref == 0 {
 				v.ref = p.AddStream(pdf.Dict{}, v.data)
+				if st != nil {
+					st.PDF[Mask] += int64(len(v.data))
+				}
 			}
 			return v.ref
 		case pdf.Dict:
@@ -158,6 +192,12 @@ func (b *pageBuilder) emit(p *pdf.Writer, r pdf.Ref, pages []pdf.Ref, font *text
 	for i, o := range b.objs {
 		resolve(o.dict)
 		p.Stream(refs[i], o.dict, o.data)
+		if st != nil {
+			st.PDF[streamKind(o.dict)] += int64(len(o.data))
+		}
+	}
+	if st != nil {
+		st.PDF[Text] += int64(b.text)
 	}
 	resolve(b.xobj)
 	res := pdf.Dict{}
@@ -216,8 +256,9 @@ func (b *pageBuilder) fill(c [3]byte) {
 
 func channel(v byte) string { return num(float64(v) / 255) }
 
-// build prepares a page.
-func build(doc *djvu.Document, pg *djvu.Page, opt *Options, dicts *sharedDicts) (*pageBuilder, error) {
+// build prepares a page. A layer that fails is left out with a warning,
+// if opt.Warn is set.
+func build(doc *djvu.Document, pg *djvu.Page, i int, opt *Options, dicts *sharedDicts, tg *targets) (*pageBuilder, error) {
 	in := pg.Info
 	if in.Width <= 0 || in.Height <= 0 {
 		return nil, fmt.Errorf("bad size %dx%d", in.Width, in.Height)
@@ -225,25 +266,32 @@ func build(doc *djvu.Document, pg *djvu.Page, opt *Options, dicts *sharedDicts) 
 	b := &pageBuilder{in: in, xobj: pdf.Dict{}, shared: dicts,
 		w: float64(in.Width) * 72 / float64(in.DPI),
 		h: float64(in.Height) * 72 / float64(in.DPI)}
-	mask, err := doc.Mask(pg)
-	if err != nil {
-		return nil, err
+	var first error
+	try := func(err error) {
+		if err == nil {
+			return
+		}
+		if opt.Warn != nil {
+			opt.Warn(i, err)
+		} else if first == nil {
+			first = err
+		}
 	}
 	if !opt.MaskOnly {
-		if err := background(b, pg, opt); err != nil {
-			return nil, err
-		}
+		try(background(b, pg, opt))
 	}
-	if mask != nil {
-		if err := foreground(b, pg, mask, opt); err != nil {
-			return nil, err
-		}
-	} else if c := pg.Form.Find("Smmr"); c != nil {
-		if err := mmrForeground(b, pg, c.Data, opt); err != nil {
-			return nil, err
-		}
+	mask, err := doc.Mask(pg)
+	switch {
+	case err != nil:
+		try(err)
+	case mask != nil:
+		try(foreground(b, pg, mask, opt))
+	case pg.Form.Find("Smmr") != nil:
+		try(mmrForeground(b, pg, pg.Form.Find("Smmr").Data, opt))
 	}
-	return b, nil
+	try(text(b, pg, opt.Stats != nil))
+	try(links(b, pg, tg, i))
+	return b, first
 }
 
 // background paints BG44 or BGjp.

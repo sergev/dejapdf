@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/sergev/dejapdf/internal/djvu"
+	"github.com/sergev/dejapdf/internal/pdf"
 )
 
 func need(t *testing.T, tools ...string) {
@@ -137,16 +138,16 @@ func TestPDFDate(t *testing.T) {
 }
 
 func TestResolve(t *testing.T) {
-	tg := &targets{byName: map[string]int{"p0003.djvu": 2}}
+	tg := &targets{byName: map[string]int{"p0003.djvu": 2}, pages: []pdf.Ref{1, 2, 3, 4}}
 	for url, want := range map[string]int{
 		"#p0003.djvu": 2, "#1": 0, "#4": 3, "#5": -1, "#0": -1,
 		"#+1": 2, "#-1": 0, "#-2": -1, "#nowhere": -1,
 	} {
-		if got, _ := tg.resolve(url, 1, 4); got != want {
+		if got, _ := tg.resolve(url, 1); got != want {
 			t.Errorf("%q: got %d, want %d", url, got, want)
 		}
 	}
-	if i, uri := tg.resolve("http://x/", 0, 4); i != -1 || uri != "http://x/" {
+	if i, uri := tg.resolve("http://x/", 0); i != -1 || uri != "http://x/" {
 		t.Errorf("URI: %d %q", i, uri)
 	}
 }
@@ -175,4 +176,54 @@ func TestArea(t *testing.T) {
 			t.Errorf("%s: got %s, want %s", in, got, want)
 		}
 	}
+}
+
+// The size report adds up to the file sizes; a page selection keeps
+// only the bookmarks and links that lead to converted pages.
+func TestStatsAndSelection(t *testing.T) {
+	need(t, "mutool")
+	name := filepath.Join(corpus, "bundled.djvu")
+	doc, err := djvu.Open(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := filepath.Join(t.TempDir(), "out.pdf")
+	f, _ := os.Create(out)
+	var st Stats
+	if err := Convert(doc, f, Options{Stats: &st}); err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+	sum := func(a [nKinds]int64) (n int64) {
+		for _, v := range a {
+			n += v
+		}
+		return
+	}
+	fi, _ := os.Stat(out)
+	di, _ := os.Stat(name)
+	if sum(st.PDF) != fi.Size() || sum(st.DjVu) != di.Size() {
+		t.Errorf("stats pdf %d djvu %d, files %d %d", sum(st.PDF), sum(st.DjVu), fi.Size(), di.Size())
+	}
+	if st.PDF[Mask] == 0 || st.PDF[Colour] == 0 || st.PDF[Text] == 0 || st.DjVu[Text] == 0 {
+		t.Errorf("empty kinds: %+v", st)
+	}
+
+	f, _ = os.Create(out)
+	if err := Convert(doc, f, Options{Pages: []int{0, 3}}); err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+	want := "|\t\"Text\"\t#page=1\n|\t\"Compound\"\t#page=2\n"
+	if got := run(t, "mutool", "show", out, "outline"); got != want {
+		t.Errorf("outline:\n%s\nwant\n%s", got, want)
+	}
+	if got := run(t, "mutool", "show", out, "trailer/Root/Pages/Count"); strings.TrimSpace(got) != "2" {
+		t.Errorf("page count %q", got)
+	}
+	f, _ = os.Create(out)
+	if err := Convert(doc, f, Options{Pages: []int{0, 0}}); err == nil {
+		t.Error("duplicate page accepted")
+	}
+	f.Close()
 }

@@ -19,10 +19,11 @@ type pageNum int
 // targets resolves DjVu link URLs.
 type targets struct {
 	byName map[string]int
+	pages  []pdf.Ref // 0 for pages not converted
 }
 
-func newTargets(doc *djvu.Document) *targets {
-	t := &targets{byName: map[string]int{}}
+func newTargets(doc *djvu.Document, pages []pdf.Ref) *targets {
+	t := &targets{byName: map[string]int{}, pages: pages}
 	if doc.Dir != nil {
 		k := 0
 		for _, c := range doc.Dir.Components {
@@ -45,15 +46,19 @@ func newTargets(doc *djvu.Document) *targets {
 	return t
 }
 
-// resolve turns url, seen from page cur, into a page index, or -1 and
-// a URI. "#" links name a page id or title, a number from 1, or a
-// relative +n or -n.
-func (t *targets) resolve(url string, cur, n int) (int, string) {
+// resolve turns url, seen from page cur, into the index of a converted
+// page, or -1 and a URI. "#" links name a page id or title, a number
+// from 1, or a relative +n or -n.
+func (t *targets) resolve(url string, cur int) (int, string) {
 	if !strings.HasPrefix(url, "#") {
 		return -1, url
 	}
+	n := len(t.pages)
 	s := url[1:]
 	if i, ok := t.byName[s]; ok {
+		if t.pages[i] == 0 {
+			return -1, ""
+		}
 		return i, ""
 	}
 	v, err := strconv.Atoi(s)
@@ -65,15 +70,15 @@ func (t *targets) resolve(url string, cur, n int) (int, string) {
 	} else {
 		v--
 	}
-	if v < 0 || v >= n {
+	if v < 0 || v >= n || t.pages[v] == 0 {
 		return -1, ""
 	}
 	return v, ""
 }
 
 // action is a link's /Dest or /A entry, or "" if it leads nowhere.
-func (t *targets) action(url string, cur, n int) (string, any) {
-	i, uri := t.resolve(url, cur, n)
+func (t *targets) action(url string, cur int) (string, any) {
+	i, uri := t.resolve(url, cur)
 	switch {
 	case i >= 0:
 		return "Dest", pdf.Array{pageNum(i), pdf.Name("XYZ"), nil, nil, nil}
@@ -84,7 +89,7 @@ func (t *targets) action(url string, cur, n int) (string, any) {
 }
 
 // links adds the page's hyperlinks (maparea annotations).
-func links(b *pageBuilder, pg *djvu.Page, t *targets, cur, n int) error {
+func links(b *pageBuilder, pg *djvu.Page, t *targets, cur int) error {
 	ann, err := pg.Annotations()
 	if err != nil {
 		return err
@@ -101,7 +106,7 @@ func links(b *pageBuilder, pg *djvu.Page, t *targets, cur, n int) error {
 		if url.IsList {
 			continue
 		}
-		key, act := t.action(url.Atom, cur, n)
+		key, act := t.action(url.Atom, cur)
 		if key == "" {
 			continue
 		}
@@ -152,6 +157,20 @@ func area(sh *djvu.Sexp) ([4]float64, bool) {
 	return [4]float64{}, false
 }
 
+// prune drops bookmarks that lead to no converted page and have no
+// children left.
+func (t *targets) prune(bms []*djvu.Bookmark) []*djvu.Bookmark {
+	var r []*djvu.Bookmark
+	for _, bm := range bms {
+		k := *bm
+		k.Children = t.prune(bm.Children)
+		if key, _ := t.action(bm.URL, 0); key != "" || len(k.Children) > 0 {
+			r = append(r, &k)
+		}
+	}
+	return r
+}
+
 // outline writes the bookmarks and returns the outline dictionary.
 func outline(p *pdf.Writer, bms []*djvu.Bookmark, t *targets, pages []pdf.Ref) pdf.Ref {
 	root := p.Alloc()
@@ -178,7 +197,7 @@ func items(p *pdf.Writer, bms []*djvu.Bookmark, parent pdf.Ref, t *targets, page
 			d["First"], d["Last"] = items(p, bm.Children, refs[i], t, pages)
 			d["Count"] = -len(bm.Children)
 		}
-		if key, act := t.action(bm.URL, 0, len(pages)); key != "" {
+		if key, act := t.action(bm.URL, 0); key != "" {
 			if a, ok := act.(pdf.Array); ok {
 				a[0] = pages[a[0].(pageNum)]
 			}

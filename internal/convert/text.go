@@ -10,12 +10,14 @@ import (
 	"unicode/utf16"
 
 	"github.com/sergev/dejapdf/internal/djvu"
+	"github.com/sergev/dejapdf/internal/pdf"
 )
 
 // text adds the page's hidden text as invisible text (render mode 3),
 // in pixel units. Words of a line share its baseline and height; each
 // is stretched (Tz) to reach the next word, to which a space joins it.
-func text(b *pageBuilder, pg *djvu.Page) error {
+// With count, the compressed size of the text operators is recorded.
+func text(b *pageBuilder, pg *djvu.Page, count bool) error {
 	z, err := pg.Text()
 	if err != nil || z == nil {
 		return err
@@ -80,6 +82,9 @@ func text(b *pageBuilder, pg *djvu.Page) error {
 		return nil
 	}
 	b.font = true
+	if count {
+		b.text = len(pdf.Flate(c))
+	}
 	s := num(72 / float64(b.in.DPI))
 	b.content = fmt.Appendf(b.content, "q %s 0 0 %s 0 0 cm BT 3 Tr\n", s, s)
 	b.content = append(b.content, c...)
