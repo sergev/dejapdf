@@ -310,11 +310,14 @@ book has ~10 a page), coding them directly is smaller, and dejapdf does.
 **Acrobat.** Adobe Reader 9 fails a whole page (no output, or a hang) when a
 refinement dictionary has a symbol whose size differs from its reference's,
 even with DX = DY = 0. `jbig2dec` (MuPDF) and Poppler decode the same stream
-pixel-exact. Same-size refinements, with any offsets, work everywhere
+pixel-exact. Same-size refinements with DX = DY = 0 work everywhere
 (*checked*: corpus and a book through `acroread -toPostScript`; T.88's
-SerenityOS refinement samples pass too). The usual spec readings of the
-offset for a size change, ⌊ΔW/2⌋ either way and rounded up or down, all
-fail in Reader too, so dejapdf codes a size-changing shape directly. In
+SerenityOS refinement samples pass too). A same-size refinement with
+DX = −1 makes Acrobat 26 report "Insufficient data for an image" for the
+whole stencil (*checked*; one such shape in a book of 451 pages). The usual
+spec readings of the offset for a size change, ⌊ΔW/2⌋ either way and
+rounded up or down, all fail in Reader too, so dejapdf codes a shape
+directly unless it keeps its reference's size and position. In
 four books 78–82% of JB2's refinements change the size (*checked*), so this
 costs about 3% of a book's PDF, against 4% with no refinement at all.
 

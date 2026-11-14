@@ -89,15 +89,15 @@ func codeShapes(want []int, shape func(int) *jb2.Bitmap, ref func(int) jb2.Ref,
 	for _, i := range want {
 		in[i] = true
 	}
-	// Only refinements that keep the reference's size: Acrobat 9 fails
-	// on the others (docs/JBIG2_Coding.md §8).
+	// Only refinements that keep the reference's size and position:
+	// Acrobat fails on the others (docs/JBIG2_Coding.md §8).
 	refined := func(i int) bool {
 		r := ref(i)
 		if r.Shape < 0 || !in[r.Shape] && (ext == nil || ext(r.Shape) < 0) {
 			return false
 		}
 		s, t := shape(i), shape(r.Shape)
-		return s.W == t.W && s.H == t.H
+		return s.W == t.W && s.H == t.H && r.DX == 0 && r.DY == 0
 	}
 	var direct, refd []int
 	for _, i := range want {
