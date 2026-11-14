@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sergev/dejapdf/internal/convert"
 	"github.com/sergev/dejapdf/internal/djvu"
 	"github.com/sergev/dejapdf/internal/iff"
 )
@@ -43,8 +44,29 @@ func main() {
 		usage()
 		os.Exit(2)
 	}
-	fmt.Fprintln(os.Stderr, "dejapdf: conversion not implemented yet")
-	os.Exit(1)
+	if err := convertFile(flag.Arg(0), flag.Arg(1)); err != nil {
+		fmt.Fprintln(os.Stderr, "dejapdf:", err)
+		os.Exit(1)
+	}
+}
+
+func convertFile(in, out string) error {
+	doc, err := djvu.Open(in)
+	if err != nil {
+		return err
+	}
+	f, err := os.Create(out)
+	if err != nil {
+		return err
+	}
+	err = convert.Convert(doc, f, convert.Options{Producer: "dejapdf " + version})
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	if err != nil {
+		os.Remove(out)
+	}
+	return err
 }
 
 func dumpFile(path string) error {

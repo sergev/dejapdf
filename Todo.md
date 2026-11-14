@@ -1,6 +1,6 @@
 # dejapdf — Todo
 
-Sequential plan. Each phase (P5, P6, …) builds on the previous one and ends with a testable
+Sequential plan. Each phase (P6, P7, …) builds on the previous one and ends with a testable
 "Done when" criterion.
 
 ## Ground rules
@@ -43,17 +43,6 @@ Sequential plan. Each phase (P5, P6, …) builds on the previous one and ends wi
 - Real scanned books in `~/Documents` (not redistributable, never committed) for size
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
-
-## P5. Minimal PDF writer
-
-- [ ] Objects, xref table, trailer, Flate-compressed streams
-- [ ] Pages: MediaBox from INFO size and dpi, `/Rotate` from INFO
-- [ ] Image XObjects with arbitrary pre-encoded filter and DecodeParms
-- [ ] Document info (Producer, Title)
-
-**Milestone A**: bilevel DjVu → PDF, mask as Flate-compressed 1-bit stencil.
-
-Done when: `qpdf --check` passes; `pdftoppm` render matches `ddjvu` render.
 
 ## P6. IW44 decoder
 
@@ -110,6 +99,9 @@ Done when: output decodes bit-exact with `jbig2dec` and renders correctly in `mu
 - [ ] Non-symbol bitmaps → generic region or single-use symbols
 - [ ] Verify polarity in our output: JBIG2 stencils use the default `/Decode` (checked by
       experiment, see docs/Portable_Document_Format.md §8); same sense for FG44 `/Mask`
+
+- [ ] Object streams and a cross-reference stream for the small dictionaries
+      (docs/Portable_Document_Format.md §4): ~100 KB less per 500 pages
 
 **Milestone C**: mask bytes ≈ JB2 bytes; whole PDF 1–1.5× the DjVu size.
 
