@@ -71,6 +71,21 @@ and on real books:
 - 11.5.9, 11.5.10 JB2: in the context number, template pixel 1 is the most
   significant bit (not stated).
 - 10.6.4 IW44: the full prediction step is printed like the lifting step,
-  `c[k] -= (… + 16) >> 5`; an interpolating (4,4) filter needs
+  `c[k] -= (… + 16) >> 5`; it is
   `c[k] += (9*(c[k-1] + c[k+1]) - (c[k-3] + c[k+3]) + 8) >> 4`.
-  Unconfirmed until the IW44 decoder (P6).
+- 10.6.4 IW44: in the row pass, a missing c[k+3] at k = 2 or 4 is c[k+1],
+  not 0, and stays in the rolling registers for the next step.
+- 10.3 IW44: bit 7 of the delay byte, when clear, means chroma at half
+  resolution: reconstructed down to scale 2, each value over 2×2 pixels.
+- 10.5.3.1 IW44: the bucket context counts the non-zero parent
+  coefficients, not the zero ones.
+- 10.5.4.1 IW44: the activation context uses the bucket's ACTIVE flag, not
+  the block's.
+- 10.5.4 IW44: a new coefficient is S + S/2 − S/8, not 3S/2.
+- 10.5.5 IW44: the context-coded (first) refinement adds S/4 before the
+  ±S/2 step.
+- 10.6.7 IW44: colour uses t2 = Cr + (Cr >> 1), t3 = Y + 128 − (Cb >> 2);
+  R = Y + 128 + t2, G = t3 − (t2 >> 1), B = t3 + 2Cb.
+
+The IW44 items were found against ddjvu with help from the MIT-licensed
+djvu-rs decoder (github.com/matyushkin/djvu-rs), read as a reference only.

@@ -1,6 +1,6 @@
 # dejapdf — Todo
 
-Sequential plan. Each phase (P6, P7, …) builds on the previous one and ends with a testable
+Sequential plan. Each phase (P7, P8, …) builds on the previous one and ends with a testable
 "Done when" criterion.
 
 ## Ground rules
@@ -43,17 +43,6 @@ Sequential plan. Each phase (P6, P7, …) builds on the previous one and ends wi
 - Real scanned books in `~/Documents` (not redistributable, never committed) for size
   measurements: 9 books, 1–23 MB, all with Djbz; also FG44, FGbz, NAVM, TXTz, ANTz,
   and an unknown `CIDa` chunk.
-
-## P6. IW44 decoder
-
-- [ ] Wavelet coefficient decoding (buckets, bands, slices), ZP contexts
-- [ ] Inverse wavelet transform
-- [ ] Grayscale and colour (YCbCr→RGB, chroma delay, half-resolution chroma)
-- [ ] Multiple BG44/FG44 chunks (progressive refinement); ignore TH44
-- [ ] Output layer at its native (low) resolution
-- [ ] Confirm the ZP IW44 pass-through (checked only against `djvu-zp`) on `c44` streams
-
-Done when: decoded background matches `ddjvu -mode=background` (PSNR near exact).
 
 ## P7. Layered page assembly
 

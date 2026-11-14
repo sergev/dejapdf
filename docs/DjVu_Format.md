@@ -6,7 +6,7 @@ hidden text, annotations and outlines. Numbers in parentheses are sections of
 the Lizardtech DjVu v3 spec (2005), [DjVu3Spec.djvu](DjVu3Spec.djvu). The
 spec is old and partly wrong; [README.md](README.md) lists its errata. A
 claim marked *checked* was tested on `testdata/corpus` and real books against
-DjVuLibre's tools (`djvudump`, `djvused`, `ddjvu`). A claim marked *P6* or
+DjVuLibre's tools (`djvudump`, `djvused`, `ddjvu`). A claim marked
 *P7* is what the spec says; that phase of [Todo.md](../Todo.md) will confirm it
 with a working decoder. The PDF side is in
 [Portable_Document_Format.md](Portable_Document_Format.md).
@@ -197,7 +197,7 @@ and renormalises.](figures/djvu_zp.svg)
 
 There is also a *pass-through* mode: a bit with probability 1/2 and no
 context. It is the same step with a fixed Z and no adaptation. BZZ uses
-Z = 0x8000 + A/2; IW44 uses Z = 0x8000 + 3A/8 (*P6*). When the decoder runs
+Z = 0x8000 + A/2; IW44 uses Z = 0x8000 + 3A/8 (*checked*). When the decoder runs
 past the end of the data, it reads 1 bits (12.1).
 
 The spec's decoder pseudo-code (Figures 1 and 2) and its state table are
@@ -397,8 +397,14 @@ BG44, FG44 and TH44 chunks hold images coded with IW44 (Appendix 1), a
 wavelet coder in the style of SPIHT/EZW. The image is transformed into one
 wavelet coefficient per pixel, and the coefficients are sent bit plane by bit
 plane, most significant first. Each extra chunk sharpens the image.
-`internal/iw44` will decode to pixels; dejapdf then re-encodes as JPEG 2000 at
+`internal/iw44` decodes to pixels; dejapdf then re-encodes as JPEG 2000 at
 the same resolution.
+
+The spec gets several details of IW44 wrong (marked *erratum* below). They
+were found by testing against ddjvu, partly guided by the MIT-licensed
+djvu-rs decoder (`crates/djvu-iw44`, read as a reference; no code copied).
+Decoded this way, every layer of the corpus and all 289 backgrounds of 8
+books are identical to ddjvu's (*checked*).
 
 ### Chunk header
 
@@ -413,7 +419,7 @@ has 9 bytes; later chunks have only the first 2:
 | 1 | minor version, 2 |
 | 2 | width, big-endian |
 | 2 | height, big-endian |
-| 1 | bits 0–6: chrominance delay; bit 7: set by encoders, ignored |
+| 1 | bits 0–6: chrominance delay; bit 7: 0 = chroma at half resolution |
 
 The corpus `photo.djvu` starts `00 4A 01 02 03 52 04 4C 8A`: serial 0, 74
 slices, colour, version 1.2, 850×1100, delay 10. The gray version has `81`
@@ -422,6 +428,13 @@ in the third byte and a delay of 0 (*checked*).
 Several BG44 chunks continue one decoding: nothing is reset between them
 except the ZP coder itself, which restarts on each chunk's data, keeping its
 contexts (10.2). FG44 is a separate layer with its own state.
+Past the end of a chunk's data the ZP coder reads 0xFF bytes; encoders
+rely on it, so this is not an error.
+
+Bit 7 of the delay byte is not ignored (*erratum*): when it is 0 (`c44
+-crcbhalf`; minor version ≥ 2), the chroma planes are reconstructed only
+down to scale 2 (below), and each value covers a 2×2 pixel block, rows
+paired from the bottom.
 
 ### Structure
 
@@ -458,19 +471,25 @@ A block band is decoded in four passes (10.5):
 1. **Block**: if the band has 16 buckets, none active and some potential,
    decode "any new coefficients?" (1 context).
 2. **Bucket**: for each potential bucket b, decode "any new ones here?" (8
-   contexts per band: the band's active flag, and how many of coefficients
-   4b to 4b+3 are zero, at most 3; always 0 in band 0).
+   contexts per band: the block band's active flag, and how many of
+   coefficients 4b to 4b+3, b's parents, are **non-zero**, at most 3; always
+   0 in band 0). The spec says zero ones (*erratum*).
 3. **New coefficients**: in a flagged bucket, for each potential coefficient,
-   decode "active now?" (16 contexts: the block's active flag, and
-   min(7, n), where n counts the bucket's potential coefficients, drops by 1
-   after each one, and resets to 0 after a hit). If yes, the sign comes in
-   pass-through mode (1 = negative), and a = ±(3S/2).
-4. **Refinement**: for each active coefficient, decode one more bit: |a| goes
-   up or down by S/2. The first refinement bit, while |a| ≤ 3S, uses 1 context;
-   later bits are pass-through.
+   decode "active now?" (16 contexts: the **bucket's** active flag, not the
+   block's (*erratum*), and min(7, n), where n counts the bucket's potential
+   coefficients, drops by 1 after each one, and resets to 0 after a hit). If
+   yes, the sign comes in IW44 pass-through mode (1 = negative), and
+   a = ±(S + S/2 − S/8), 11S/8, a little below the interval's midpoint 3S/2
+   (*erratum*).
+4. **Refinement**: for each coefficient active before this band, decode one
+   more bit. While |a| ≤ 3S (the first refinement) the bit uses 1 context
+   and |a| first gains S/4, reaching the midpoint; later bits are IW44
+   pass-through. Then |a| goes up by S/2, or down by S − S/2 (*erratum*:
+   the spec has only ±S/2).
 
 A component thus has 1 + 80 + 16 + 1 = 98 contexts, all starting at 0.
-Coefficients are fixed point with 6 fraction bits.
+Coefficients are 16-bit fixed point with 6 fraction bits; like DjVuLibre,
+dejapdf keeps them, and every transform sample, in 16 bits.
 
 ### Reconstruction
 
@@ -487,20 +506,25 @@ After the last chunk (or any chunk, for a preview) (10.6):
    odd k:   c[k] += (9*(c[k-1] + c[k+1]) - (c[k-3] + c[k+3]) + 8) >> 4
    ```
 
-   Missing neighbours count as 0 in the lifting step. Near the ends, the
-   prediction step falls back to c[k] += (c[k-1] + c[k+1] + 1) >> 1, or to
-   c[k] += c[k-1] at the last sample. The spec prints the full prediction
-   step like the lifting step, with − and /32; that cannot interpolate, and
-   the formula above is the Deslauriers–Dubuc (4,4) filter the spec names
-   (*P6*).
+   Missing neighbours count as 0 in the lifting step, with one quirk in
+   the row pass (*erratum*): its neighbour registers keep rolling, so at
+   k = 2 and k = 4 a missing c[k+3] repeats c[k+1], and the following
+   step sees that value again. Near the ends, the prediction step falls
+   back to c[k] += (c[k-1] + c[k+1] + 1) >> 1, or to c[k] += c[k-1] at the
+   last sample. The spec prints the full prediction step like the lifting
+   step, with − and /32 (*erratum*); the formula above is the (4,4) filter
+   (*checked*). The transform covers the image, not the padded blocks.
 3. **Precision**: round away the 6 fraction bits, clamp to −128…127; add 128
    to Y. For grayscale, the value is 127 − V.
-4. **Colour**: R = Y + 1.5 Cr, G = Y − 0.25 Cb − 0.75 Cr, B = Y + 1.75 Cb
-   (10.6.7), clamped to 0–255.
+4. **Colour** (10.6.7, with DjVuLibre's rounding): t2 = Cr + (Cr >> 1),
+   t3 = Y + 128 − (Cb >> 2); R = Y + 128 + t2, G = t3 − (t2 >> 1),
+   B = t3 + 2 Cb, each clamped to 0–255.
 
 Pixels of partial edge blocks that fall outside the image are dropped. The
-reference for all of this is `ddjvu -mode=background` / `-mode=foreground`
-at the layer's own scale.
+reference is `ddjvu -mode=background -aspect=no -size=W×H` at the layer's
+own size; for FG44, rewrap the chunk as the BG44 of a page its size
+(`djvuextract`, `djvumake`), since `-mode=foreground` paints through the
+mask.
 
 ## 10. Foreground colour
 
@@ -695,5 +719,6 @@ without a target.
 The spec errata found so far, collected in [README.md](README.md): the ZP
 state table and decoder figures, the BZZ speed field, the DIRM type 3, the
 FGbz blit count, the TXTz text start and region placement, the ANTz
-escapes, and three JB2 details: the phase-2 decision, the first shape's
-column and the context bit order.
+escapes, three JB2 details (the phase-2 decision, the first shape's
+column, the context bit order), and the IW44 coefficient values, contexts,
+row-transform quirk, chroma resolution bit and colour rounding.
