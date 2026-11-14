@@ -5,9 +5,9 @@ the coding pipeline, the parameters that set size and quality, the codestream
 and the JP2 file that PDF's `/JPXDecode` reads, and how to check the result.
 Numbers in parentheses are sections of ITU-T T.800 (06/2019), JPEG 2000 Part
 1, [T-REC-T.800-201906.pdf](T-REC-T.800-201906.pdf). dejapdf does not write
-a codec from scratch: `internal/jpx` will be the encoder path of the
-Apache-2.0 `tmp/go-jpeg2000`. This article says what to keep, what to set,
-and what to add. A claim marked *checked* was tested with OpenJPEG
+a general codec: `internal/jpx` is a small encoder for exactly the case
+below, with pieces of the Apache-2.0 `tmp/go-jpeg2000` (§12). This article
+says what it writes and why. A claim marked *checked* was tested with OpenJPEG
 (`opj_compress`, `opj_decompress`, `opj_dump`), MuPDF, Poppler and `qpdf`,
 used as outside tools only. The other articles: [DjVu_Format.md](DjVu_Format.md),
 [JBIG2_Coding.md](JBIG2_Coding.md),
@@ -164,7 +164,12 @@ plane with a 1 has only a cleanup pass.](figures/jpx_codeblock.svg)
   UNIFORM bits give the position of the first 1.
 
 Every pass end is a possible **truncation point**. The encoder notes the
-bytes and the distortion reduction at each one, for rate control. The code-block
+bytes and the distortion reduction at each one, for rate control. The bytes
+are those output so far plus 3, which lets the decoder finish the pass
+(as in OpenJPEG; *checked* in `internal/mq` tests), capped at the final
+length and never ending on 0xFF. The distortion is exact: each coefficient's
+magnitude keeps 6 fraction bits below the quantization index, and the
+decoder reconstructs at the middle of the known interval. The code-block
 style byte in COD stays 0: no bypass, no per-pass reset or termination, no
 segmentation symbols (Table A.19).
 
@@ -275,7 +280,7 @@ What follows for dejapdf:
   the step sizes from an error bound. At its lowest Quality, on the corpus
   background, it writes 107 KB (6.5× IW44) at 52 dB. At the same PSNR,
   OpenJPEG needs 26 KB. On the Kaihlavirta cover the figures are 214 KB and
-  108 KB. The port must add PCRD-opt truncation to a byte budget (§7).
+  108 KB. internal/jpx adds PCRD-opt truncation to a byte budget (§7, §12).
 - **Uniform layers.** Many book pages have a background of one flat colour
   (white paper). IW44 codes it in 79–1117 bytes; the smallest JP2 is about
   260–330 bytes. dejapdf should test for a single colour and paint it, or
@@ -306,19 +311,46 @@ What follows for dejapdf:
   image may add a fourth component; go-jpeg2000 does for `image.RGBA`
   (*checked*), so `internal/jpx` should take planar component data instead.
 
-## 12. What `internal/jpx` keeps
+## 12. What `internal/jpx` is
 
-From `tmp/go-jpeg2000` (Apache-2.0; its README reports round trips with
-OpenJPEG and OpenJPH), the encoder path only:
+The upstream go-jpeg2000 encoder is general (tiles, precincts, layers,
+HTJ2K, float images, assembly) and its tier 1 records only per-bit-plane
+byte counts, with no distortion, so PCRD-opt cannot sit on top of it.
+`internal/jpx` is therefore written for the one configuration of §10, about
+1300 lines:
 
-| Keep | Drop |
-|:---|:---|
-| forward 9/7 DWT, ICT, DC shift | decoder, 5/3 and RCT (unless tests need them) |
-| quantization (QCD expounded) | HTJ2K, float and half images |
-| tier 1 encoder (MQ, three passes) | progressive APIs, tiles, precinct options |
-| tier 2 packets and tag trees | SOP/EPH, PLT/TLM, ROI, NLT |
-| codestream markers, JP2 boxes | ICC profiles, comments |
-| **add**: PCRD-opt rate control to a byte budget | |
+| File | Contents | Source |
+|:---|:---|:---|
+| `dwt.go` | forward (and test-only inverse) 9/7 lifting; 1-D synthesis norms measured by inverting an impulse | T.800 F.4; norms checked against OpenJPEG's table, which scales high bands by 2 |
+| `t1.go` | three passes, contexts, run mode; bytes and distortion per pass | T.800 Annex D |
+| `t2.go` | packet-header bit writer, tag tree encoder, pass-count codes; one-layer packets | go-jpeg2000 `t2_encode.go` (Apache-2.0, header kept) |
+| `jpx.go` | DC shift, ICT, step sizes, guard bits, PCRD-opt, SIZ COD QCD SOT, JP2 boxes | T.800 Annexes A, E, G, I, J.13 |
+| `internal/mq` | MQ encoder with JPEG 2000 and JBIG2 flushes | `tmp/jbig2` (Apache-2.0, header kept) |
+
+Rate control: each code-block's passes are reduced to their convex hull
+(decreasing ΔD/ΔR); a binary search over all hull slopes finds the lowest
+threshold whose file, packet headers included, fits the budget. Distortion
+is weighted by Δb², the band's synthesis norm², and for colour the inverse
+ICT column norm² (√3, 1.805, 1.573), so it is squared error in RGB. Step
+sizes are Δb = 1/‖band synthesis‖ (in sample units), fine enough that
+truncation, not quantization, sets the size; with every pass kept the error
+is about 1/12 per sample.
+
+Results with the same layers and the same file sizes as `opj_compress -r`
+(PSNR against the IW44 decode, internal/jpx / OpenJPEG):
+
+| Layer | 0.5× | 1× | 2× |
+|:---|---:|---:|---:|
+| corpus BG | 41.16 / 41.13 | 46.48 / 46.44 | 51.60 / 51.57 |
+| corpus FG | 19.92 / 19.87 | 27.40 / 27.04 | 34.03 / 34.01 |
+| corpus grey BG | 47.26 / 47.18 | 54.37 / 54.29 | 60.63 / 60.61 |
+| Kaihlavirta cover BG | 37.99 / 37.96 | 44.80 / 44.78 | 51.50 / 51.47 |
+| Yunyi cover BG | 35.61 / 35.58 | 41.14 / 41.10 | 48.72 / 48.72 |
+| Klabnik p1 BG | 50.18 / 49.37 | 55.84 / 55.85 | 57.86 / 57.83 |
+
+(The FG reference here is the IW44 decode itself; §10's FG row used
+`ddjvu -mode=foreground`, which paints through the mask.) An 850×1100 RGB
+layer encodes in about 80 ms, the 2325×2850 Yunyi cover in 0.4 s.
 
 Borrowed files keep their copyright header and are credited in `NOTICE`.
 

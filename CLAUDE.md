@@ -40,7 +40,8 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
 - `internal/mq` + `internal/jbig2`: JBIG2 encoder (MQ coder, generic region,
   symbol dictionary, text region). Produces the PDF-embedded format with no file
   header.
-- `internal/jpx`: JPEG 2000 encoder; the only codec for re-encoded images.
+- `internal/jpx`: JPEG 2000 encoder with PCRD-opt rate control to a byte
+  budget; the only codec for re-encoded images.
 - `internal/pdf`: our own minimal PDF writer. It embeds already-encoded streams
   with any filter and DecodeParms.
 - `internal/convert`: lays out each page in PDF:
@@ -69,10 +70,13 @@ and formats the articles to PDF (pandoc + typst; `make docs-pdf` for the PDFs on
   ITU-T T.88.
 - **Copy code in or write our own rather than adding Go module dependencies.**
   The aim is a `go.mod` with the standard library only.
-- `tmp/` is git-ignored and holds Apache-2.0 upstream clones to borrow from:
-  - `tmp/go-jpeg2000` → `internal/jpx` (encoder path only)
-  - `tmp/jbig2` → MQ encoder and generic-region encoder
-  - `tmp/gobig2` → reference for how symbol dictionaries and text regions decode
+- `tmp/` is git-ignored and holds upstream clones to borrow from:
+  - `tmp/go-jpeg2000` (Apache-2.0) → `internal/jpx` packet writer and tag tree
+  - `tmp/jbig2` (Apache-2.0) → `internal/mq` MQ encoder; generic-region encoder
+  - `tmp/gobig2` (Apache-2.0) → reference for how symbol dictionaries and text
+    regions decode
+  - `tmp/openjpeg` (BSD-2) → reference for JPEG 2000 encoder details
+  - `tmp/djvu-rs` (MIT) → reference where the DjVu spec is wrong
 - Borrowed code keeps its upstream copyright header and is credited in `NOTICE`.
 - Do not use JPEG for re-encoded images; use JPEG 2000.
 - Test oracles are external command-line tools, run but never linked:

@@ -46,18 +46,10 @@ Sequential plan. Each phase (P7, P8, …) builds on the previous one and ends wi
 
 ## P7. Layered page assembly
 
-- [ ] `internal/jpx` with rate control, first (see docs/JPEG_2000_Image_Coding.md §7, §10, §12):
-  - port the encoder path of `tmp/go-jpeg2000` (codestream, dwt 9/7, entropy/EBCOT encoder,
-    mct, tcd, t2 packets, jp2 boxes); drop decoder, float/half, HTJ2K and progressive APIs;
-    keep upstream unit tests for ported parts; take planar component data (no alpha)
-  - make tier 1 record bytes and distortion reduction at every pass end
-  - add PCRD-opt rate control (go-jpeg2000 has none: `CompressionRatio` is unused): port
-    OpenJPEG's rate allocator (`opj_tcd_rateallocate` and helpers in `tcd.c`, BSD-2: keep its
-    header, credit in NOTICE); one layer; byte budget = the IW44 chunks' size, scaled by `-q`
-  - only if the gap below remains: tune step sizes / tier-1 distortion estimates
-  - Done when: rerunning the §10 size study with `internal/jpx`, each layer's PSNR at
-    1× the IW44 size is within 1 dB of `opj_compress -r` at the same size, and files
-    decode with `opj_decompress`
+- [x] `internal/jpx` with PCRD-opt rate control to a byte budget (docs/JPEG_2000_Image_Coding.md
+      §7, §10, §12); `internal/mq` MQ encoder shared with P8. At the same size as `opj_compress -r`
+      it is within 0.1 dB or better on all six study layers, 0.5–2× IW44; files decode with
+      `opj_decompress`
 - [ ] Background → JPEG 2000 via `internal/jpx` (`/JPXDecode`), `-q` quality, stretched to the page;
       write JP2 files, not bare codestreams (PDF requires it; Poppler warns otherwise)
 - [ ] Single-colour layers: paint the colour (nothing for white) instead of embedding a JP2
