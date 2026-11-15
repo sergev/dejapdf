@@ -58,7 +58,7 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
 - `internal/convert`: lays out each page in PDF. Pages are built in
   parallel, largest first, within a budget of colour pixels
   (`schedule.go`), and written in order; shared dictionaries are coded
-  in the background.
+  in the background. A page has:
   - background JPX stretched to the page;
   - mask as a stencil (`/ImageMask true`; JBIG2 decodes black as 0, so no
     `/Decode`; a raw 1 = black mask needs `/Decode [1 0]`);
