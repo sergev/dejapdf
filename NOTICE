@@ -14,7 +14,10 @@ Modified files carry a notice stating the changes.
   Used in: internal/mq, internal/jbig2
 
 This product also includes software from the Go project, licensed under a
-BSD-style license (internal/ccitt/LICENSE).
+BSD-style license (internal/ccitt/LICENSE, internal/jpeg/LICENSE).
 
 * golang.org/x/image/ccitt (https://github.com/golang/image)
   Used in: internal/ccitt
+
+* Go's image/jpeg (https://go.dev/src/image/jpeg)
+  Used in: internal/jpeg (its LICENSE)

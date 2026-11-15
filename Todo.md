@@ -41,18 +41,6 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T6. Decode the scan images
-
-- [ ] CCITT through `internal/ccitt`: G4 and G3 1-D, `EncodedByteAlign`,
-  `BlackIs1`, `/Decode`; G3 2-D (K>0) is not supported there, so pass
-  it through
-- [ ] Flate, LZW and RunLength images at 1 and 8 bits per component
-- [ ] DCT through `image/jpeg`, including Adobe CMYK (inverted, APP14)
-- [ ] Convert to the internal forms: 1-bit bitmap, gray or RGB pixels
-
-Done when: decoded pixels equal `pdfimages -png` (lossless sources) or are
-within ±1 of it (JPEG) on every scanned book.
-
 ## T7. Factor out mask coding
 
 - [ ] Move `maskImage`/`codeShapes` and friends from `internal/convert`

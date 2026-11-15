@@ -3,7 +3,10 @@
 // license that can be found in the LICENSE file.
 //
 // Modified for dejapdf: copied from golang.org/x/image/ccitt; the
-// go:generate line for gen.go removed.
+// go:generate line for gen.go removed; decodeEOL accepts fill bits
+// (extra zeros) before an EOL, as T.4 allows; a row that fails to
+// decode is returned as far as it decoded, the rest white, before the
+// error, as PDF viewers do.
 
 // Package ccitt implements a CCITT (fax) image decoder.
 //
@@ -259,6 +262,8 @@ func decodeEOL(b *bitReader) error {
 			}
 		} else if bit&1 != 0 {
 			return nil
+		} else if nBitsRead < 48 {
+			continue // a fill bit; the bits read must fit 64 to unread
 		}
 
 		// Unread the bits we've read, then return errMissingEOL.
@@ -340,6 +345,7 @@ func (z *reader) Read(p []byte) (int, error) {
 		return 0, z.readErr
 	}
 	originalP := p
+	partial := false
 
 	for len(p) > 0 {
 		// Allocate buffers (and decode any start-of-image codes), if
@@ -398,7 +404,14 @@ func (z *reader) Read(p []byte) (int, error) {
 			}
 
 			if z.readErr = z.decodeRow(z.rowsRemaining == 0); z.readErr != nil {
-				break
+				if z.wi <= 0 || z.wi > len(z.curr) {
+					break
+				}
+				// Keep what the row decoded to; the rest is white.
+				for i := z.wi; i < len(z.curr); i++ {
+					z.curr[i] = 0xff
+				}
+				partial = true
 			}
 		}
 
@@ -411,6 +424,9 @@ func (z *reader) Read(p []byte) (int, error) {
 		if z.ri == len(z.curr) {
 			z.ri, z.curr, z.prev = 0, z.prev, z.curr
 			z.atStartOfRow = true
+			if partial {
+				break
+			}
 		}
 	}
 
