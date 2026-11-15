@@ -41,26 +41,15 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T2. PDF parser
+## T3. Stream filters
 
-- [ ] Lexer and object parser: all object types, indirect references,
-  streams with direct or indirect `/Length`
-- [ ] Cross-reference tables and streams, object streams, `/Prev` chains
-  (incremental updates), hybrid files
-- [ ] Repair: when the xref is broken, rebuild it by scanning for `N G obj`
-- [ ] Page tree with inherited attributes (`Resources`, `MediaBox`,
-  `CropBox`, `Rotate`)
-- [ ] Fuzz target
+`internal/pdfread` already decodes Flate with PNG predictors and
+decrypts (standard security handler, revisions 2–6, empty user
+password; `ErrPassword` otherwise), checked against qpdf on the
+encrypted books.
 
-Done when: every PDF in `~/Documents` and `testdata/pdf` parses, with page
-counts equal to `qpdf --show-npages`; the fuzzer runs clean for 10 minutes.
-
-## T3. Stream filters and encryption
-
-- [ ] Decode Flate (with PNG and TIFF predictors), LZW (`EarlyChange`),
-  RunLength, ASCIIHex, ASCII85, and filter chains
-- [ ] Standard security handler, revisions 2–6 (RC4 40/128, AES-128/256),
-  with the empty user password; refuse files that need a real password
+- [ ] TIFF predictor 2; LZW (`EarlyChange`), RunLength, ASCIIHex,
+  ASCII85, and filter chains
 - [ ] Fuzz targets for each filter
 
 Done when: for every stream in the collection that we can decode, our data

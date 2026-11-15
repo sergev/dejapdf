@@ -12,7 +12,7 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T2–T15.
+Todo.md as tasks T3–T15.
 
 ## Commands
 
@@ -53,6 +53,10 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   PDF-embedded format with no file header.
 - `internal/jpx`: JPEG 2000 encoder with PCRD-opt rate control to a byte
   budget; the only codec for re-encoded images.
+- `internal/pdfread`: PDF reader for re-encoding scanned PDFs: objects
+  (as `internal/pdf` values plus `*Stream`), xref tables and streams,
+  object streams, `/Prev` chains, repair by scanning, decryption, page
+  tree.
 - `internal/pdf`: our own minimal PDF writer. It embeds already-encoded streams
   with any filter and DecodeParms; other objects go into object streams, with
   an xref stream.
@@ -93,6 +97,7 @@ The article PDFs are committed: regenerate them after editing an article.
   `*.images` (`pdfimages -list`) and `npages.txt`.
 - Real scanned books in `~/Documents` (not redistributable, never committed)
   for size measurements and `DJVU_BOOKS='glob' go test ./internal/djvu -run TestBooks`.
+  Scanned PDFs too: `PDF_BOOKS='glob' go test ./internal/pdfread -run 'TestBooks|TestStreamsQpdf'`.
 - On macOS, Acrobat can be driven by AppleScript `do script` (Acrobat
   JavaScript) to read the outline, links and hidden text; it cannot export
   PostScript or images, so TestAcrobat stays Linux-only.
