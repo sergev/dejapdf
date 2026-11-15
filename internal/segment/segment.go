@@ -41,17 +41,42 @@ func Gray(p *raster.Pixmap) []byte {
 	return g
 }
 
-// inkGray is the gray Mask works on: for colour, the mean of the
-// luminance and the darkest channel, so that bright coloured ink (green,
-// yellow) stands out from white paper as dark ink does.
+// inkGray is the gray Mask works on: the luminance, darkened where the
+// darkest channel falls further below the paper's than the luminance
+// does (by half the difference), so that bright coloured ink (green,
+// yellow) stands out from white paper as dark ink does. On coloured
+// paper this adds nothing for ink of the paper's hue.
 func inkGray(p *raster.Pixmap) []byte {
 	g := Gray(p)
 	if p.N == 1 {
 		return g
 	}
+	// The paper's colour: each channel's 90th percentile.
+	var hist [3][256]int
 	for i := range g {
 		c := pixel(p, i)
-		g[i] = byte((int(g[i]) + int(min(c[0], c[1], c[2])) + 1) / 2)
+		for k := range 3 {
+			hist[k][c[k]]++
+		}
+	}
+	var pc [3]int
+	for k := range 3 {
+		n := 0
+		for v := 255; v >= 0; v-- {
+			if n += hist[k][v]; 10*n >= len(g) {
+				pc[k] = v
+				break
+			}
+		}
+	}
+	py := (299*pc[0] + 587*pc[1] + 114*pc[2] + 500) / 1000
+	pmin := min(pc[0], pc[1], pc[2])
+	for i, y := range g {
+		c := pixel(p, i)
+		extra := (pmin - int(min(c[0], c[1], c[2]))) - (py - int(y))
+		if extra > 0 {
+			g[i] = byte(max(int(y)-extra/2, 0))
+		}
 	}
 	return g
 }
@@ -122,10 +147,44 @@ func Threshold(gray []byte, w, h, r int, dark byte) *raster.Bitmap {
 func Mask(p *raster.Pixmap, dpi float64) *raster.Bitmap {
 	g := inkGray(p)
 	pap := paper(g)
-	b := Threshold(g, p.W, p.H, max(4, int(dpi/12)), byte(pap/2))
+	t, dark := stretch(g, pap)
+	b := Threshold(t, p.W, p.H, max(4, int(dpi/12)), dark)
 	fillHoles(b, g, pap)
 	clean(b, g, pap, dpi)
 	return b
+}
+
+// Contrast: a page whose ink (the darkest half percent) is within
+// minRange of its paper is faded; Sauvola's fixed range would keep only
+// the cores of the strokes.
+const minRange = 160
+
+// stretch returns the gray to threshold, and the level below which
+// all is ink (half the paper's). A faded page is stretched to ink 0
+// and paper 255 for this; the rest of Mask works on the original.
+func stretch(g []byte, pap int) ([]byte, byte) {
+	var hist [256]int
+	for _, v := range g {
+		hist[v]++
+	}
+	ink, n := 0, 0
+	for ; ink < 255; ink++ {
+		if n += hist[ink]; 200*n >= len(g) {
+			break
+		}
+	}
+	if pap-ink >= minRange || pap <= ink {
+		return g, byte(pap / 2)
+	}
+	var lut [256]byte
+	for v := range lut {
+		lut[v] = byte(min(max((v-ink)*255/(pap-ink), 0), 255))
+	}
+	t := make([]byte, len(g))
+	for i, v := range g {
+		t[i] = lut[v]
+	}
+	return t, 127
 }
 
 // paper is the gray of the paper: the 90th percentile.

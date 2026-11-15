@@ -60,6 +60,7 @@ func separate(r *pdfread.Reader, ims []*scan.Image, dpi map[*scan.Image]float64,
 		m := segment.Mask(p, s.dpi)
 		s.j = shapes.Split(m)
 		s.fg = segment.Colors(p, s.j)
+		s.fg.Enhance(segment.Paper(p))
 		s.bg, s.err = background(p, m, s.dpi, int(q*float64(s.raw)))
 	})
 	var js []*jb2.Image

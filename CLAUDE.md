@@ -109,8 +109,11 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   upsampling and YCbCr rounding. Equal to `pdfimages -png` (`-tiff` for
   CMYK) on every scanned book.
 - `internal/segment`: separates the text of gray and colour scans
-  (T12): `Mask` works on the mean of luminance and the darkest channel
-  (bright coloured ink stands out), thresholds with Sauvola (window 1/6 inch, plus anything
+  (T12): `Mask` works on the luminance, darkened where the darkest
+  channel falls further below the paper's (bright coloured ink stands
+  out; nothing changes for ink of a coloured paper's hue). A faded page
+  (the darkest 0.5% within 160 levels of the paper: Malevich) is
+  stretched to full range for the threshold only. It thresholds with Sauvola (window 1/6 inch, plus anything
   darker than half the paper), fills dark holes (strokes wider than the
   window), and drops specks, marks less than 30 levels darker than
   their tile's paper, and pictures: tiles with dark paper or mid-tones
@@ -123,6 +126,8 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   its halo summed against the paper (JPEG chroma subsampling spreads a
   stroke's colour but keeps its sum); k-means palette of up to 8,
   merging close centres (luma at half weight), each mark the nearest.
+  `Enhance` darkens faded near-neutral ink to a third of the paper's
+  luminance (saturated colours and the paper stay as printed).
   Light text on dark or coloured ground stays in the background.
   `Background` (T13) reduces the scan and fills what the mask hides:
   pixels within r0 of the mask are left out, those within r1 count

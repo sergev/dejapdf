@@ -169,3 +169,19 @@ func TestTiny(t *testing.T) {
 		}
 	}
 }
+
+// TestEnhance: faded gray-brown ink on tan paper is darkened; orange
+// is kept; black on white is left alone.
+func TestEnhance(t *testing.T) {
+	f := &Foreground{Palette: []Color{{0, 0, 0}, {110, 100, 90}, {200, 100, 20}}, Area: []int{0, 900, 100}}
+	f.Enhance(200)
+	l := luma([3]float64{float64(f.Palette[1][0]), float64(f.Palette[1][1]), float64(f.Palette[1][2])})
+	if l > 200.0/3+1 || f.Palette[0] != (Color{}) || f.Palette[2] != (Color{200, 100, 20}) {
+		t.Errorf("faded ink: %v, luma %.1f", f.Palette, l)
+	}
+	g := &Foreground{Palette: []Color{{0, 0, 0}, {40, 40, 40}}, Area: []int{100, 100}}
+	g.Enhance(250)
+	if g.Palette[1] != (Color{40, 40, 40}) {
+		t.Errorf("black on white changed: %v", g.Palette)
+	}
+}

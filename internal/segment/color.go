@@ -18,6 +18,7 @@ type Color [3]byte
 type Foreground struct {
 	Palette []Color
 	Index   []int
+	Area    []int // pixels in each colour
 }
 
 // Quantisation: near-black marks are black; other colours closer than
@@ -223,6 +224,10 @@ func Colors(p *raster.Pixmap, j *jb2.Image) *Foreground {
 		}
 		f.Index[i] = best
 	}
+	f.Area = make([]int, len(f.Palette))
+	for i, m := range marks {
+		f.Area[f.Index[i]] += m.weight
+	}
 	return f
 }
 
@@ -258,3 +263,43 @@ func abs(x float64) float64 {
 }
 
 func luma(c [3]float64) float64 { return 0.299*c[0] + 0.587*c[1] + 0.114*c[2] }
+
+// inkRatio is the lightest the ink may be, as a fraction of the
+// paper's luminance.
+var inkRatio = 1.0 / 3
+
+// Paper is the luminance of p's paper: the 90th percentile.
+func Paper(p *raster.Pixmap) int { return paper(Gray(p)) }
+
+// Enhance darkens faded ink: when the near-neutral ink (gray, brown,
+// faded black; all such colours weighted by area) is lighter than
+// inkRatio of the paper's luminance, those colours are scaled down by
+// one factor to bring it there. Saturated colours are as printed, and
+// the paper is left as it is.
+func (f *Foreground) Enhance(paper int) {
+	neutral := func(c Color) bool {
+		return int(max(c[0], c[1], c[2]))-int(min(c[0], c[1], c[2])) <= blackChroma
+	}
+	sum, n := 0.0, 0
+	for k, c := range f.Palette {
+		if neutral(c) {
+			sum += float64(f.Area[k]) * luma([3]float64{float64(c[0]), float64(c[1]), float64(c[2])})
+			n += f.Area[k]
+		}
+	}
+	if n == 0 {
+		return
+	}
+	ink, want := sum/float64(n), inkRatio*float64(paper)
+	if ink <= want {
+		return
+	}
+	k := want / ink
+	for i, c := range f.Palette {
+		if neutral(c) {
+			for j := range 3 {
+				f.Palette[i][j] = byte(float64(c[j])*k + 0.5)
+			}
+		}
+	}
+}
