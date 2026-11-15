@@ -9,7 +9,9 @@ package rewrite
 
 import (
 	"io"
+	"maps"
 	"math"
+	"slices"
 	"strconv"
 
 	"github.com/sergev/dejapdf/internal/pdf"
@@ -197,9 +199,10 @@ func (c *copier) value(v any) any {
 		}
 		return out
 	case pdf.Dict:
+		// Sorted, so that objects are numbered the same every time.
 		out := make(pdf.Dict, len(v))
-		for k, e := range v {
-			out[k] = c.value(e)
+		for _, k := range slices.Sorted(maps.Keys(v)) {
+			out[k] = c.value(v[k])
 		}
 		return out
 	case bool, int, pdf.Name, pdf.String:

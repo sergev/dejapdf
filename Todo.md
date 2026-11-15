@@ -41,35 +41,6 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T10. McKusick: visible text over a bilevel scan
-
-`McKusick_-_Design_and_Implementation_of_the_4.4_BSD_Operating_System_-_Part_2__UNIX__(AW,_1996).pdf`
-(276 pages, 19.6 MB) draws visible vector text (`0 Tr`, black,
-non-embedded base-14 Times) over a page-size 600 dpi CCITT G4 image of
-about 7000×5000 pixels (two-page spreads, 868×606 pt). The text is the
-page's text; the image holds only what the converter did not turn into
-text: rules, figures, stray marks. `-dump` plans JBIG2 for every page.
-Re-encoding is safe only if nothing else changes.
-
-- [ ] Re-encode with T9; check that only the image streams change: every
-  other object keeps its values (renumbered), and the content streams
-  keep their data byte for byte
-- [ ] The images decode bit-exact (`jbig2dec` against `pdfimages -png`
-  of the original) at this width; check the JBIG2 encoder on 7000-pixel
-  rows and near-empty pages
-- [ ] Every page renders pixel-identical to the original in `mutool
-  draw` and `pdftoppm`; the text still selects and searches
-  (`pdftotext` output unchanged)
-- [ ] The content streams make Poppler warn ("Badly formatted number",
-  8368 times): find why, and make sure our content parsing (T5) reads
-  them as the viewers do, so the image's matrix and coverage are right
-- [ ] Check in TestAcrobat and in Acrobat 26 by hand: text over the
-  JBIG2 image, at these sizes
-
-Done when: the file is smaller, renders identically page by page in
-MuPDF and Poppler, `pdftotext` and `qpdf --check` agree with the
-original, and Acrobat shows it without errors.
-
 ## T11. Shape matching
 
 - [ ] Cluster similar components: size within a pixel or two, weighted XOR

@@ -92,7 +92,7 @@ func TestAcrobat(t *testing.T) {
 }
 
 // acroread prints pdf to PostScript next to it, killing Reader (a script
-// and its binary) after a few minutes.
+// and its binary) after half an hour.
 func acroread(dir, pdf string) error {
 	cmd := exec.Command("acroread", "-toPostScript", pdf)
 	cmd.Dir = dir
@@ -105,7 +105,7 @@ func acroread(dir, pdf string) error {
 	select {
 	case err := <-done:
 		return err
-	case <-time.After(5 * time.Minute):
+	case <-time.After(30 * time.Minute):
 		syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
 		<-done
 		return fmt.Errorf("timed out")

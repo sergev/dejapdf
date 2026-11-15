@@ -15,6 +15,7 @@ import (
 	"github.com/sergev/dejapdf/internal/pdfread"
 	"github.com/sergev/dejapdf/internal/raster"
 	"github.com/sergev/dejapdf/internal/scan"
+	"github.com/sergev/dejapdf/internal/shapes"
 )
 
 // TestJbig2dec re-encodes the test files, and $PDF_BOOKS, and checks
@@ -69,6 +70,7 @@ func check(t *testing.T, path string) {
 	if len(doc2.Pages) != len(doc.Pages) {
 		t.Fatalf("%d pages, want %d", len(doc2.Pages), len(doc.Pages))
 	}
+	objs := sameGraph(t, r, r2)
 	done := map[pdf.Ref]bool{}
 	n := 0
 	for i := range doc.Pages {
@@ -102,8 +104,8 @@ func check(t *testing.T, path string) {
 	if n != st.Replaced {
 		t.Errorf("%d images checked, %d replaced", n, st.Replaced)
 	}
-	t.Logf("%d of %d images replaced, %d to %d bytes; file %d to %d", st.Replaced, st.Images,
-		st.Before, st.After, len(data), out.Len())
+	t.Logf("%d of %d images replaced, %d to %d bytes; file %d to %d; %d objects the same", st.Replaced, st.Images,
+		st.Before, st.After, len(data), out.Len(), objs)
 }
 
 func open(t *testing.T, data []byte) (*pdfread.Reader, *scan.Document) {
@@ -173,4 +175,189 @@ func pbm(b *raster.Bitmap) []byte {
 		out = append(out, b.Pix[y*b.Stride:y*b.Stride+(b.W+7)/8]...)
 	}
 	return out
+}
+
+// sameGraph checks that the objects reachable from the trailers of r
+// and r2 are the same but for numbering, and for the replaced images'
+// encoding; streams have the same data. It returns the number of
+// objects compared.
+func sameGraph(t *testing.T, r, r2 *pdfread.Reader) int {
+	t.Helper()
+	m := map[pdf.Ref]pdf.Ref{}
+	var queue [][2]pdf.Ref
+	errs := 0
+	fail := func(path, f string, args ...any) {
+		if errs++; errs <= 10 {
+			t.Errorf("%s: %s", path, fmt.Sprintf(f, args...))
+		}
+	}
+	var same func(a, b any, path string, root bool)
+	same = func(a, b any, path string, root bool) {
+		if ra, ok := a.(pdf.Ref); ok {
+			if r.Get(int(ra)) == nil {
+				a = nil // a missing object reads as null
+			} else {
+				rb, ok := b.(pdf.Ref)
+				if !ok {
+					fail(path, "%v became %v", a, b)
+					return
+				}
+				if old, ok := m[ra]; ok {
+					if old != rb {
+						fail(path, "%v is %v and %v", ra, old, rb)
+					}
+					return
+				}
+				m[ra] = rb
+				queue = append(queue, [2]pdf.Ref{ra, rb})
+				return
+			}
+		}
+		switch av := a.(type) {
+		case pdf.Dict:
+			bv, ok := b.(pdf.Dict)
+			if !ok {
+				fail(path, "dictionary became %T", b)
+				return
+			}
+			for k, v := range av {
+				if v != nil {
+					same(v, bv[k], path+"/"+string(k), false)
+				}
+			}
+			for k, v := range bv {
+				if _, ok := av[k]; !ok && v != nil && !(root && k == "Version") {
+					fail(path, "new key %s", k)
+				}
+			}
+		case pdf.Array:
+			bv, ok := b.(pdf.Array)
+			if !ok || len(bv) != len(av) {
+				fail(path, "array became %v", b)
+				return
+			}
+			for i := range av {
+				same(av[i], bv[i], fmt.Sprintf("%s[%d]", path, i), false)
+			}
+		case *pdfread.Stream:
+			fail(path, "stream as a direct object")
+		default:
+			if fmt.Sprint(a) != fmt.Sprint(b) {
+				fail(path, "%v became %v", a, b)
+			}
+		}
+	}
+	tr, tr2 := r.Trailer(), r2.Trailer()
+	same(tr["Root"], tr2["Root"], "Root", false)
+	if _, ok := r.Resolve(tr["Info"]).(pdf.Dict); ok {
+		same(tr["Info"], tr2["Info"], "Info", false)
+	}
+	root, _ := tr["Root"].(pdf.Ref)
+	for len(queue) > 0 {
+		q := queue[0]
+		queue = queue[1:]
+		path := fmt.Sprintf("%d→%d", q[0], q[1])
+		a, b := r.Get(int(q[0])), r2.Get(int(q[1]))
+		sa, ok := a.(*pdfread.Stream)
+		if !ok {
+			same(a, b, path, q[0] == root)
+			continue
+		}
+		sb, ok := b.(*pdfread.Stream)
+		if !ok {
+			fail(path, "stream became %T", b)
+			continue
+		}
+		da, db := pdf.Dict{}, pdf.Dict{}
+		for k, v := range sa.Dict {
+			da[k] = v
+		}
+		for k, v := range sb.Dict {
+			db[k] = v
+		}
+		delete(da, "Length")
+		delete(db, "Length")
+		if db["Filter"] == pdf.Name("JBIG2Decode") && da["Filter"] != pdf.Name("JBIG2Decode") {
+			// A replaced image: the rest of its dictionary is kept.
+			for _, k := range []string{"Filter", "DecodeParms", "Decode", "BitsPerComponent", "DL"} {
+				delete(da, k)
+				delete(db, k)
+			}
+			same(da, db, path, false)
+			continue
+		}
+		dropCrypt(da)
+		same(da, db, path, false)
+		if !bytes.Equal(r.Raw(sa), r2.Raw(sb)) {
+			fail(path, "stream data differs")
+		}
+	}
+	return len(m)
+}
+
+// dropCrypt removes an identity /Crypt filter, which the copy drops.
+func dropCrypt(d pdf.Dict) {
+	if f, ok := d["Filter"].(pdf.Name); ok && f == "Crypt" {
+		delete(d, "Filter")
+		delete(d, "DecodeParms")
+	}
+	if f, ok := d["Filter"].(pdf.Array); ok && len(f) > 0 && f[0] == pdf.Name("Crypt") {
+		d["Filter"] = f[1:]
+		if p, ok := d["DecodeParms"].(pdf.Array); ok && len(p) > 0 {
+			d["DecodeParms"] = p[1:]
+		}
+	}
+}
+
+// TestWide codes near-empty pages as large as McKusick's spreads
+// (7000 pixels wide) and checks jbig2dec's decode.
+func TestWide(t *testing.T) {
+	if _, err := exec.LookPath("jbig2dec"); err != nil {
+		t.Skip("no jbig2dec")
+	}
+	const w, h = 7003, 5000
+	set := func(b *raster.Bitmap, x, y int) { b.Pix[y*b.Stride+x/8] |= 0x80 >> (x % 8) }
+	pages := map[string]func(b *raster.Bitmap){
+		"blank":  func(b *raster.Bitmap) {},
+		"corner": func(b *raster.Bitmap) { set(b, w-1, h-1) },
+		"origin": func(b *raster.Bitmap) { set(b, 0, 0) },
+		"rule": func(b *raster.Bitmap) {
+			for x := range w {
+				set(b, x, h/2)
+			}
+		},
+		"edges": func(b *raster.Bitmap) {
+			for x := 0; x < w; x += 97 {
+				set(b, x, 0)
+				set(b, x, h-1)
+			}
+			for y := 0; y < h; y += 89 {
+				set(b, 0, y)
+				set(b, w-1, y)
+			}
+		},
+	}
+	dir := t.TempDir()
+	for name, draw := range pages {
+		b := &raster.Bitmap{W: w, H: h, Stride: (w + 7) / 8}
+		b.Pix = make([]byte, b.Stride*h)
+		draw(b)
+		data := encode(b)
+		in, out := filepath.Join(dir, name+".jb2"), filepath.Join(dir, name+".pbm")
+		os.WriteFile(in, data, 0o644)
+		if msg, err := exec.Command("jbig2dec", "-q", "-e", "-t", "pbm", "-o", out, in).CombinedOutput(); err != nil {
+			t.Fatalf("%s: jbig2dec: %v\n%s", name, err, msg)
+		}
+		got, _ := os.ReadFile(out)
+		if !bytes.Equal(got, pbm(b)) {
+			t.Errorf("%s: jbig2dec output differs", name)
+		}
+		t.Logf("%s: %d bytes", name, len(data))
+	}
+}
+
+// encode codes a bitmap alone, as Reencode does.
+func encode(b *raster.Bitmap) []byte {
+	data, _ := code(shapes.Split(b), nil)
+	return data
 }

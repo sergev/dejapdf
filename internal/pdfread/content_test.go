@@ -36,6 +36,10 @@ func TestContent(t *testing.T) {
 		// Junk is skipped.
 		{") ] 1 2 m >> 3 l", "[1 2]m [3]l"},
 		{"{ 1 } d0", "[]{ [1]} []d0"},
+		// A sign inside a number ends it, as in Reader, MuPDF and
+		// Ghostscript (Poppler skips it: 0.55); McKusick's FineReader
+		// writes such Tz operands. CR separates.
+		{"q\r0.5-5 0 0 1 0 0 cm\r/im2 Do\rQ\r99.0-9 Tz", "[]q [0.5 0 0 1 0 0]cm [im2]Do []Q [99]Tz"},
 	}
 	for _, tt := range tests {
 		if got := ops(tt.in); got != tt.want {

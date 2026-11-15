@@ -188,3 +188,31 @@ func TestCopyEdges(t *testing.T) {
 		t.Errorf("contents %v", s)
 	}
 }
+
+// The output is the same every time.
+func TestDeterministic(t *testing.T) {
+	files, _ := filepath.Glob("../../testdata/pdf/*.pdf")
+	for _, path := range files {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var first []byte
+		for range 5 {
+			r, err := pdfread.Open(data)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var out bytes.Buffer
+			if err := Copy(r, &out); err != nil {
+				t.Fatal(err)
+			}
+			if first == nil {
+				first = out.Bytes()
+			} else if !bytes.Equal(out.Bytes(), first) {
+				t.Errorf("%s: output differs between runs", filepath.Base(path))
+				break
+			}
+		}
+	}
+}

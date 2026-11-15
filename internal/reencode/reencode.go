@@ -106,13 +106,8 @@ func group(r *pdfread.Reader, ims []*scan.Image, repl map[int]*rewrite.Stream, s
 		if c.err != nil {
 			return
 		}
-		d, data := stencil.Code(c.j, 0, 0, c.j.W, c.j.H, nil, cache)
-		if d == nil {
-			data = jbig2.GenericPage(jbig2.NewBitmap(c.j.W, c.j.H), 0)
-		} else if p, ok := d["DecodeParms"].(pdf.Dict); ok {
-			c.glob = p["JBIG2Globals"].(*stencil.Globals)
-		}
-		c.data, c.j = data, nil
+		c.data, c.glob = code(c.j, cache)
+		c.j = nil
 	})
 
 	// Keep the originals where not smaller: each image, then the group
@@ -152,6 +147,19 @@ func group(r *pdfread.Reader, ims []*scan.Image, repl map[int]*rewrite.Stream, s
 	st.Replaced += len(keep)
 	st.Before += before
 	st.After += after
+}
+
+// code codes j as JBIG2, its shapes in c's globals if it has a
+// dictionary.
+func code(j *jb2.Image, c *stencil.Cache) ([]byte, *stencil.Globals) {
+	d, data := stencil.Code(j, 0, 0, j.W, j.H, nil, c)
+	if d == nil {
+		return jbig2.GenericPage(jbig2.NewBitmap(j.W, j.H), 0), nil
+	}
+	if p, ok := d["DecodeParms"].(pdf.Dict); ok {
+		return data, p["JBIG2Globals"].(*stencil.Globals)
+	}
+	return data, nil
 }
 
 // imageDict is the image's dictionary for JBIG2 data: the original,
