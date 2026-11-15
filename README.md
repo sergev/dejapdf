@@ -23,6 +23,8 @@ dejapdf -dump input.djvu
 | `-quiet` | print nothing but warnings and errors |
 | `-dump` | print the chunk tree, like `djvudump` |
 | `-version` | print the version |
+| `-cpuprofile file` | write a CPU profile, for `go tool pprof` |
+| `-trace file` | write an execution trace, for `go tool trace` |
 
 `-q` sets the byte budget of the JPEG 2000 re-encoding of the colour layers;
 the mask and text are lossless and do not depend on it.

@@ -25,7 +25,13 @@ go test ./internal/jb2 -run TestName      # single test
 go test ./internal/zp -fuzz FuzzDecode -parallel 4   # fuzz one target
 make fuzz FUZZTIME=60s                    # all targets, capped memory
 go vet ./...
+dejapdf -cpuprofile cpu.prof -trace trace.out in.djvu out.pdf   # profile
 ```
+
+Speed changes must keep the output byte-identical: convert the corpus
+and some books before and after, and `cmp` the PDFs. The coders' fast
+paths (`zp.TryDecode`, `mq.TryEncode`) inline only at call sites in hot
+loops; the jbig2 tests check the coders against pixel-by-pixel references.
 
 ## Architecture
 
@@ -49,7 +55,10 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
 - `internal/pdf`: our own minimal PDF writer. It embeds already-encoded streams
   with any filter and DecodeParms; other objects go into object streams, with
   an xref stream.
-- `internal/convert`: lays out each page in PDF:
+- `internal/convert`: lays out each page in PDF. Pages are built in
+  parallel, largest first, within a budget of colour pixels
+  (`schedule.go`), and written in order; shared dictionaries are coded
+  in the background.
   - background JPX stretched to the page;
   - mask as a stencil (`/ImageMask true`; JBIG2 decodes black as 0, so no
     `/Decode`; a raw 1 = black mask needs `/Decode [1 0]`);
