@@ -299,4 +299,39 @@ On 40 scanned PDFs of one collection, 30 distinct books were re-encoded
 and 6 refused (their scans already JBIG2 or JPX, or text drawn over them):
 1.1 GB became 200 MB, 5.5×. Bilevel books in G4 became 1.2–12× smaller,
 gray JPEG scans 4–15×, colour ones 4–57×; books already in JBIG2 gained
-little. No file grew, and every output passed `qpdf --check` (README).
+little. No file grew, and every output passed `qpdf --check`. With the
+default options:
+
+| Scans | dpi | Pages | Before, MB | After, MB | Smaller by | Time, s |
+|---|---:|---:|---:|---:|---:|---:|
+| bilevel, CCITT G4 | 600 | 369 | 39.0 | 4.6 | 8.5× | 3.3 |
+| bilevel, CCITT G4 | 400 | 524 | 34.2 | 14.4 | 2.4× | 15.4 |
+| bilevel, CCITT G4 | 300 | 742 | 33.6 | 12.8 | 2.6× | 19.0 |
+| bilevel, CCITT G4 | 300 | 527 | 22.5 | 4.4 | 5.1× | 5.4 |
+| bilevel, CCITT G4 | 529 | 288 | 21.3 | 3.0 | 7.0× | 9.2 |
+| bilevel, CCITT G4 | 600 | 276 | 19.6 | 16.5 | 1.2× | 3.8 |
+| bilevel, CCITT G4 | 600 | 84 | 15.8 | 1.4 | 11.6× | 2.8 |
+| bilevel, CCITT G4 | 600 | 226 | 15.8 | 9.0 | 1.7× | 8.6 |
+| bilevel, CCITT G4 | 300 | 202 | 13.4 | 4.4 | 3.0× | 20.1 |
+| bilevel, CCITT G4 | 600 | 81 | 10.5 | 1.0 | 10.8× | 1.1 |
+| bilevel, CCITT G4 | 301 | 136 | 7.4 | 5.1 | 1.4× | 2.0 |
+| bilevel, CCITT G4 | 232 | 283 | 6.6 | 1.4 | 4.6× | 0.8 |
+| bilevel, CCITT G4 | 339 | 6 | 0.6 | 0.2 | 2.9× | 0.2 |
+| bilevel, Flate | 400 | 274 | 36.2 | 4.7 | 7.7× | 14.5 |
+| bilevel, Flate | 300 | 1 | 0.1 | 0.0 | 3.7× | 0.0 |
+| bilevel, JBIG2 | 600 | 546 | 37.0 | 35.9 | 1.0× | 1.2 |
+| bilevel, JBIG2 | 600 | 263 | 7.2 | 6.7 | 1.1× | 0.3 |
+| colour, Flate | 400 | 1 | 3.8 | 0.4 | 9.5× | 14.8 |
+| colour, JPEG | 400 | 228 | 130.8 | 2.3 | 56.6× | 28.2 |
+| colour, JPEG | 342 | 137 | 123.6 | 15.4 | 8.0× | 41.5 |
+| colour, JPEG | 342 | 95 | 81.6 | 10.2 | 8.0× | 35.0 |
+| colour, JPEG | 300 | 37 | 6.0 | 1.4 | 4.2× | 3.1 |
+| gray, JPEG | 241 | 458 | 166.3 | 12.5 | 13.3× | 40.5 |
+| gray, JPEG | 241 | 208 | 66.1 | 4.5 | 14.8× | 13.3 |
+| gray, JPEG | 241 | 258 | 64.3 | 4.4 | 14.6× | 15.4 |
+| gray, JPEG | 241 | 290 | 59.8 | 7.9 | 7.6× | 19.7 |
+| gray, JPEG | 241 | 130 | 23.6 | 3.3 | 7.1× | 7.9 |
+| gray, JPEG | 96 | 53 | 22.3 | 4.3 | 5.2× | 9.8 |
+| gray, JPEG | 96 | 52 | 18.6 | 4.2 | 4.4× | 11.3 |
+| gray, JPEG | 96 | 37 | 14.9 | 3.3 | 4.5× | 7.0 |
+| **all 30** | | | **1102** | **200** | **5.5×** | |
