@@ -41,22 +41,6 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T9. Re-encode bilevel scans (lossless)
-
-- [ ] Replace the image stream in place with a JBIG2 stencil (`internal/shapes`, `internal/stencil`):
-  same object number, `Width`/`Height` kept, `/Filter /JBIG2Decode`
-- [ ] Get the polarity right: JBIG2 decodes 1 as black, so an image mask
-  needs no `/Decode`, while a 1-bit DeviceGray image needs `/Decode [1 0]`;
-  combine with the original `/Decode`
-- [ ] Share one `/JBIG2Globals` across pages for shapes repeated between
-  pages, as with Djbz
-- [ ] Keep the original when the replacement is not smaller
-
-Done when: every page of the G4 books renders pixel-identical to the
-original in `mutool draw` and `pdftoppm`; every stream decodes bit-exact
-with `jbig2dec`; PDP11 Handbook is at least 1.5× smaller; `qpdf --check`
-passes; TestAcrobat and Acrobat 26 by hand show no errors.
-
 ## T10. McKusick: visible text over a bilevel scan
 
 `McKusick_-_Design_and_Implementation_of_the_4.4_BSD_Operating_System_-_Part_2__UNIX__(AW,_1996).pdf`
@@ -146,8 +130,8 @@ hand; the OCR text layer still selects over the right words;
 
 ## T15. Command line
 
-- [ ] `dejapdf in.pdf out.pdf`: pick the path by the input's magic bytes;
-  `-p`, `-q`, `-v`, `-quiet` and the progress line work as for DjVu;
+- [ ] `dejapdf in.pdf out.pdf` works since T9 (magic bytes, `-v`,
+  `-quiet`, progress by image); make `-p` and `-q` work as for DjVu;
   add `-lossy`
 - [ ] Refuse with a clear message: password-protected files, PDFs with
   nothing to re-encode (and say so)

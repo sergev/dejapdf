@@ -23,6 +23,11 @@ import (
 type Bitmap struct {
 	W, H, Stride int
 	Pix          []byte
+
+	// Decode is the /Decode that draws the bitmap as the image did when
+	// its samples are 0 for ink, as JBIG2 decodes: the values of the ink
+	// and of the paper, in the image's colour space.
+	Decode [2]float64
 }
 
 // Pixmap is an 8-bit image with N components per pixel: 1 gray (0 is
@@ -332,6 +337,11 @@ func toBitmap(s *samples, cs *colorSpace, dec []float64) (*Bitmap, error) {
 		return nil, errors.New("raster: not a bilevel image")
 	}
 	bm := &Bitmap{W: s.w, H: s.h, Stride: (s.w + 7) / 8}
+	ink0 := 0
+	if !ink[0] {
+		ink0 = 1
+	}
+	bm.Decode = [2]float64{mapSample(ink0, 1, dec[0], dec[1]), mapSample(1-ink0, 1, dec[0], dec[1])}
 	bm.Pix = make([]byte, bm.Stride*s.h)
 	if ink[0] == ink[1] {
 		if ink[0] {

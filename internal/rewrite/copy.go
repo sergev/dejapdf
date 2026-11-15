@@ -24,11 +24,28 @@ type copier struct {
 
 	rootNum int
 	catalog pdf.Dict // the catalog, if changed
+	repl    map[int]*Stream
+}
+
+// Stream is a stream to write in place of an object, or as a new object
+// where a dictionary refers to it. Its dictionary is in the numbering
+// of the source.
+type Stream struct {
+	Dict pdf.Dict
+	Data []byte // encoded
+
+	ref pdf.Ref
 }
 
 // Copy writes the document of r to out.
 func Copy(r *pdfread.Reader, out io.Writer) error {
-	c := &copier{r: r, w: pdf.NewWriter(out), refs: map[int]pdf.Ref{}}
+	return Replace(r, out, nil)
+}
+
+// Replace is Copy with the stream objects in repl, by object number,
+// replaced.
+func Replace(r *pdfread.Reader, out io.Writer, repl map[int]*Stream) error {
+	c := &copier{r: r, w: pdf.NewWriter(out), refs: map[int]pdf.Ref{}, repl: repl}
 	tr := r.Trailer()
 
 	// The root of the page tree goes where the writer reserved it.
@@ -112,6 +129,12 @@ func (c *copier) write(n int) {
 		c.w.Object(r, c.catalogValue(v))
 		return
 	}
+	if s, ok := c.repl[n]; ok {
+		if _, ok := v.(*pdfread.Stream); ok {
+			c.w.Stream(r, c.value(s.Dict).(pdf.Dict), s.Data)
+			return
+		}
+	}
 	switch v := v.(type) {
 	case *pdfread.Stream:
 		d := c.value(v.Dict).(pdf.Dict)
@@ -181,6 +204,11 @@ func (c *copier) value(v any) any {
 		return out
 	case bool, int, pdf.Name, pdf.String:
 		return v
+	case *Stream:
+		if v.ref == 0 {
+			v.ref = c.w.AddStream(c.value(v.Dict).(pdf.Dict), v.Data)
+		}
+		return v.ref
 	}
 	// A stream where a direct object should be, or anything else.
 	return nil

@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Serge Vakulenko
 // SPDX-License-Identifier: MIT
 
-// Command dejapdf converts DjVu documents to layered PDF.
+// Command dejapdf converts DjVu documents to layered PDF, and
+// re-encodes the scan images of PDF documents.
 package main
 
 import (
@@ -20,13 +21,14 @@ import (
 	"github.com/sergev/dejapdf/internal/djvu"
 	"github.com/sergev/dejapdf/internal/iff"
 	"github.com/sergev/dejapdf/internal/pdfread"
+	"github.com/sergev/dejapdf/internal/reencode"
 	"github.com/sergev/dejapdf/internal/scan"
 )
 
 const version = "0.0.1"
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: dejapdf [options] input.djvu output.pdf\n")
+	fmt.Fprintf(os.Stderr, "Usage: dejapdf [options] input.djvu|input.pdf output.pdf\n")
 	fmt.Fprintf(os.Stderr, "       dejapdf -dump input.djvu|input.pdf\n")
 	flag.PrintDefaults()
 }
@@ -114,6 +116,9 @@ func startProfiles(cpu, tr string) (stop func(), err error) {
 
 func convertFile(in, out string, quality float64, pages string, verbose, quiet bool) error {
 	start := time.Now()
+	if data, err := os.ReadFile(in); err == nil && isPDF(data) {
+		return reencodeFile(data, out, verbose, quiet, start)
+	}
 	doc, err := djvu.Open(in)
 	if err != nil {
 		return err
@@ -167,6 +172,57 @@ func convertFile(in, out string, quality float64, pages string, verbose, quiet b
 	}
 	if fi, err := os.Stat(out); err == nil && !quiet {
 		fmt.Println(summary(filepath.Base(out), fi.Size(), convert.DjVuSize(doc, opt.Pages), time.Since(start)))
+	}
+	return nil
+}
+
+// reencodeFile re-encodes the scan images of a PDF.
+func reencodeFile(data []byte, out string, verbose, quiet bool, start time.Time) error {
+	r, err := pdfread.Open(data)
+	if err != nil {
+		return err
+	}
+	doc, err := scan.Find(r)
+	if err != nil {
+		return err
+	}
+	var pr *progress
+	if !quiet {
+		pr = newProgress(filepath.Base(out))
+	}
+	defer pr.clear()
+	opt := reencode.Options{
+		Warn: func(err error) {
+			msg := fmt.Sprintf("dejapdf: warning: %v", err)
+			if pr != nil {
+				pr.warn(msg)
+			} else {
+				fmt.Fprintln(os.Stderr, msg)
+			}
+		},
+	}
+	if pr != nil {
+		opt.Progress = func(done, all int) { pr.update(convert.Progress{Page: done, Pages: all}) }
+	}
+	f, err := os.Create(out)
+	if err != nil {
+		return err
+	}
+	st, err := reencode.Reencode(r, doc, f, opt)
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	if err != nil {
+		os.Remove(out)
+		return err
+	}
+	pr.clear()
+	if verbose {
+		fmt.Fprintf(os.Stderr, "%d of %d bilevel images re-encoded: %d to %d kbytes\n",
+			st.Replaced, st.Images, (st.Before+512)/1024, (st.After+512)/1024)
+	}
+	if fi, err := os.Stat(out); err == nil && !quiet {
+		fmt.Println(summary(filepath.Base(out), fi.Size(), int64(len(data)), time.Since(start)))
 	}
 	return nil
 }

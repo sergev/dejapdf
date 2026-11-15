@@ -12,7 +12,7 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T9–T16.
+Todo.md as tasks T10–T16.
 
 ## Commands
 
@@ -65,6 +65,15 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   writer: objects reachable from the catalog and Info, renumbered (the
   root of the page tree at `Writer.PageTree`, ending with `Finish`),
   streams with their encoded data, decrypted; reals written exactly.
+  `Replace` writes new streams in place of some objects.
+- `internal/reencode`: re-encodes a scanned PDF (`dejapdf in.pdf
+  out.pdf`): each bilevel scan image becomes a JBIG2 image with the
+  same object number (`shapes.Split`, then `stencil.Code`), with a
+  `/Decode` from `raster.Bitmap.Decode`; groups of 32 images share a
+  `/JBIG2Globals` of the shapes found in more than one; an image, or a
+  group, that would not shrink is kept. MuPDF renders an image whose
+  ink was raw sample 1 one gray level off when subsampling (it averages
+  before `/Decode`); identical from half the image's resolution up.
 - `internal/scan`: finds the scan images of a PDF by walking each page's
   content (`pdfread.Content`) through forms, soft-mask groups and
   annotation appearances: every image drawn with its matrix, dpi and
