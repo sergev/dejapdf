@@ -12,7 +12,7 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T3–T15.
+Todo.md as tasks T4–T15.
 
 ## Commands
 
@@ -56,7 +56,9 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
 - `internal/pdfread`: PDF reader for re-encoding scanned PDFs: objects
   (as `internal/pdf` values plus `*Stream`), xref tables and streams,
   object streams, `/Prev` chains, repair by scanning, decryption, page
-  tree.
+  tree; the generic filters (Flate, LZW, ASCII85, ASCIIHex, RunLength,
+  PNG and TIFF predictors). `Decode` stops at an image filter with
+  `UnsupportedFilterError` and the data decoded so far.
 - `internal/pdf`: our own minimal PDF writer. It embeds already-encoded streams
   with any filter and DecodeParms; other objects go into object streams, with
   an xref stream.
@@ -92,7 +94,8 @@ The article PDFs are committed: regenerate them after editing an article.
   `pdf2djvu` (not in Homebrew) and `minidjvu` (for `shared-dict.djvu`).
 - `testdata/pdf`: scanned PDFs made by `make corpus-pdf` (`testdata/mkpdf.sh`)
   from the `pdf2djvu.djvu` pages with img2pdf, tiff2pdf, qpdf, gs and mutool:
-  CCITT G4/G3, Flate, JPEG (gray, RGB, CMYK), Indexed, ImageMask, inline
+  CCITT G4/G3, Flate, LZW, RunLength, ASCII85/ASCIIHex chains, JPEG (gray,
+  RGB, CMYK), Indexed, ImageMask, inline
   image, OCR text layer, rotation, encryption, an incremental update. Goldens:
   `*.images` (`pdfimages -list`) and `npages.txt`.
 - Real scanned books in `~/Documents` (not redistributable, never committed)

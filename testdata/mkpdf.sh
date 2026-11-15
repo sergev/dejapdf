@@ -33,6 +33,7 @@ tif='-strip -define tiff:photometric=min-is-white'
 # Scans of the corpus pages (1, 4: text; 2: picture; 3: coloured text).
 ddjvu -format=pbm -page=1 "$djvu" p1.pbm
 ddjvu -format=pbm -page=4 "$djvu" p4.pbm
+ddjvu -format=pbm -scale=100 -page=1 "$djvu" p1-100.pbm
 ddjvu -format=pgm -scale=150 -page=4 "$djvu" p4.pgm
 ddjvu -format=ppm -scale=100 -page=2 "$djvu" p2.ppm
 ddjvu -format=ppm -scale=100 -page=3 "$djvu" p3.ppm
@@ -133,6 +134,49 @@ qpdf --deterministic-id scans3.pdf --overlay text.pdf --from=1,3,4 --to=1-3 -- "
 i2p -o scan2.pdf -s 100dpi p2.jpg
 qpdf --deterministic-id --empty --pages "$out/g4.pdf" scan2.pdf scan3.pdf "$out/g4-book.pdf" 2 -- scans4.pdf
 qpdf --deterministic-id text.pdf --underlay scans4.pdf -- "$out/links.pdf"
+
+# Generic filters: an LZW and a RunLength scan (ImageMagick) under
+# text in ASCII85 (Ghostscript); then the LZW image is wrapped as
+# [/ASCII85Decode /LZWDecode] and a content stream recoded as
+# [/ASCIIHexDecode /FlateDecode].
+magick p4.pgm -strip -density 150 -units PixelsPerInch -compress LZW lzw.pdf
+magick p1-100.pbm -strip -density 100 -units PixelsPerInch -compress RLE rle.pdf
+gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -dASCII85EncodePages=true \
+    -o text85.pdf text.ps
+qpdf --stream-data=preserve --deterministic-id --empty --pages lzw.pdf rle.pdf -- scans2.pdf
+qpdf --stream-data=preserve --deterministic-id scans2.pdf --overlay text85.pdf --from=4,1 \
+    --to=1-2 -- filters0.pdf
+qpdf --json=2 --json-key=qpdf --json-stream-data=file --json-stream-prefix=st \
+    --decode-level=none filters0.pdf > filters0.json
+cat > chains.py <<'EOF'
+import base64, binascii, json, sys, zlib
+objs = json.load(open(sys.argv[1]))['qpdf'][1]
+upd = {}
+hexed = False
+for key in sorted(objs):
+    st = objs[key].get('stream')
+    if not st:
+        continue
+    d = st['dict']
+    data = open(st['datafile'], 'rb').read()
+    if d.get('/Filter') in ('/LZWDecode', ['/LZWDecode']):
+        d['/Filter'] = ['/ASCII85Decode', '/LZWDecode']
+        data = base64.a85encode(data, wrapcol=75) + b'~>'
+    elif d.get('/Filter') == ['/ASCII85Decode', '/FlateDecode'] and '/Subtype' not in d and not hexed:
+        hexed = True
+        raw = zlib.decompress(base64.a85decode(data, adobe=True))
+        d['/Filter'] = ['/ASCIIHexDecode', '/FlateDecode']
+        data = binascii.hexlify(zlib.compress(raw, 9)) + b'>'
+    else:
+        continue
+    d.pop('/Length', None)
+    open(st['datafile'] + '.new', 'wb').write(data)
+    upd[key] = {'stream': {'datafile': st['datafile'] + '.new', 'dict': d}}
+json.dump({'qpdf': [{'jsonversion': 2}, upd]}, open(sys.argv[2], 'w'))
+EOF
+python3 -I chains.py filters0.json chains.json
+qpdf --stream-data=preserve --deterministic-id filters0.pdf --update-from-json=chains.json \
+    "$out/filters.pdf"
 
 # Rotated pages: 90, 180 and 270.
 qpdf --deterministic-id "$out/ocr.pdf" --rotate=+90:1 --rotate=180:2 --rotate=-90:3 \

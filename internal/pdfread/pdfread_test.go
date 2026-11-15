@@ -5,6 +5,9 @@ package pdfread
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
 
 	"bufio"
 	"github.com/sergev/dejapdf/internal/pdf"
@@ -90,45 +93,106 @@ func TestBooks(t *testing.T) {
 	}
 }
 
-// TestStreamsQpdf compares the Flate streams of the test files, and of
-// $PDF_BOOKS, with qpdf's decoding.
+// TestStreamsQpdf compares every stream of the test files, and of
+// $PDF_BOOKS, with qpdf's: decoded where qpdf decodes it (the generic
+// filters), as far as we decode it where qpdf leaves image filters,
+// and raw (decrypted) otherwise.
 func TestStreamsQpdf(t *testing.T) {
 	if _, err := exec.LookPath("qpdf"); err != nil {
 		t.Skip("no qpdf")
 	}
 	files, _ := filepath.Glob("../../testdata/pdf/*.pdf")
 	books, _ := filepath.Glob(os.Getenv("PDF_BOOKS"))
-	files = append(files, books...)
-	for _, path := range files {
-		r := openFile(t, path)
-		checked := 0
-		for _, n := range r.Objects() {
-			s, ok := r.Get(n).(*Stream)
-			if !ok || checked >= 20 {
-				continue
-			}
-			f := r.Resolve(s.Dict["Filter"])
-			if f != nil && f != pdf.Name("FlateDecode") || s.Dict["Type"] == pdf.Name("XRef") {
-				continue
-			}
-			obj := strconv.Itoa(n)
-			if e := r.xref[n]; e.kind == 1 && e.gen != 0 {
-				obj += "," + strconv.Itoa(e.gen)
-			}
-			want, err := exec.Command("qpdf", "--show-object="+obj,
-				"--filtered-stream-data", path).Output()
-			if err != nil {
-				continue
-			}
-			got, err := r.Decode(s)
-			if err != nil && strings.Contains(err.Error(), "unsupported") {
-				continue
-			}
-			if err != nil || !bytes.Equal(got, want) {
-				t.Errorf("%s: object %d: %d bytes, %v; want %d", path, n, len(got), err, len(want))
-			}
-			checked++
-		}
-		t.Logf("%s: %d streams", filepath.Base(path), checked)
+	for _, path := range append(files, books...) {
+		compareQpdf(t, path)
 	}
+}
+
+func compareQpdf(t *testing.T, path string) {
+	dir, err := os.MkdirTemp("", "qpdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+	out, err := exec.Command("qpdf", "--json=2", "--json-key=qpdf", "--json-stream-data=file",
+		"--json-stream-prefix="+filepath.Join(dir, "s"), "--decode-level=generalized", path).Output()
+	if len(out) == 0 {
+		t.Logf("%s: qpdf fails: %v", path, err)
+		return
+	}
+	var j struct {
+		Qpdf []json.RawMessage
+	}
+	var objs map[string]struct {
+		Stream *struct {
+			Datafile string
+			Dict     map[string]any
+		}
+	}
+	if err := json.Unmarshal(out, &j); err != nil || len(j.Qpdf) < 2 {
+		t.Fatalf("%s: qpdf JSON: %v", path, err)
+	}
+	if err := json.Unmarshal(j.Qpdf[1], &objs); err != nil {
+		t.Fatalf("%s: qpdf JSON: %v", path, err)
+	}
+	r := openFile(t, path)
+	stats := map[string]int{}
+	for key, o := range objs {
+		if o.Stream == nil {
+			continue
+		}
+		var num, gen int
+		fmt.Sscanf(key, "obj:%d %d R", &num, &gen)
+		s, ok := r.Get(num).(*Stream)
+		if !ok || r.xref[num].kind == 1 && r.xref[num].gen != gen {
+			t.Errorf("%s: object %d %d: not a stream", path, num, gen)
+			continue
+		}
+		want, err := os.ReadFile(o.Stream.Datafile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// The filters qpdf left, which must end ours.
+		var left []string
+		switch f := o.Stream.Dict["/Filter"].(type) {
+		case string:
+			left = []string{f}
+		case []any:
+			for _, x := range f {
+				left = append(left, fmt.Sprint(x))
+			}
+		}
+		var all []string
+		switch f := r.Resolve(s.Dict["Filter"]).(type) {
+		case pdf.Name:
+			all = []string{"/" + string(f)}
+		case pdf.Array:
+			for _, x := range f {
+				n, _ := r.Resolve(x).(pdf.Name)
+				all = append(all, "/"+string(n))
+			}
+		}
+		got, err := r.Decode(s)
+		var kind string
+		switch {
+		case len(left) == 0:
+			kind = "decoded"
+		case len(left) == len(all):
+			kind = "raw"
+			got, err = r.Raw(s), nil
+		default:
+			kind = "partly decoded"
+			var u *UnsupportedFilterError
+			if !errors.As(err, &u) || u.Index != len(all)-len(left) {
+				t.Errorf("%s: object %d: %v; qpdf leaves %v of %v", path, num, err, left, all)
+				continue
+			}
+			err = nil
+		}
+		stats[kind]++
+		if err != nil || !bytes.Equal(got, want) {
+			t.Errorf("%s: object %d (%v, %s): %d bytes, %v; want %d", path, num, all, kind, len(got), err, len(want))
+		}
+	}
+	t.Logf("%s: %v", filepath.Base(path), stats)
 }

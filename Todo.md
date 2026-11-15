@@ -41,20 +41,6 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T3. Stream filters
-
-`internal/pdfread` already decodes Flate with PNG predictors and
-decrypts (standard security handler, revisions 2–6, empty user
-password; `ErrPassword` otherwise), checked against qpdf on the
-encrypted books.
-
-- [ ] TIFF predictor 2; LZW (`EarlyChange`), RunLength, ASCIIHex,
-  ASCII85, and filter chains
-- [ ] Fuzz targets for each filter
-
-Done when: for every stream in the collection that we can decode, our data
-equals `qpdf --show-object=N --filtered-stream-data`.
-
 ## T4. Copy a PDF
 
 - [ ] Copy the object graph from the parser to `internal/pdf.Writer`:

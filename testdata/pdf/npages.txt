@@ -2,6 +2,7 @@
 1 encrypt-aes-256.pdf
 1 encrypt-rc4-128.pdf
 1 encrypt-rc4-40.pdf
+2 filters.pdf
 1 flate1.pdf
 1 flate8.pdf
 1 g3-2d.pdf
