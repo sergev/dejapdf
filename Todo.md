@@ -41,20 +41,6 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T4. Copy a PDF
-
-- [ ] Copy the object graph from the parser to `internal/pdf.Writer`:
-  renumber, put non-stream objects into object streams, carry over
-  `Info`, the catalog (outline, page labels, names, structure tree),
-  annotations
-- [ ] Write the output unencrypted
-- [ ] Drop unreferenced objects and old revisions
-
-Done when: a straight copy of every PDF in the collection passes
-`qpdf --check` and renders pixel-identical to the original
-(`mutool draw` on every page); no copy is larger than its original by
-more than 1%.
-
 ## T5. Find the scan images
 
 - [ ] Parse content streams enough to track `q`/`Q`/`cm` and `Do`,

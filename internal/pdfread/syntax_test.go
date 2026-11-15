@@ -44,6 +44,8 @@ func TestLexer(t *testing.T) {
 		{"<</A/B/C>>", pdf.Dict{"A": pdf.Name("B")}},
 		{"% comment\n7", 7},
 		{"obj", keyword("obj")},
+		{"[1 junk 2]", pdf.Array{1, 2}},
+		{"<</Universal PDF(text)/Producer(x)>>", pdf.Dict{"Producer": pdf.String("x")}},
 	}
 	for _, tt := range tests {
 		l := &lexer{b: []byte(tt.in)}
@@ -52,7 +54,7 @@ func TestLexer(t *testing.T) {
 			t.Errorf("%q: got %#v, %v; want %#v", tt.in, got, err, tt.want)
 		}
 	}
-	for _, in := range []string{"", "]", ")", "[1 2", "<</A 1", strings.Repeat("[", 1000)} {
+	for _, in := range []string{"", "]", ")", "[1 2", "<</A 1", "[1 endobj", "<</A endobj", strings.Repeat("[", 1000)} {
 		l := &lexer{b: []byte(in)}
 		if _, err := l.object(0); err == nil {
 			t.Errorf("%q: no error", in)

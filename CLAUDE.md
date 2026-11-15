@@ -12,7 +12,7 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T4–T15.
+Todo.md as tasks T5–T15.
 
 ## Commands
 
@@ -59,6 +59,10 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   tree; the generic filters (Flate, LZW, ASCII85, ASCIIHex, RunLength,
   PNG and TIFF predictors). `Decode` stops at an image filter with
   `UnsupportedFilterError` and the data decoded so far.
+- `internal/rewrite`: copies a document read by `pdfread` through the
+  writer: objects reachable from the catalog and Info, renumbered (the
+  root of the page tree at `Writer.PageTree`, ending with `Finish`),
+  streams with their encoded data, decrypted; reals written exactly.
 - `internal/pdf`: our own minimal PDF writer. It embeds already-encoded streams
   with any filter and DecodeParms; other objects go into object streams, with
   an xref stream.

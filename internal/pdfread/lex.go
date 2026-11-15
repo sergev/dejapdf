@@ -108,6 +108,14 @@ func (l *lexer) object(depth int) (any, error) {
 			if err != nil {
 				return a, err
 			}
+			if kw, ok := v.(keyword); ok {
+				// A stray word is dropped; one that ends an object
+				// means the array is not closed.
+				if endsObject(kw) {
+					return a, errSyntax
+				}
+				continue
+			}
 			a = append(a, v)
 		}
 	case '{', '}':
@@ -332,7 +340,7 @@ func (l *lexer) dict(depth int) (pdf.Dict, error) {
 		key, ok := k.(pdf.Name)
 		if !ok {
 			// Junk where a key should be: skip it.
-			if _, kw := k.(keyword); kw && (k == keyword("endobj") || k == keyword("stream")) {
+			if kw, ok := k.(keyword); ok && endsObject(kw) {
 				return d, errSyntax
 			}
 			continue
@@ -345,11 +353,20 @@ func (l *lexer) dict(depth int) (pdf.Dict, error) {
 		if err != nil {
 			return d, err
 		}
-		if kw, ok := v.(keyword); ok && (kw == "endobj" || kw == "stream") {
-			return d, errSyntax
+		if kw, ok := v.(keyword); ok {
+			// A key with a stray word for its value is dropped.
+			if endsObject(kw) {
+				return d, errSyntax
+			}
+			continue
 		}
 		if v != nil {
 			d[string(key)] = v
 		}
 	}
+}
+
+// endsObject reports whether a keyword can only follow a complete object.
+func endsObject(kw keyword) bool {
+	return kw == "endobj" || kw == "stream" || kw == "obj" || kw == "endstream"
 }

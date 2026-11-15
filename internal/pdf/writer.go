@@ -216,9 +216,24 @@ func (p *Writer) Close(catalog, info Dict) error {
 		cat[k] = v
 	}
 	root := p.Add(cat)
-	trailer := Dict{"Root": root}
+	var ir Ref
 	if info != nil {
-		trailer["Info"] = p.Add(info)
+		ir = p.Add(info)
+	}
+	return p.Finish(root, ir)
+}
+
+// PageTree returns the object reserved for the root of the page tree.
+// A caller that writes its own page tree writes it there and ends with
+// Finish rather than Close.
+func (p *Writer) PageTree() Ref { return p.tree }
+
+// Finish writes the cross-reference stream and trailer with catalog
+// root and info (if not 0); every allocated object must be written.
+func (p *Writer) Finish(root, info Ref) error {
+	trailer := Dict{"Root": root}
+	if info != 0 {
+		trailer["Info"] = info
 	}
 	p.flushObjects()
 	x := p.Alloc()

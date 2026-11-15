@@ -112,6 +112,20 @@ func (r *Reader) rootOK() bool {
 	return ok
 }
 
+// Version returns the version in the file header, such as "1.4", or
+// "" if there is none.
+func (r *Reader) Version() string {
+	i := bytes.Index(r.data[:min(len(r.data), 1024)], []byte("%PDF-"))
+	if i < 0 || i+8 > len(r.data) {
+		return ""
+	}
+	v := r.data[i+5 : i+8]
+	if v[0] < '1' || v[0] > '9' || v[1] != '.' || v[2] < '0' || v[2] > '9' {
+		return ""
+	}
+	return string(v)
+}
+
 // Trailer returns the trailer dictionary (of the newest revision, with
 // keys it lacks taken from older ones).
 func (r *Reader) Trailer() pdf.Dict { return r.trailer }
