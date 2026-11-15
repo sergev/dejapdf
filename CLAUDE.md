@@ -8,10 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 layers separate instead of rasterizing each page, so the PDF stays 1–1.5× the
 DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 
-**Status:** complete. All roadmap phases are done and Todo.md was removed (see
-git history). Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
+**Status:** DjVu to PDF is complete (the old roadmap is in git history).
+Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
-`tmp/create-djvu-to-pdf.md`.
+`tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
+Todo.md as tasks T1–T15.
 
 ## Commands
 
