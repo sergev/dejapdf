@@ -41,20 +41,9 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T8. Connected components
-
-- [ ] Split a bitmap into 8-connected components; each one becomes a
-  shape plus a blit, giving a `jb2.Image`
-- [ ] Merge exact duplicates (hash, then compare) into one shape
-- [ ] Keep very large components (rules, figures) as their own shapes;
-  cap shape size so the generic coding stays efficient
-
-Done when: rendering the `jb2.Image` reproduces the input bitmap exactly
-on every page of the G4 books; tests on synthetic bitmaps.
-
 ## T9. Re-encode bilevel scans (lossless)
 
-- [ ] Replace the image stream in place with a JBIG2 stencil (`internal/stencil`, T8):
+- [ ] Replace the image stream in place with a JBIG2 stencil (`internal/shapes`, `internal/stencil`):
   same object number, `Width`/`Height` kept, `/Filter /JBIG2Decode`
 - [ ] Get the polarity right: JBIG2 decodes 1 as black, so an image mask
   needs no `/Decode`, while a 1-bit DeviceGray image needs `/Decode [1 0]`;

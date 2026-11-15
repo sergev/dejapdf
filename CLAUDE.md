@@ -12,7 +12,7 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T8–T16.
+Todo.md as tasks T9–T16.
 
 ## Commands
 
@@ -80,6 +80,9 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   CMYK) on every scanned book.
 - `internal/jpeg`: Go's image/jpeg decoder (BSD) with libjpeg's integer
   IDCT, returning component planes at their own resolution.
+- `internal/shapes`: splits a bilevel bitmap into 8-connected
+  components (runs joined by union-find) as a `jb2.Image`: exact
+  duplicates merged, components over `MaxSide` (1024) tiled.
 - `internal/stencil`: codes a `jb2.Image` (or a subset of its blits) as
   a JBIG2 stencil: symbol and refinement dictionaries plus a text region,
   or a generic region for one bitmap; shared dictionaries as
