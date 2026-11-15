@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -18,19 +19,21 @@ import (
 	"github.com/sergev/dejapdf/internal/convert"
 	"github.com/sergev/dejapdf/internal/djvu"
 	"github.com/sergev/dejapdf/internal/iff"
+	"github.com/sergev/dejapdf/internal/pdfread"
+	"github.com/sergev/dejapdf/internal/scan"
 )
 
 const version = "0.0.1"
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: dejapdf [options] input.djvu output.pdf\n")
-	fmt.Fprintf(os.Stderr, "       dejapdf -dump input.djvu\n")
+	fmt.Fprintf(os.Stderr, "       dejapdf -dump input.djvu|input.pdf\n")
 	flag.PrintDefaults()
 }
 
 func main() {
 	showVersion := flag.Bool("version", false, "print version and exit")
-	dump := flag.Bool("dump", false, "print the chunk tree, like djvudump")
+	dump := flag.Bool("dump", false, "print the chunk tree, like djvudump; for a PDF, the scan images by page")
 	quality := flag.Float64("q", convert.DefaultQuality, "colour layer size as a multiple of the DjVu size")
 	pages := flag.String("p", "", "pages to convert, like 1-10,15 (default all)")
 	verbose := flag.Bool("v", false, "show a size report by layer")
@@ -217,9 +220,27 @@ func dumpFile(path string) error {
 	if err != nil {
 		return err
 	}
+	if isPDF(data) {
+		r, err := pdfread.Open(data)
+		if err != nil {
+			return err
+		}
+		doc, err := scan.Find(r)
+		if err != nil {
+			return err
+		}
+		scan.Dump(os.Stdout, r, doc)
+		return nil
+	}
 	root, err := iff.Parse(data)
 	if err != nil {
 		return err
 	}
 	return djvu.Dump(os.Stdout, root)
+}
+
+// isPDF reports whether data starts like a PDF file; a header may follow
+// up to 1 KB of junk.
+func isPDF(data []byte) bool {
+	return bytes.Contains(data[:min(len(data), 1024)], []byte("%PDF-"))
 }

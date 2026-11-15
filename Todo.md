@@ -41,23 +41,6 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T5. Find the scan images
-
-- [ ] Parse content streams enough to track `q`/`Q`/`cm` and `Do`,
-  following form XObjects
-- [ ] A scan image is an image XObject that covers most of its page;
-  record its effective dpi and the pages using it
-- [ ] Classify: bilevel (1 bit, or `/ImageMask`), gray, colour; note
-  `/Decode`, `/SMask`, `/Mask`, colour space (DeviceGray/RGB/CMYK, Indexed,
-  ICCBased, CalGray/CalRGB)
-- [ ] Skip what we cannot replace safely: inline images, images used as
-  soft masks, images with `/SMask` or colour-key `/Mask`
-- [ ] `-dump` for PDF input prints one line per page: what we found and
-  what we would do
-
-Done when: the dump agrees with `pdfimages -list` on every file in the
-collection, and lists each of the 34 scanned books as scanned.
-
 ## T6. Decode the scan images
 
 - [ ] CCITT through `internal/ccitt`: G4 and G3 1-D, `EncodedByteAlign`,
@@ -171,7 +154,8 @@ hand; the OCR text layer still selects over the right words;
   add `-lossy`
 - [ ] Refuse with a clear message: password-protected files, PDFs with
   nothing to re-encode (and say so)
-- [ ] Run all 34 scanned books: no errors, no file grows
+- [ ] Run all scanned books (the 40 files that `-dump` calls scanned):
+  no errors, no file grows
 
 Done when: the size table for the scanned books is in the README; CI
 passes.
