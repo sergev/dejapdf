@@ -57,6 +57,18 @@ func (d *Decoder) renorm() {
 	}
 }
 
+// TryDecode decodes an MPS that needs no renormalisation, as Decode
+// would, returning true; otherwise it does nothing, and the caller must
+// use Decode. It inlines, for hot loops.
+func (d *Decoder) TryDecode(ctx *byte) (int, bool) {
+	v := *ctx
+	if z := d.a + int(table[v].delta); z < 0x8000 && z <= d.c {
+		d.a = z
+		return int(v & 1), true
+	}
+	return 0, false
+}
+
 // Decode decodes one bit with context ctx and updates its state.
 //
 // This is figure 1 of the spec with two corrections, found by decoding

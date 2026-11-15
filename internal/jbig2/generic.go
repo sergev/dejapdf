@@ -42,7 +42,8 @@ const sltpContext = 0x9b25
 // above (x+3 down to x-3) and 5 of the row above that (x+2 down to x-2),
 // the spec's order with the AT pixels at their nominal places.
 type generic struct {
-	cx [1 << 16]mq.Context
+	cx  [1 << 16]mq.Context
+	buf []byte // unpacked rows, reused
 }
 
 // encodeGeneric codes a whole generic region with TPGDON.
@@ -53,42 +54,75 @@ func encodeGeneric(img *Bitmap) []byte {
 	return append([]byte(nil), e.FlushJBIG2()...)
 }
 
+// gpad is the white pixels on each side of an unpacked row.
+const gpad = 4
+
 // code codes img, with typical prediction if tpgdon.
 func (g *generic) code(e *mq.Encoder, img *Bitmap, tpgdon bool) {
 	cx := &g.cx
+	w := img.W
+	n := w + 2*gpad
+	g.buf = grow(g.buf, 3*n)
+	// Rows y−2, y−1 and y, one byte per pixel.
+	older, prev, cur := g.buf[:n], g.buf[n:2*n], g.buf[2*n:3*n]
 	ltp := 0
 	for y := range img.H {
-		row, prev := img.Row(y), img.Row(y-1)
+		row := img.Row(y)
+		unpack(cur[gpad:gpad+w], row)
 		if tpgdon {
 			typical := 0
-			if equalRows(row, prev, img.W) {
+			if equalRows(row, img.Row(y-1), w) {
 				typical = 1
 			}
 			e.Encode(&cx[sltpContext], typical^ltp)
 			ltp = typical
 			if ltp != 0 {
+				older, prev, cur = prev, cur, older
 				continue
 			}
 		}
-		older := img.Row(y - 2)
-		c := pixel(prev, 3, img.W)<<4 | pixel(prev, 2, img.W)<<5 | pixel(prev, 1, img.W)<<6 |
-			pixel(prev, 0, img.W)<<7 |
-			(pixel(older, 2, img.W)|pixel(older, 1, img.W)<<1|pixel(older, 0, img.W)<<2)<<11
-		for x := range img.W {
-			bit := int(row[x>>3] >> (7 - x&7) & 1)
-			e.Encode(&cx[c], bit)
-			c = (c<<1)&0xf7ee | uint32(bit) |
-				pixel(prev, x+4, img.W)<<4 | pixel(older, x+3, img.W)<<11
+		p, o, r := prev[gpad:gpad+w+4], older[gpad:gpad+w+3], cur[gpad:gpad+w]
+		c := uint32(p[3])<<4 | uint32(p[2])<<5 | uint32(p[1])<<6 | uint32(p[0])<<7 |
+			(uint32(o[2])|uint32(o[1])<<1|uint32(o[0])<<2)<<11
+		for x, bit := range r {
+			if !e.TryEncode(&cx[c], int(bit)) {
+				e.Encode(&cx[c], int(bit))
+			}
+			c = (c<<1)&0xf7ee | uint32(bit) | uint32(p[x+4])<<4 | uint32(o[x+3])<<11
 		}
+		older, prev, cur = prev, cur, older
 	}
 }
 
-// pixel returns pixel x of a packed row; 0 outside it.
-func pixel(row []byte, x, w int) uint32 {
-	if row == nil || x < 0 || x >= w {
-		return 0
+// grow returns b resized to n zero bytes, reusing its storage.
+func grow(b []byte, n int) []byte {
+	if cap(b) < n {
+		return make([]byte, n)
 	}
-	return uint32(row[x>>3] >> (7 - x&7) & 1)
+	b = b[:n]
+	clear(b)
+	return b
+}
+
+// unpackTab spreads a byte's bits, MSB first, one per byte.
+var unpackTab = func() (t [256][8]byte) {
+	for v := range t {
+		for i := range 8 {
+			t[v][i] = byte(v >> (7 - i) & 1)
+		}
+	}
+	return
+}()
+
+// unpack sets dst[i] to pixel i of the packed row src.
+func unpack(dst, src []byte) {
+	k := 0
+	for ; k+8 <= len(dst); k += 8 {
+		*(*[8]byte)(dst[k:]) = unpackTab[src[k>>3]]
+	}
+	for ; k < len(dst); k++ {
+		dst[k] = src[k>>3] >> (7 - k&7) & 1
+	}
 }
 
 // equalRows compares two rows' pixels; a missing previous row is white.

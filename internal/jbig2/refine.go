@@ -27,27 +27,55 @@ var refTemplates = [2]struct{ own, ref [][2]int }{
 	},
 }
 
-// refiner codes bitmaps by refinement (6.3), no typical prediction; its
-// contexts persist across bitmaps.
+// refiner codes bitmaps by refinement (6.3) with template 0, no
+// typical prediction; its contexts persist across bitmaps.
 type refiner struct {
-	cx [1 << 13]mq.Context
+	cx       [1 << 13]mq.Context
+	own, ref []byte // unpacked bitmaps, reused
 }
 
 // code codes img against ref, whose pixel (x−dx, y−dy) lies over img's
 // (x, y).
 func (g *refiner) code(e *mq.Encoder, img, ref *Bitmap, dx, dy int) {
-	t := &refTemplates[GRTemplate]
-	for y := range img.H {
-		row := img.Row(y)
-		for x := range img.W {
-			c := 0
-			for _, p := range t.own {
-				c = c<<1 | int(pixel(img.Row(y+p[1]), x+p[0], img.W))
+	w, h := img.W, img.H
+	n := w + 2 // columns −1 to w
+	// img's rows −1 to h−1, and ref's rows over img's −1 to h, one byte
+	// per pixel, white outside.
+	g.own = grow(g.own, (h+1)*n)
+	for y := range h {
+		unpack(g.own[(y+1)*n+1:(y+1)*n+1+w], img.Row(y))
+	}
+	g.ref = grow(g.ref, (h+2)*n)
+	lo, hi := max(-1, dx), min(w, dx+ref.W-1) // columns over ref
+	for y := -1; y <= h; y++ {
+		src := ref.Row(y - dy)
+		if src == nil || lo > hi {
+			continue
+		}
+		dst := g.ref[(y+1)*n:]
+		for x := lo; x <= hi; x++ {
+			c := x - dx
+			dst[x+1] = src[c>>3] >> (7 - c&7) & 1
+		}
+	}
+	for y := range h {
+		up, cur := g.own[y*n:(y+1)*n], g.own[(y+1)*n+1:(y+1)*n+1+w]
+		m0, m1, m2 := g.ref[y*n:(y+1)*n], g.ref[(y+1)*n:(y+2)*n], g.ref[(y+2)*n:(y+3)*n]
+		// Windows of 3 pixels, columns x−1 to x+1.
+		t := int(up[0])<<1 | int(up[1])
+		a := int(m0[0])<<1 | int(m0[1])
+		b := int(m1[0])<<1 | int(m1[1])
+		c := int(m2[0])<<1 | int(m2[1])
+		left := 0
+		for x, bit := range cur {
+			t = (t<<1)&7 | int(up[x+2])
+			a = (a<<1)&7 | int(m0[x+2])
+			b = (b<<1)&7 | int(m1[x+2])
+			c = (c<<1)&7 | int(m2[x+2])
+			if cx := &g.cx[t<<10|left<<9|a<<6|b<<3|c]; !e.TryEncode(cx, int(bit)) {
+				e.Encode(cx, int(bit))
 			}
-			for _, p := range t.ref {
-				c = c<<1 | int(pixel(ref.Row(y-dy+p[1]), x-dx+p[0], ref.W))
-			}
-			e.Encode(&g.cx[c], int(row[x>>3]>>(7-x&7)&1))
+			left = int(bit)
 		}
 	}
 }

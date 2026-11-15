@@ -58,8 +58,9 @@ type state struct {
 	nmps, nlps Context
 }
 
-var states = func() (t [94]state) {
-	for s := range t {
+// states is indexed by Context; 256 entries spare the bounds check.
+var states = func() (t [256]state) {
+	for s := range 94 {
 		q := qeTable[s>>1]
 		mps := Context(s & 1)
 		t[s] = state{uint32(q.qe), Context(q.nmps)<<1 | mps, Context(q.nlps)<<1 | mps}
@@ -89,6 +90,20 @@ func New() *Encoder {
 // Reset starts a new stream, reusing the buffer.
 func (e *Encoder) Reset() {
 	*e = Encoder{a: 0x8000, ct: 12, data: e.data[:0]}
+}
+
+// TryEncode codes bit in context cx and returns true if it is an MPS
+// needing no renormalisation; otherwise it does nothing, and the caller
+// must use Encode. It inlines, for hot loops.
+func (e *Encoder) TryEncode(cx *Context, bit int) bool {
+	v := *cx
+	q := states[v].qe
+	if a := e.a - q; a >= 0x8000 && int(v&1) == bit {
+		e.a = a
+		e.c += q
+		return true
+	}
+	return false
 }
 
 // Encode codes one decision in context cx.

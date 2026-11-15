@@ -4,6 +4,7 @@
 package convert
 
 import (
+	"encoding/binary"
 	"slices"
 	"sync"
 
@@ -209,9 +210,15 @@ func codeShapes(want []int, shape func(int) *jb2.Bitmap, ref func(int) jb2.Ref,
 func pack(b *jb2.Bitmap) *jbig2.Bitmap {
 	m := jbig2.NewBitmap(b.W, b.H)
 	for r := range b.H {
-		row := m.Pix[r*m.Stride:]
-		for c, v := range b.Pix[r*b.W : (r+1)*b.W] {
-			row[c>>3] |= v << (7 - c&7)
+		src, dst := b.Pix[r*b.W:(r+1)*b.W], m.Pix[r*m.Stride:(r+1)*m.Stride]
+		c := 0
+		for ; c+8 <= len(src); c += 8 {
+			// Byte i's low bit moves to bit 63−i: no two products overlap.
+			v := binary.LittleEndian.Uint64(src[c:]) & 0x0101010101010101
+			dst[c>>3] = byte(v * 0x8040201008040201 >> 56)
+		}
+		for ; c < len(src); c++ {
+			dst[c>>3] |= src[c] << (7 - c&7)
 		}
 	}
 	return m

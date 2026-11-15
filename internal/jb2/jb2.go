@@ -448,7 +448,11 @@ func (d *decoder) directBitmap(w, h int) (*Bitmap, error) {
 		t1 := int(up1[0])<<4 | int(up1[1])<<3 | int(up1[2])<<2 | int(up1[3])<<1 | int(up1[4])
 		t0 := 0
 		for c := range w {
-			b := d.zp.Decode(&d.direct[t2<<7|t1<<2|t0])
+			cx := &d.direct[t2<<7|t1<<2|t0]
+			b, ok := d.zp.TryDecode(cx)
+			if !ok {
+				b = d.zp.Decode(cx)
+			}
 			row[c+2] = byte(b)
 			t2 = (t2<<1)&7 | int(up2[c+4])
 			t1 = (t1<<1)&31 | int(up1[c+5])
@@ -498,7 +502,10 @@ func (d *decoder) refineBitmap(w, h int, ref *Bitmap) (*Bitmap, error) {
 			a = (a<<1)&7 | int(m1[c+2])
 			b = (b<<1)&7 | int(m2[c+2])
 			ctx := t<<8 | left<<7 | int(m0[c+1])<<6 | a<<3 | b
-			left = d.zp.Decode(&d.refine[ctx])
+			var ok bool
+			if left, ok = d.zp.TryDecode(&d.refine[ctx]); !ok {
+				left = d.zp.Decode(&d.refine[ctx])
+			}
 			row[c+1] = byte(left)
 		}
 	}
