@@ -30,28 +30,47 @@ const (
 // distortion estimates.
 const fracBits = 6
 
-// Coefficient flags.
+// Coefficient flags; the high byte says which neighbours are
+// significant.
 const (
 	fSig   = 1 << iota // significant
 	fVisit             // coded in this bit-plane's earlier pass
 	fRef               // refined at least once
 	fNeg               // negative
+	_
+	_
+	_
+	_
+	nW  // west neighbour significant
+	nE  // east
+	nN  // north
+	nS  // south
+	nNW // north-west
+	nNE // north-east
+	nSW // south-west
+	nSE // south-east
 )
 
-// zcTab maps orientation and the counts of significant horizontal,
-// vertical and diagonal neighbours to a context (Table D.1).
-var zcTab [4][3][3][5]uint8
+// zcTab maps orientation and the neighbour bits to a context (Table D.1).
+var zcTab [4][256]uint8
 
 func init() {
 	for o := range 4 {
-		for h := range 3 {
-			for v := range 3 {
-				for d := range 5 {
-					zcTab[o][h][v][d] = zc(o, h, v, d)
-				}
-			}
+		for m := range 256 {
+			n := uint16(m) << 8
+			h := b2i(n&nW != 0) + b2i(n&nE != 0)
+			v := b2i(n&nN != 0) + b2i(n&nS != 0)
+			d := b2i(n&nNW != 0) + b2i(n&nNE != 0) + b2i(n&nSW != 0) + b2i(n&nSE != 0)
+			zcTab[o][m] = zc(o, h, v, d)
 		}
 	}
+}
+
+func b2i(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 func zc(o, h, v, d int) uint8 {
@@ -112,10 +131,10 @@ type t1 struct {
 	w, h   int
 	stride int
 	mag    []uint32 // |coefficient| / step, fracBits fraction bits
-	flags  []uint8  // padded by one on every side
+	flags  []uint16 // padded by one on every side
 	enc    mq.Encoder
 	cx     [19]mq.Context
-	zc     *[3][3][5]uint8
+	zc     *[256]uint8
 	dist   float64
 	passes []pass
 }
@@ -177,7 +196,7 @@ func (t *t1) reset(w, h int) {
 	t.w, t.h, t.stride = w, h, w+2
 	n := (w + 2) * (h + 2)
 	if cap(t.flags) < n {
-		t.flags = make([]uint8, n)
+		t.flags = make([]uint16, n)
 		t.mag = make([]uint32, 64*64)
 	}
 	t.flags = t.flags[:n]
@@ -190,16 +209,31 @@ func (t *t1) fi(x, y int) int { return (y+1)*t.stride + x + 1 }
 func (t *t1) setNeg(x, y int) { t.flags[t.fi(x, y)] |= fNeg }
 
 // zcCtx is the zero coding context at flag index i.
-func (t *t1) zcCtx(i int) uint8 {
+func (t *t1) zcCtx(i int) uint8 { return t.zc[t.flags[i]>>8] }
+
+// setSig makes flag index i significant, telling its neighbours.
+func (t *t1) setSig(i int) {
 	f, s := t.flags, t.stride
-	h := f[i-1]&fSig + f[i+1]&fSig
-	v := f[i-s]&fSig + f[i+s]&fSig
-	d := f[i-s-1]&fSig + f[i-s+1]&fSig + f[i+s-1]&fSig + f[i+s+1]&fSig
-	return t.zc[h][v][d]
+	f[i] |= fSig
+	f[i-1] |= nE
+	f[i+1] |= nW
+	f[i-s] |= nS
+	f[i+s] |= nN
+	f[i-s-1] |= nSE
+	f[i-s+1] |= nSW
+	f[i+s-1] |= nNE
+	f[i+s+1] |= nNW
+}
+
+// encode codes bit b in context c.
+func (t *t1) encode(c int, b int) {
+	if !t.enc.TryEncode(&t.cx[c], b) {
+		t.enc.Encode(&t.cx[c], b)
+	}
 }
 
 // contrib is a neighbour's sign contribution: 0, 1 or -1.
-func contrib(f uint8) int {
+func contrib(f uint16) int {
 	if f&fSig == 0 {
 		return 0
 	}
@@ -214,13 +248,13 @@ func (t *t1) sign(i int) {
 	h := max(-1, min(1, contrib(f[i-1])+contrib(f[i+1])))
 	v := max(-1, min(1, contrib(f[i-s])+contrib(f[i+s])))
 	e := scTab[h+1][v+1]
-	t.enc.Encode(&t.cx[e[0]], int(f[i]>>3&1^e[1]))
+	t.encode(int(e[0]), int(f[i]>>3&1)^int(e[1]))
 }
 
 // newSig codes the sign of a coefficient found significant at plane p.
 func (t *t1) newSig(i, k, p int) {
 	t.sign(i)
-	t.flags[i] |= fSig
+	t.setSig(i)
 	m := int64(t.mag[k])
 	e := m - (1<<(p+fracBits) | 1<<(p+fracBits-1))
 	t.dist += float64(m*m - e*e)
@@ -243,7 +277,7 @@ func (t *t1) sigPass(p int) {
 				}
 				k := y*t.w + x
 				b := t.bit(k, p)
-				t.enc.Encode(&t.cx[c], b)
+				t.encode(int(c), b)
 				if b == 1 {
 					t.newSig(i, k, p)
 				}
@@ -255,7 +289,6 @@ func (t *t1) sigPass(p int) {
 
 // refPass is the magnitude refinement pass (D.3.3).
 func (t *t1) refPass(p int) {
-	s := t.stride
 	for y0 := 0; y0 < t.h; y0 += 4 {
 		for x := range t.w {
 			for y := y0; y < min(y0+4, t.h); y++ {
@@ -267,12 +300,12 @@ func (t *t1) refPass(p int) {
 				c := 16
 				if f[i]&fRef == 0 {
 					c = 14
-					if (f[i-1]|f[i+1]|f[i-s]|f[i+s]|f[i-s-1]|f[i-s+1]|f[i+s-1]|f[i+s+1])&fSig != 0 {
+					if f[i]>>8 != 0 {
 						c = 15
 					}
 				}
 				k := y*t.w + x
-				t.enc.Encode(&t.cx[c], t.bit(k, p))
+				t.encode(c, t.bit(k, p))
 				f[i] |= fRef
 				m := int64(t.mag[k])
 				q := m >> (p + fracBits + 1) << (p + fracBits + 1)
@@ -317,7 +350,7 @@ func (t *t1) cleanup(p int) {
 				}
 				k := y*t.w + x
 				b := t.bit(k, p)
-				t.enc.Encode(&t.cx[t.zcCtx(i)], b)
+				t.encode(int(t.zcCtx(i)), b)
 				if b == 1 {
 					t.newSig(i, k, p)
 				}
@@ -332,7 +365,7 @@ func (t *t1) cleanup(p int) {
 func (t *t1) runnable(x, y0 int) bool {
 	for y := y0; y < y0+4; y++ {
 		i := t.fi(x, y)
-		if t.flags[i]&(fSig|fVisit) != 0 || t.zcCtx(i) != 0 {
+		if t.flags[i]&(fSig|fVisit|0xff00) != 0 {
 			return false
 		}
 	}
