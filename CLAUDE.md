@@ -12,7 +12,7 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T15–T16.
+Todo.md as task T16.
 
 ## Commands
 
@@ -77,10 +77,11 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   same object number (`shapes.Split`, then `stencil.Code`), with a
   `/Decode` from `raster.Bitmap.Decode`; groups of 32 images share a
   `/JBIG2Globals` of the shapes found in more than one; an image, or a
-  group, that would not shrink is kept. Lossless: alike shapes of the
-  same size are coded as refinements of their representative. `-lossy`
-  (`Options.Lossy`): they are replaced by it (PDP11 Handbook 5×
-  smaller, against 1.66× lossless). MuPDF renders an image whose
+  group, that would not shrink is kept. By default (`Options.Lossy`;
+  the command line's `-lossless` turns it off) alike shapes are
+  replaced by their representative (PDP11 Handbook 5× smaller);
+  lossless, those of the same size are coded as refinements of it
+  (1.66×). MuPDF renders an image whose
   ink was raw sample 1 one gray level off when subsampling (it averages
   before `/Decode`); identical from half the image's resolution up.
   Tests: jbig2dec on every replaced image, and the object graphs of
@@ -92,8 +93,14 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   palette colour cropped to its marks and inset by 1e-5 against edge
   snapping; stencils of 32 images share globals. Tests: forms decode
   (opj_decompress, jbig2dec); pages render in MuPDF, and print in
-  Reader, alike blurred (26 dB at 50 dpi). Etudes 9.1× (the text
-  layer, copied, is 2.1 MB of it), 15× with `-lossy`.
+  Reader, alike blurred (26 dB at 50 dpi). Etudes 15× (9.1× lossless;
+  the text layer, copied, is 2.1 MB of it).
+  `Options.Pages` (`-p`) keeps only those pages (`rewrite.Select`: a
+  one-level page tree, inherited attributes copied into each page,
+  references to the others null, page labels dropped). A document with
+  nothing to re-encode returns `NothingError`, with the reason, before
+  writing; the command line writes no output then, and writes the
+  input as it was when re-encoding would not make it smaller.
 - `internal/scan`: finds the scan images of a PDF by walking each page's
   content (`pdfread.Content`) through forms, soft-mask groups and
   annotation appearances: every image drawn with its matrix, dpi and

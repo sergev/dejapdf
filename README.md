@@ -1,6 +1,7 @@
 # dejapdf
 
-A command-line DjVu → PDF converter written in Go, from scratch.
+A command-line DjVu → PDF converter written in Go, from scratch. It also
+re-encodes scanned PDFs the same way, making them several times smaller.
 
 Most converters (`ddjvu -format=pdf`, `djvu2pdf`) render each page into one
 full-resolution bitmap, so the PDF comes out 10–100× larger than the DjVu.
@@ -12,16 +13,18 @@ supports natively, keeping the layers separate. The PDF comes out
 
 ```
 dejapdf [options] input.djvu output.pdf
-dejapdf -dump input.djvu
+dejapdf [options] input.pdf output.pdf
+dejapdf -dump input.djvu|input.pdf
 ```
 
 | Option | Meaning |
 |---|---|
 | `-p 1-10,15` | pages to convert (default all) |
-| `-q 1.2` | colour layer size as a multiple of its DjVu size (default 1.2) |
+| `-q 1.2` | colour layer size as a multiple of its DjVu size (default 1.2); for a PDF, the cap on a page's background as a fraction of its scan image (default 0.15) |
+| `-lossless` | PDF input: keep the shapes of the text exact (see below) |
 | `-v` | show a size report by layer |
 | `-quiet` | print nothing but warnings and errors |
-| `-dump` | print the chunk tree, like `djvudump` |
+| `-dump` | print the chunk tree, like `djvudump`; for a PDF, the scan images by page and what will be done with each |
 | `-version` | print the version |
 | `-cpuprofile file` | write a CPU profile, for `go tool pprof` |
 | `-trace file` | write an execution trace, for `go tool trace` |
@@ -59,6 +62,67 @@ errors appear.
 
 The PDFs are checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe
 Reader 9 and Adobe Acrobat 26.
+
+## Scanned PDFs
+
+Given a PDF, `dejapdf` re-encodes its scan images in place and copies
+everything else (text layer, bookmarks, links, metadata) as it is:
+
+- bilevel scans become JBIG2, with symbol dictionaries shared by groups of
+  32 pages;
+- gray and colour scans are split like a DjVu page: the text as JBIG2
+  stencils in its own colours, the rest as a JPEG 2000 background at about
+  100 dpi with the text filled out of it. Faded pages get their contrast
+  raised.
+
+By default, characters of the same shape are drawn from one bitmap, with a
+guard against look-alikes such as 6 and 8; `-lossless` keeps every shape
+exact instead (bilevel scans then decode to exactly the original bitmap). A file is
+never made larger: if re-encoding saves nothing, it is copied as is. A
+password-protected PDF, or one with nothing to re-encode, is refused with
+the reason, and no output is written.
+
+The 40 scanned PDFs of one collection, with the default options: 30
+distinct books re-encoded below; 6 were refused (their scans already
+JBIG2 or JPEG 2000, or text drawn over them); 4 were duplicates. Every
+output passes `qpdf --check`.
+
+| Scans | dpi | Pages | Before, MB | After, MB | Smaller by | Time, s |
+|---|---:|---:|---:|---:|---:|---:|
+| bilevel, CCITT G4 | 600 | 369 | 39.0 | 4.6 | 8.5× | 3.3 |
+| bilevel, CCITT G4 | 400 | 524 | 34.2 | 14.4 | 2.4× | 15.4 |
+| bilevel, CCITT G4 | 300 | 742 | 33.6 | 12.8 | 2.6× | 19.0 |
+| bilevel, CCITT G4 | 300 | 527 | 22.5 | 4.4 | 5.1× | 5.4 |
+| bilevel, CCITT G4 | 529 | 288 | 21.3 | 3.0 | 7.0× | 9.2 |
+| bilevel, CCITT G4 | 600 | 276 | 19.6 | 16.5 | 1.2× | 3.8 |
+| bilevel, CCITT G4 | 600 | 84 | 15.8 | 1.4 | 11.6× | 2.8 |
+| bilevel, CCITT G4 | 600 | 226 | 15.8 | 9.0 | 1.7× | 8.6 |
+| bilevel, CCITT G4 | 300 | 202 | 13.4 | 4.4 | 3.0× | 20.1 |
+| bilevel, CCITT G4 | 600 | 81 | 10.5 | 1.0 | 10.8× | 1.1 |
+| bilevel, CCITT G4 | 301 | 136 | 7.4 | 5.1 | 1.4× | 2.0 |
+| bilevel, CCITT G4 | 232 | 283 | 6.6 | 1.4 | 4.6× | 0.8 |
+| bilevel, CCITT G4 | 339 | 6 | 0.6 | 0.2 | 2.9× | 0.2 |
+| bilevel, Flate | 400 | 274 | 36.2 | 4.7 | 7.7× | 14.5 |
+| bilevel, Flate | 300 | 1 | 0.1 | 0.0 | 3.7× | 0.0 |
+| bilevel, JBIG2 | 600 | 546 | 37.0 | 35.9 | 1.0× | 1.2 |
+| bilevel, JBIG2 | 600 | 263 | 7.2 | 6.7 | 1.1× | 0.3 |
+| colour, Flate | 400 | 1 | 3.8 | 0.4 | 9.5× | 14.8 |
+| colour, JPEG | 400 | 228 | 130.8 | 2.3 | 56.6× | 28.2 |
+| colour, JPEG | 342 | 137 | 123.6 | 15.4 | 8.0× | 41.5 |
+| colour, JPEG | 342 | 95 | 81.6 | 10.2 | 8.0× | 35.0 |
+| colour, JPEG | 300 | 37 | 6.0 | 1.4 | 4.2× | 3.1 |
+| gray, JPEG | 241 | 458 | 166.3 | 12.5 | 13.3× | 40.5 |
+| gray, JPEG | 241 | 208 | 66.1 | 4.5 | 14.8× | 13.3 |
+| gray, JPEG | 241 | 258 | 64.3 | 4.4 | 14.6× | 15.4 |
+| gray, JPEG | 241 | 290 | 59.8 | 7.9 | 7.6× | 19.7 |
+| gray, JPEG | 241 | 130 | 23.6 | 3.3 | 7.1× | 7.9 |
+| gray, JPEG | 96 | 53 | 22.3 | 4.3 | 5.2× | 9.8 |
+| gray, JPEG | 96 | 52 | 18.6 | 4.2 | 4.4× | 11.3 |
+| gray, JPEG | 96 | 37 | 14.9 | 3.3 | 4.5× | 7.0 |
+| **all 30** | | | **1102** | **200** | **5.5×** | |
+
+Bilevel scans already in JBIG2 gain little; gray and colour scans in JPEG
+gain the most.
 
 ## Build
 

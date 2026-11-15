@@ -47,6 +47,9 @@ func TestAcrobat(t *testing.T) {
 		r, doc := open(t, data)
 		var out bytes.Buffer
 		st, err := Reencode(r, doc, &out, Options{})
+		if _, ok := err.(*NothingError); ok {
+			continue
+		}
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/sergev/dejapdf/internal/pdf"
@@ -65,6 +66,9 @@ func check(t *testing.T, path string, lossy bool) {
 	r, doc := open(t, data)
 	var out bytes.Buffer
 	st, err := Reencode(r, doc, &out, Options{Lossy: lossy, Warn: func(err error) { t.Error(err) }})
+	if _, ok := err.(*NothingError); ok {
+		t.Skip(err)
+	}
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -587,4 +591,34 @@ func readPGM(data []byte) (w, h int, pix []byte) {
 		return 0, 0, nil
 	}
 	return w, h, data[i : i+w*h]
+}
+
+// TestNothing: a document with nothing to re-encode says why, and
+// writes nothing; -p keeps the pages asked for.
+func TestNothing(t *testing.T) {
+	for _, c := range []struct {
+		file, reason string
+	}{{"inline.pdf", "inline image"}, {"g3-2d.pdf", "CCITT G3 2-D"}} {
+		data, err := os.ReadFile(filepath.Join("../../testdata/pdf", c.file))
+		if err != nil {
+			t.Fatal(err)
+		}
+		r, doc := open(t, data)
+		var out bytes.Buffer
+		_, err = Reencode(r, doc, &out, Options{})
+		if e, ok := err.(*NothingError); !ok || !strings.Contains(e.Error(), c.reason) || out.Len() != 0 {
+			t.Errorf("%s: %v, %d bytes written", c.file, err, out.Len())
+		}
+	}
+	data, _ := os.ReadFile("../../testdata/pdf/digits.pdf")
+	r, doc := open(t, data)
+	var out bytes.Buffer
+	st, err := Reencode(r, doc, &out, Options{Pages: []int{5, 2}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, doc2 := open(t, out.Bytes())
+	if len(doc2.Pages) != 2 || st.Images != 2 {
+		t.Errorf("%d pages, %d images", len(doc2.Pages), st.Images)
+	}
 }

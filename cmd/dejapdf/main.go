@@ -7,6 +7,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -39,7 +40,7 @@ func main() {
 	quality := flag.Float64("q", 0, fmt.Sprintf("colour layer size: a multiple of the DjVu size (default %g),\nor for a PDF a fraction of the scan image (default %g)", convert.DefaultQuality, reencode.DefaultQuality))
 	pages := flag.String("p", "", "pages to convert, like 1-10,15 (default all)")
 	verbose := flag.Bool("v", false, "show a size report by layer")
-	lossy := flag.Bool("lossy", false, "PDF input: substitute alike shapes in bilevel scans")
+	lossless := flag.Bool("lossless", false, "PDF input: keep the shapes of the text exact (default: alike shapes\nare drawn alike, guarded against look-alike characters)")
 	quiet := flag.Bool("quiet", false, "print nothing but warnings and errors")
 	cpuProfile := flag.String("cpuprofile", "", "write a CPU profile to `file`")
 	traceFile := flag.String("trace", "", "write an execution trace to `file`")
@@ -67,7 +68,7 @@ func main() {
 	}
 	stop, err := startProfiles(*cpuProfile, *traceFile)
 	if err == nil {
-		err = convertFile(flag.Arg(0), flag.Arg(1), *quality, *pages, *verbose, *quiet, *lossy)
+		err = convertFile(flag.Arg(0), flag.Arg(1), *quality, *pages, *verbose, *quiet, !*lossless)
 		stop()
 	}
 	if err != nil {
@@ -118,7 +119,7 @@ func startProfiles(cpu, tr string) (stop func(), err error) {
 func convertFile(in, out string, quality float64, pages string, verbose, quiet, lossy bool) error {
 	start := time.Now()
 	if data, err := os.ReadFile(in); err == nil && isPDF(data) {
-		return reencodeFile(data, out, quality, verbose, quiet, lossy, start)
+		return reencodeFile(in, data, out, quality, pages, verbose, quiet, lossy, start)
 	}
 	doc, err := djvu.Open(in)
 	if err != nil {
@@ -178,14 +179,24 @@ func convertFile(in, out string, quality float64, pages string, verbose, quiet, 
 }
 
 // reencodeFile re-encodes the scan images of a PDF.
-func reencodeFile(data []byte, out string, quality float64, verbose, quiet, lossy bool, start time.Time) error {
+func reencodeFile(in string, data []byte, out string, quality float64, pages string, verbose, quiet, lossy bool,
+	start time.Time) error {
 	r, err := pdfread.Open(data)
+	if errors.Is(err, pdfread.ErrPassword) {
+		return fmt.Errorf("%s is password-protected; remove the password first, e.g. qpdf --decrypt --password=... in.pdf out.pdf", in)
+	}
 	if err != nil {
 		return err
 	}
 	doc, err := scan.Find(r)
 	if err != nil {
 		return err
+	}
+	var sel []int
+	if pages != "" {
+		if sel, err = parsePages(pages, len(doc.Pages)); err != nil {
+			return err
+		}
 	}
 	var pr *progress
 	if !quiet {
@@ -195,6 +206,7 @@ func reencodeFile(data []byte, out string, quality float64, verbose, quiet, loss
 	opt := reencode.Options{
 		Lossy:   lossy,
 		Quality: quality,
+		Pages:   sel,
 		Warn: func(err error) {
 			msg := fmt.Sprintf("dejapdf: warning: %v", err)
 			if pr != nil {
@@ -217,11 +229,25 @@ func reencodeFile(data []byte, out string, quality float64, verbose, quiet, loss
 	}
 	if err != nil {
 		os.Remove(out)
+		if _, ok := err.(*reencode.NothingError); ok {
+			return fmt.Errorf("%s: %w; no output written", in, err)
+		}
 		return err
 	}
 	pr.clear()
+	// Never grow a file: the whole of it, re-encoded, not smaller than
+	// it was is written as it was.
+	if fi, err := os.Stat(out); err == nil && sel == nil && fi.Size() >= int64(len(data)) {
+		if err := os.WriteFile(out, data, 0o644); err != nil {
+			return err
+		}
+		if !quiet {
+			fmt.Printf("%s: copied as is: re-encoding saved nothing\n", filepath.Base(out))
+		}
+		return nil
+	}
 	if verbose {
-		fmt.Fprintf(os.Stderr, "%d of %d bilevel images re-encoded: %d to %d kbytes\n",
+		fmt.Fprintf(os.Stderr, "%d of %d scan images re-encoded: %d to %d kbytes\n",
 			st.Replaced, st.Images, (st.Before+512)/1024, (st.After+512)/1024)
 	}
 	if fi, err := os.Stat(out); err == nil && !quiet {

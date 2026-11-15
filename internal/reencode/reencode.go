@@ -12,9 +12,11 @@ import (
 	"fmt"
 	"hash/maphash"
 	"io"
+	"maps"
 	"math"
 	"runtime"
 	"slices"
+	"strings"
 	"sync"
 
 	"github.com/sergev/dejapdf/internal/jb2"
@@ -37,7 +39,14 @@ type Options struct {
 	Progress func(done, all int) // images done
 	Lossy    bool                // substitute alike shapes
 	Quality  float64             // background size cap, a fraction of the image; 0 means DefaultQuality
+	Pages    []int               // pages to keep, from 0 in output order; nil means all
 }
+
+// NothingError is returned, before anything is written, when the
+// document has no scan image to re-encode, with the reason.
+type NothingError struct{ Reason string }
+
+func (e *NothingError) Error() string { return "nothing to re-encode: " + e.Reason }
 
 // Stats tell what was done.
 type Stats struct {
@@ -53,10 +62,24 @@ func Reencode(r *pdfread.Reader, doc *scan.Document, out io.Writer, opt Options)
 	var ims, seps []*scan.Image
 	dpi := map[*scan.Image]float64{}
 	seen := map[pdf.Ref]bool{}
-	for i := range doc.Pages {
+	sel := opt.Pages
+	if sel == nil {
+		sel = make([]int, len(doc.Pages))
+		for i := range sel {
+			sel[i] = i
+		}
+	}
+	why := map[string]int{}
+	for _, i := range sel {
+		if i < 0 || i >= len(doc.Pages) {
+			continue
+		}
 		p := &doc.Pages[i]
 		for _, u := range p.Uses {
-			a, _ := doc.Plan(r, p, u)
+			a, reason := doc.Plan(r, p, u)
+			if a == scan.Keep && !seen[u.Image.Ref] {
+				why[reason]++
+			}
 			if seen[u.Image.Ref] || (a != scan.JBIG2 && a != scan.Separate) {
 				continue
 			}
@@ -70,6 +93,9 @@ func Reencode(r *pdfread.Reader, doc *scan.Document, out io.Writer, opt Options)
 		}
 	}
 	all := len(ims) + len(seps)
+	if all == 0 {
+		return nil, nothing(doc, why)
+	}
 	st := &Stats{Images: all}
 	repl := map[int]*rewrite.Stream{}
 	done := 0
@@ -88,7 +114,7 @@ func Reencode(r *pdfread.Reader, doc *scan.Document, out io.Writer, opt Options)
 		separate(r, g, dpi, repl, st, &opt)
 		progress(len(g))
 	}
-	return st, rewrite.Replace(r, out, repl)
+	return st, rewrite.Select(r, out, repl, opt.Pages)
 }
 
 // coded is an image's replacement.
@@ -384,4 +410,25 @@ func parallel(n int, f func(int)) {
 	}
 	close(next)
 	wg.Wait()
+}
+
+// nothing explains why there is nothing to re-encode.
+func nothing(doc *scan.Document, why map[string]int) error {
+	n := 0
+	for _, p := range doc.Pages {
+		if p.Scanned {
+			n++
+		}
+	}
+	if !doc.Scanned() || n == 0 {
+		return &NothingError{fmt.Sprintf("not a scanned document (scans on %d of %d pages)", n, len(doc.Pages))}
+	}
+	if len(why) == 0 {
+		return &NothingError{"no scan images on these pages"}
+	}
+	var rs []string
+	for _, k := range slices.Sorted(maps.Keys(why)) {
+		rs = append(rs, fmt.Sprintf("%d %s", why[k], k))
+	}
+	return &NothingError{"the scan images are kept: " + strings.Join(rs, "; ")}
 }

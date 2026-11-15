@@ -216,3 +216,82 @@ func TestDeterministic(t *testing.T) {
 		}
 	}
 }
+
+// TestSelect keeps some pages, reordered: each is its original page,
+// with the same boxes, rotation, resources and content; the rest are
+// gone; qpdf --check passes.
+func TestSelect(t *testing.T) {
+	for _, c := range []struct {
+		file string
+		sel  []int
+	}{{"digits.pdf", []int{3, 0, 11}}, {"rotated.pdf", []int{2, 1}}, {"links.pdf", []int{1, 3}}, {"g4-book.pdf", []int{1}}} {
+		data, err := os.ReadFile(filepath.Join("../../testdata/pdf", c.file))
+		if err != nil {
+			t.Fatal(err)
+		}
+		r, err := pdfread.Open(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var out bytes.Buffer
+		if err := Select(r, &out, nil, c.sel); err != nil {
+			t.Fatal(err)
+		}
+		r2, err := pdfread.Open(out.Bytes())
+		if err != nil {
+			t.Fatal(err)
+		}
+		p1, _ := r.Pages()
+		p2, _ := r2.Pages()
+		if len(p2) != len(c.sel) {
+			t.Fatalf("%s: %d pages, want %d", c.file, len(p2), len(c.sel))
+		}
+		for k, i := range c.sel {
+			a, b := p1[i], p2[k]
+			if a.MediaBox != b.MediaBox || a.CropBox != b.CropBox || a.Rotate != b.Rotate ||
+				len(a.Resources) != len(b.Resources) {
+				t.Errorf("%s page %d: %v %v %d, want %v %v %d", c.file, i+1, b.MediaBox, b.CropBox, b.Rotate,
+					a.MediaBox, a.CropBox, a.Rotate)
+			}
+			if !bytes.Equal(contents(r, a.Dict), contents(r2, b.Dict)) {
+				t.Errorf("%s page %d: content differs", c.file, i+1)
+			}
+		}
+		n := 0
+		for _, o := range r2.Objects() {
+			if d, ok := r2.Get(o).(pdf.Dict); ok && d["Type"] == pdf.Name("Page") {
+				n++
+			}
+		}
+		if n != len(c.sel) {
+			t.Errorf("%s: %d page objects written, want %d", c.file, n, len(c.sel))
+		}
+		if out.Len() >= len(data) && len(c.sel) < len(p1) {
+			t.Errorf("%s: %d bytes for %d of %d pages, from %d", c.file, out.Len(), len(c.sel), len(p1), len(data))
+		}
+		name := filepath.Join(t.TempDir(), "out.pdf")
+		os.WriteFile(name, out.Bytes(), 0o644)
+		if b, err := exec.Command("qpdf", "--check", name).CombinedOutput(); err != nil {
+			t.Errorf("%s: qpdf --check: %v\n%s", c.file, err, b)
+		}
+	}
+}
+
+// contents is a page's content, its streams decoded and joined.
+func contents(r *pdfread.Reader, page pdf.Dict) []byte {
+	var out []byte
+	add := func(v any) {
+		if s, ok := r.Resolve(v).(*pdfread.Stream); ok {
+			d, _ := r.Decode(s)
+			out = append(out, d...)
+		}
+	}
+	if a, ok := r.Resolve(page["Contents"]).(pdf.Array); ok {
+		for _, v := range a {
+			add(v)
+		}
+	} else {
+		add(page["Contents"])
+	}
+	return out
+}

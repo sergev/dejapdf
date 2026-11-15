@@ -27,7 +27,12 @@ type copier struct {
 	rootNum int
 	catalog pdf.Dict // the catalog, if changed
 	repl    map[int]*Stream
+	drop    map[int]bool     // pages and page tree nodes left out
+	page    map[int]pdf.Dict // pages kept, in a new page tree
 }
+
+// parent is the /Parent of a kept page: the new page tree's root.
+type parent struct{}
 
 // Stream is a stream to write in place of an object, or as a new object
 // where a dictionary refers to it. Its dictionary is in the numbering
@@ -47,12 +52,22 @@ func Copy(r *pdfread.Reader, out io.Writer) error {
 // Replace is Copy with the stream objects in repl, by object number,
 // replaced.
 func Replace(r *pdfread.Reader, out io.Writer, repl map[int]*Stream) error {
+	return Select(r, out, repl, nil)
+}
+
+// Select is Replace keeping only the pages given, by index from 0, in
+// that order (all if nil), in a page tree of one level. References to
+// the pages left out become null; page labels, which count pages, are
+// dropped.
+func Select(r *pdfread.Reader, out io.Writer, repl map[int]*Stream, pages []int) error {
 	c := &copier{r: r, w: pdf.NewWriter(out), refs: map[int]pdf.Ref{}, repl: repl}
 	tr := r.Trailer()
 
 	// The root of the page tree goes where the writer reserved it.
 	cat, _ := r.Resolve(tr["Root"]).(pdf.Dict)
-	if pr, ok := cat["Pages"].(pdf.Ref); ok && r.Get(int(pr)) != nil {
+	if pages != nil {
+		c.selectPages(cat, pages)
+	} else if pr, ok := cat["Pages"].(pdf.Ref); ok && r.Get(int(pr)) != nil {
 		c.refs[int(pr)] = c.w.PageTree()
 		c.queue = append(c.queue, int(pr))
 	} else {
@@ -131,6 +146,10 @@ func (c *copier) write(n int) {
 		c.w.Object(r, c.catalogValue(v))
 		return
 	}
+	if d, ok := c.page[n]; ok {
+		c.w.Object(r, c.value(d))
+		return
+	}
 	if s, ok := c.repl[n]; ok {
 		if _, ok := v.(*pdfread.Stream); ok {
 			c.w.Stream(r, c.value(s.Dict).(pdf.Dict), s.Data)
@@ -183,6 +202,9 @@ func dropCrypt(d pdf.Dict) {
 func (c *copier) value(v any) any {
 	switch v := v.(type) {
 	case pdf.Ref:
+		if c.drop[int(v)] {
+			return nil
+		}
 		if r := c.ref(int(v)); r != 0 {
 			return r
 		}
@@ -207,6 +229,8 @@ func (c *copier) value(v any) any {
 		return out
 	case bool, int, pdf.Name, pdf.String:
 		return v
+	case parent:
+		return c.w.PageTree()
 	case *Stream:
 		if v.ref == 0 {
 			v.ref = c.w.AddStream(c.value(v.Dict).(pdf.Dict), v.Data)
@@ -215,4 +239,72 @@ func (c *copier) value(v any) any {
 	}
 	// A stream where a direct object should be, or anything else.
 	return nil
+}
+
+// selectPages writes a page tree of the pages given and arranges for
+// the rest of the old one to be left out. Each kept page gets the
+// attributes it inherited.
+func (c *copier) selectPages(cat pdf.Dict, sel []int) {
+	type leaf struct {
+		ref  pdf.Ref
+		dict pdf.Dict
+	}
+	var leaves []leaf
+	c.drop = map[int]bool{}
+	c.page = map[int]pdf.Dict{}
+	inheritable := []string{"Resources", "MediaBox", "CropBox", "Rotate"}
+	var walk func(v any, in pdf.Dict, depth int)
+	walk = func(v any, in pdf.Dict, depth int) {
+		ref, _ := v.(pdf.Ref)
+		if ref != 0 {
+			if c.drop[int(ref)] || depth > 64 {
+				return
+			}
+			c.drop[int(ref)] = true
+		}
+		d, ok := c.r.Resolve(v).(pdf.Dict)
+		if !ok {
+			return
+		}
+		kids, isNode := c.r.Resolve(d["Kids"]).(pdf.Array)
+		if !isNode || d["Type"] == pdf.Name("Page") {
+			p := cloneDict(d)
+			for _, k := range inheritable {
+				if _, ok := p[k]; !ok && in[k] != nil {
+					p[k] = in[k]
+				}
+			}
+			p["Parent"] = parent{}
+			leaves = append(leaves, leaf{ref, p})
+			return
+		}
+		next := cloneDict(in)
+		for _, k := range inheritable {
+			if v, ok := d[k]; ok {
+				next[k] = v
+			}
+		}
+		for _, k := range kids {
+			walk(k, next, depth+1)
+		}
+	}
+	walk(cat["Pages"], pdf.Dict{}, 0)
+	kids := pdf.Array{}
+	for _, i := range sel {
+		if i < 0 || i >= len(leaves) {
+			continue
+		}
+		l := leaves[i]
+		if l.ref == 0 {
+			kids = append(kids, c.w.Add(c.value(l.dict)))
+			continue
+		}
+		delete(c.drop, int(l.ref))
+		c.page[int(l.ref)] = l.dict
+		kids = append(kids, c.ref(int(l.ref)))
+	}
+	c.w.Object(c.w.PageTree(), pdf.Dict{"Type": pdf.Name("Pages"), "Kids": kids, "Count": len(kids)})
+	c.catalog = cloneDict(cat)
+	delete(c.catalog, "Pages")
+	delete(c.catalog, "PageLabels")
 }

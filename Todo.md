@@ -41,22 +41,6 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T15. Command line
-
-- [ ] `dejapdf in.pdf out.pdf` works since T9 (magic bytes, `-v`,
-  `-quiet`, progress by image; `-lossy` since T11); make `-p` and `-q`
-  work as for DjVu
-- [ ] Decide whether `-lossy` becomes the default, after running it on
-  all scanned books (at least for gray and colour scans, whose mask is
-  ours: Etudes is 9.1× lossless, 15× lossy; T14 asked for 10×)
-- [ ] Refuse with a clear message: password-protected files, PDFs with
-  nothing to re-encode (and say so)
-- [ ] Run all scanned books (the 40 files that `-dump` calls scanned):
-  no errors, no file grows
-
-Done when: the size table for the scanned books is in the README; CI
-passes.
-
 ## T16. Docs
 
 - [ ] An article `docs/PDF_Rewriting.md`: what we read, how scan images
