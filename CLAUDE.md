@@ -4,15 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`dejapdf` is a Go command-line tool that converts DjVu to PDF. It keeps the DjVu
+`dejapdf` is a Go command-line tool that converts DjVu to PDF, and
+re-encodes scanned PDFs the same way. It keeps the DjVu
 layers separate instead of rasterizing each page, so the PDF stays 1–1.5× the
 DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 
-**Status:** DjVu to PDF is complete (the old roadmap is in git history).
-Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
-(TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
-`tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as task T16.
+**Status:** DjVu to PDF and scanned-PDF re-encoding are complete (the
+roadmaps are in git history; the PDF path is described in
+`docs/PDF_Rewriting.md`). Checked in MuPDF, Poppler, pdf.js, Ghostscript,
+Adobe Reader 9 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The
+original design brief is `tmp/create-djvu-to-pdf.md`.
 
 ## Commands
 
@@ -27,6 +28,10 @@ go test ./internal/zp -fuzz FuzzDecode -parallel 4   # fuzz one target
 make fuzz FUZZTIME=60s                    # all targets, capped memory
 go vet ./...
 dejapdf -cpuprofile cpu.prof -trace trace.out in.djvu out.pdf   # profile
+dejapdf in.pdf out.pdf                    # re-encode a scanned PDF (-lossless, -p, -q)
+dejapdf -dump in.pdf                      # its scan images and what is done with each
+PDF_BOOKS='glob' go test ./internal/reencode -run 'TestJbig2dec|TestSeparate'   # on books
+ACRO_BOOKS='glob' go test ./internal/reencode -run TestAcrobat -timeout 60m     # Reader 9
 ```
 
 Speed changes must keep the output byte-identical: convert the corpus
@@ -182,10 +187,11 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
 
 `docs/` holds the specs (DjVu v3 as `DjVu3Spec.pdf`, converted by dejapdf and
 committed; T.88, T.800, PDF 1.7 downloaded and git-ignored; see
-`docs/README.md`, which also lists the DjVu spec errata) and four articles:
+`docs/README.md`, which also lists the DjVu spec errata) and five articles:
 `docs/DjVu_Format.md` (what we decode), `docs/JBIG2_Coding.md` (how we encode
-the mask), `docs/JPEG_2000_Image_Coding.md` (how we encode the colour layers)
-and `docs/Portable_Document_Format.md` (what we write). Figures are `docs/figures/NAME.py` scripts
+the mask), `docs/JPEG_2000_Image_Coding.md` (how we encode the colour layers),
+`docs/Portable_Document_Format.md` (what we write) and
+`docs/PDF_Rewriting.md` (how scanned PDFs are re-encoded). Figures are `docs/figures/NAME.py` scripts
 printing `NAME.svg` via `docs/figures/svg.py`; `make docs` regenerates them
 and formats the articles to PDF (pandoc + typst; `make docs-pdf` for the PDFs only).
 The article PDFs are committed: regenerate them after editing an article.

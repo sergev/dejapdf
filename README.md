@@ -190,13 +190,22 @@ To check the hidden text, annotations and outline of your own books against
 DJVU_BOOKS='/path/to/books/*.djvu' go test ./internal/djvu -run TestBooks -v
 ```
 
+And to re-encode your own scanned PDFs under the same checks (every JBIG2
+image through `jbig2dec`, the object graph compared, `qpdf --check`, pages
+rendered), name them in `PDF_BOOKS`:
+
+```
+PDF_BOOKS='/path/to/scans/*.pdf' go test ./internal/reencode -run 'TestJbig2dec|TestSeparate' -v
+```
+
 ## Documentation
 
-Four articles in [docs/](docs/) describe the formats as dejapdf uses them:
+Five articles in [docs/](docs/) describe the formats as dejapdf uses them:
 [DjVu](docs/DjVu_Format.md) (what we decode),
 [JBIG2](docs/JBIG2_Coding.md) (how we encode the mask),
-[JPEG 2000](docs/JPEG_2000_Image_Coding.md) (how we encode the colour layers)
-and [PDF](docs/Portable_Document_Format.md) (what we write).
+[JPEG 2000](docs/JPEG_2000_Image_Coding.md) (how we encode the colour layers),
+[PDF](docs/Portable_Document_Format.md) (what we write) and
+[PDF rewriting](docs/PDF_Rewriting.md) (how scanned PDFs are re-encoded).
 
 ## Dependencies and licensing
 

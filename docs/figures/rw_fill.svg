@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="330" viewBox="0 0 940 330">
+<rect width="940" height="330" fill="white"/>
+<line x1="80" y1="260" x2="624.5" y2="260" stroke="#333333" stroke-width="1.2"/>
+<polygon points="630,260 623.55,262.73 623.55,257.27" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="80" y1="260" x2="80" y2="35.5" stroke="#333333" stroke-width="1.2"/>
+<polygon points="80,30 82.73,36.45 77.27,36.45" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="630" y="320" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="end">distance from the mask</text>
+<text x="70" y="26" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="end">weight</text>
+<path d="M80,260 L180,260 L440,60 L600,60" fill="none" stroke="#6c8ebf" stroke-width="2.5"/>
+<line x1="180" y1="260" x2="180" y2="266" stroke="#333333" stroke-width="1"/>
+<text x="180" y="282" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">r0</text>
+<text x="180" y="298" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">dpi/100</text>
+<line x1="440" y1="260" x2="440" y2="266" stroke="#333333" stroke-width="1"/>
+<text x="440" y="282" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="17" fill="#333333" text-anchor="middle">r1</text>
+<text x="440" y="298" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">dpi/20</text>
+<text x="72" y="64" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="end">1</text>
+<text x="72" y="264" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#333333" text-anchor="end">0</text>
+<text x="130" y="160" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">blurred</text>
+<text x="130" y="180.19" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">edge of</text>
+<text x="130" y="200.38" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">the ink</text>
+<text x="230" y="62" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#d79b00" text-anchor="middle">ringing: counts less,</text>
+<text x="230" y="82.19" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#d79b00" text-anchor="middle">and not at all if</text>
+<text x="230" y="102.38" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#d79b00" text-anchor="middle">darker than the paper</text>
+<text x="230" y="122.56" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#d79b00" text-anchor="middle">beyond r1 by 6</text>
+<text x="640" y="90" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">clean</text>
+<text x="640" y="110.19" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">paper</text>
+<text x="640" y="180" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#333333" text-anchor="start">cells with no</text>
+<text x="640" y="200.19" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#333333" text-anchor="start">weight: push-pull</text>
+<text x="640" y="220.38" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#333333" text-anchor="start">from coarser levels</text>
+</svg>

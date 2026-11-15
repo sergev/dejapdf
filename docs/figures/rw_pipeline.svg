@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="420" viewBox="0 0 940 420">
+<rect width="940" height="420" fill="white"/>
+<rect x="20" y="170" width="110" height="60" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="75" y="206.54" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="middle" font-weight="bold">input PDF</text>
+<rect x="160" y="170" width="120" height="60" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="220" y="206.54" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="middle" font-weight="bold">pdfread</text>
+<text x="220" y="250" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">objects, xref,</text>
+<text x="220" y="270.19" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">decryption,</text>
+<text x="220" y="290.38" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">filters</text>
+<rect x="310" y="170" width="120" height="60" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.2" rx="3"/>
+<text x="370" y="206.54" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="middle" font-weight="bold">scan</text>
+<text x="370" y="250" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">images drawn,</text>
+<text x="370" y="270.19" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">dpi, coverage;</text>
+<text x="370" y="290.38" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="middle">Plan</text>
+<line x1="130" y1="200" x2="152.5" y2="200" stroke="#333333" stroke-width="1.2"/>
+<polygon points="158,200 151.55,202.73 151.55,197.27" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="280" y1="200" x2="302.5" y2="200" stroke="#333333" stroke-width="1.2"/>
+<polygon points="308,200 301.55,202.73 301.55,197.27" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="470" y="30" width="120" height="60" fill="#fff2cc" stroke="#d6b656" stroke-width="1.2" rx="3"/>
+<text x="530" y="66.55" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="middle" font-weight="bold">bilevel</text>
+<text x="610" y="55" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#333333" text-anchor="start">components, alike shapes,</text>
+<text x="610" y="75" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">→ a JBIG2 image</text>
+<path d="M430,200 C450,200 450,60 468,60" fill="none" stroke="#333333" stroke-width="1.2"/>
+<polygon points="468,60 461.55,62.73 461.55,57.27" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="470" y="150" width="120" height="60" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.2" rx="3"/>
+<text x="530" y="186.54" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="middle" font-weight="bold">gray, colour</text>
+<text x="610" y="175" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#333333" text-anchor="start">text mask, colours, background</text>
+<text x="610" y="195" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">→ a form: JPX + stencils</text>
+<path d="M430,200 C450,200 450,180 468,180" fill="none" stroke="#333333" stroke-width="1.2"/>
+<polygon points="468,180 461.55,182.73 461.55,177.27" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="470" y="270" width="120" height="60" fill="#f5f5f5" stroke="#999999" stroke-width="1.2" rx="3"/>
+<text x="530" y="306.55" font-family="Helvetica, Arial, sans-serif" font-size="18.7" fill="#333333" text-anchor="middle" font-weight="bold">keep</text>
+<text x="610" y="295" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#333333" text-anchor="start">inline, masked, CMYK, already</text>
+<text x="610" y="315" font-family="Helvetica, Arial, sans-serif" font-size="16.15" fill="#808080" text-anchor="start">JBIG2 or JPX → as it was</text>
+<path d="M430,200 C450,200 450,300 468,300" fill="none" stroke="#333333" stroke-width="1.2"/>
+<polygon points="468,300 461.55,302.73 461.55,297.27" fill="#333333" stroke="none" stroke-width="1"/>
+<rect x="470" y="360" width="450" height="44" fill="#d5e8d4" stroke="#82b366" stroke-width="1.2" rx="3"/>
+<text x="695" y="388.25" font-family="Helvetica, Arial, sans-serif" font-size="17.85" fill="#333333" text-anchor="middle">rewrite: all copied; replacements in place</text>
+</svg>

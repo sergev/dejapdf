@@ -12,6 +12,9 @@ Articles:
   it goes into PDF.
 - [Portable_Document_Format.md](Portable_Document_Format.md): the parts of
   PDF that dejapdf writes.
+- [PDF_Rewriting.md](PDF_Rewriting.md): re-encoding scanned PDFs: reading
+  the file, finding the scan images, JBIG2 for bilevel scans, text and
+  background layers for gray and colour ones, and what stays untouched.
 
 Figures come from `figures/*.py`. `make docs` regenerates the figures and
 the article PDFs; `make docs-pdf` only the PDFs.
