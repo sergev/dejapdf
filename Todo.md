@@ -41,19 +41,6 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T13. Background
-
-- [ ] Fill the pixels under the mask from their unmasked neighbours, so
-  text leaves no ghosts and the wavelets spend no bits on it
-- [ ] Downsample by 3 (or to ~100 dpi), encode as JPX with the existing
-  rate control; `-q` sets the budget relative to the original image
-- [ ] A background that is a single uniform colour becomes a fill, as on
-  the DjVu path
-
-Done when: backgrounds of the Etudes pages show no text ghosts at 400%,
-and the whole page comes to within 20% of the `cjb2`+`c44` measurement
-above.
-
 ## T14. Re-encode gray and colour scans
 
 - [ ] Replace the image XObject in place with a form XObject,

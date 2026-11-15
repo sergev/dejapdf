@@ -12,7 +12,7 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T13–T16.
+Todo.md as tasks T14–T16.
 
 ## Commands
 
@@ -54,7 +54,9 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   symbol dictionary, refinement dictionary, text region). Produces the
   PDF-embedded format with no file header.
 - `internal/jpx`: JPEG 2000 encoder with PCRD-opt rate control to a byte
-  budget; the only codec for re-encoded images.
+  budget; the only codec for re-encoded images. `EncodeSlope` also
+  drops passes removing less than a given squared error per byte
+  (grain goes, a faint feature stays).
 - `internal/pdfread`: PDF reader for re-encoding scanned PDFs: objects
   (as `internal/pdf` values plus `*Stream`), xref tables and streams,
   object streams, `/Prev` chains, repair by scanning, decryption, page
@@ -108,6 +110,14 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   box, on clean paper, stay: captions. `Colors` gives each mark its
   core colour: black if near black, else a k-means palette of up to 8.
   Light text on dark or coloured ground stays in the background.
+  `Background` (T13) reduces the scan and fills what the mask hides:
+  pixels within r0 of the mask are left out, those within r1 count
+  less the nearer, and not at all if darker than the paper beyond r1
+  (no ghost of the text); empty cells are filled by push-pull.
+  `reencode.background` codes it at about 100 dpi as JPX
+  (`EncodeSlope` 100, capped at `-q` × the original, default 0.15),
+  or as a fill when uniform. Etudes: 12.9× lossless, 32× lossy
+  (`TestSeparate` with PDF_BOOKS reports this).
 - `internal/jpeg`: Go's image/jpeg decoder (BSD) with libjpeg's integer
   IDCT, returning component planes at their own resolution.
 - `internal/shapes`: splits a bilevel bitmap into 8-connected

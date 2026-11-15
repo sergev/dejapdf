@@ -59,6 +59,14 @@ type block struct {
 // by row) as a JP2 file of at most budget bytes; budget 0 keeps every
 // pass.
 func Encode(w, h int, planes [][]byte, budget int) ([]byte, error) {
+	return EncodeSlope(w, h, planes, budget, 0)
+}
+
+// EncodeSlope is Encode keeping only the passes that remove at least
+// slope of squared error (in 8-bit levels, summed over the samples)
+// per byte: grain costs nothing, a faint feature is kept, a busy image
+// takes up to the budget.
+func EncodeSlope(w, h int, planes [][]byte, budget int, slope float64) ([]byte, error) {
 	nc := len(planes)
 	if nc != 1 && nc != 3 {
 		return nil, errors.New("jpx: need 1 or 3 planes")
@@ -128,8 +136,8 @@ func Encode(w, h int, planes [][]byte, budget int) ([]byte, error) {
 		}
 		return n
 	}
-	if budget > 0 && size() > budget {
-		allocate(all, budget, size)
+	if (budget > 0 && size() > budget) || slope > 0 {
+		allocate(all, budget, size, slope)
 	}
 	cs := append(head, 0xff, 0x93) // SOD
 	for r := range res {
@@ -278,8 +286,9 @@ func codeBlocks(all []*band, comps [][]float32, stride, nb int) {
 
 // allocate chooses each block's kept passes for the least distortion
 // within budget (PCRD-opt, J.13): it keeps the hull points whose
-// distortion-rate slope reaches a threshold, searched over all slopes.
-func allocate(all []*band, budget int, size func() int) {
+// distortion-rate slope reaches a threshold, searched over all slopes,
+// and at least minSlope.
+func allocate(all []*band, budget int, size func() int, minSlope float64) {
 	var slopes []float64
 	for _, b := range all {
 		for i := range b.blocks {
@@ -303,10 +312,16 @@ func allocate(all []*band, budget int, size func() int) {
 		}
 	}
 	// Largest n such that keeping slopes[:n] fits.
-	n := sort.Search(len(slopes), func(n int) bool {
-		set(slopes[n])
-		return size() > budget
-	})
+	n := len(slopes)
+	if minSlope > 0 {
+		n = sort.Search(len(slopes), func(n int) bool { return slopes[n] < minSlope })
+	}
+	if budget > 0 {
+		n = min(n, sort.Search(len(slopes), func(n int) bool {
+			set(slopes[n])
+			return size() > budget
+		}))
+	}
 	if n == 0 {
 		set(math.Inf(1))
 	} else {

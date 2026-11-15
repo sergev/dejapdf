@@ -35,6 +35,7 @@ type Options struct {
 	Warn     func(error)         // a problem with an image, which is kept
 	Progress func(done, all int) // images done
 	Lossy    bool                // substitute alike shapes
+	Quality  float64             // background size cap, a fraction of the image; 0 means DefaultQuality
 }
 
 // Stats tell what was done.

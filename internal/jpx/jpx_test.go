@@ -187,3 +187,55 @@ func BenchmarkEncode(b *testing.B) {
 		}
 	}
 }
+
+// TestSlope: paper with grain and a faint box. The larger the slope,
+// the smaller the file; the grain goes, the box stays.
+func TestSlope(t *testing.T) {
+	if _, err := exec.LookPath("opj_decompress"); err != nil {
+		t.Skip("no opj_decompress")
+	}
+	const w, h = 256, 256
+	rng := rand.New(rand.NewSource(3))
+	g := make([]byte, w*h)
+	for y := range h {
+		for x := range w {
+			v := 240.0
+			if x >= 100 && x < 140 && y >= 60 && y < 100 {
+				v = 228
+			}
+			g[y*w+x] = byte(v + 2*rng.NormFloat64() + 0.5)
+		}
+	}
+	full, _ := Encode(w, h, [][]byte{g}, 0)
+	last := len(full) + 1
+	for _, slope := range []float64{10, 100, 1000} {
+		jp2, err := EncodeSlope(w, h, [][]byte{g}, 0, slope)
+		if err != nil {
+			t.Fatal(err)
+		}
+		d := opjDecode(t, jp2, 1)
+		box, paper := 0, 0
+		for y := 70; y < 90; y++ {
+			for x := 110; x < 130; x++ {
+				box += int(d[y*w+x])
+				paper += int(d[(y+100)*w+x])
+			}
+		}
+		box, paper = box/400, paper/400
+		t.Logf("slope %g: %d bytes (all passes %d), box %d paper %d", slope, len(jp2), len(full), box, paper)
+		if len(jp2) >= last || abs(box-228) > 2 || abs(paper-240) > 2 {
+			t.Errorf("slope %g: %d bytes after %d, box %d paper %d", slope, len(jp2), last, box, paper)
+		}
+		last = len(jp2)
+	}
+	if jp2, _ := EncodeSlope(w, h, [][]byte{g}, 300, 1); len(jp2) > 300 {
+		t.Errorf("budget 300: %d bytes", len(jp2))
+	}
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}

@@ -36,7 +36,7 @@ func usage() {
 func main() {
 	showVersion := flag.Bool("version", false, "print version and exit")
 	dump := flag.Bool("dump", false, "print the chunk tree, like djvudump; for a PDF, the scan images by page")
-	quality := flag.Float64("q", convert.DefaultQuality, "colour layer size as a multiple of the DjVu size")
+	quality := flag.Float64("q", 0, fmt.Sprintf("colour layer size: a multiple of the DjVu size (default %g),\nor for a PDF a fraction of the scan image (default %g)", convert.DefaultQuality, reencode.DefaultQuality))
 	pages := flag.String("p", "", "pages to convert, like 1-10,15 (default all)")
 	verbose := flag.Bool("v", false, "show a size report by layer")
 	lossy := flag.Bool("lossy", false, "PDF input: substitute alike shapes in bilevel scans")
@@ -118,7 +118,7 @@ func startProfiles(cpu, tr string) (stop func(), err error) {
 func convertFile(in, out string, quality float64, pages string, verbose, quiet, lossy bool) error {
 	start := time.Now()
 	if data, err := os.ReadFile(in); err == nil && isPDF(data) {
-		return reencodeFile(data, out, verbose, quiet, lossy, start)
+		return reencodeFile(data, out, quality, verbose, quiet, lossy, start)
 	}
 	doc, err := djvu.Open(in)
 	if err != nil {
@@ -178,7 +178,7 @@ func convertFile(in, out string, quality float64, pages string, verbose, quiet, 
 }
 
 // reencodeFile re-encodes the scan images of a PDF.
-func reencodeFile(data []byte, out string, verbose, quiet, lossy bool, start time.Time) error {
+func reencodeFile(data []byte, out string, quality float64, verbose, quiet, lossy bool, start time.Time) error {
 	r, err := pdfread.Open(data)
 	if err != nil {
 		return err
@@ -193,7 +193,8 @@ func reencodeFile(data []byte, out string, verbose, quiet, lossy bool, start tim
 	}
 	defer pr.clear()
 	opt := reencode.Options{
-		Lossy: lossy,
+		Lossy:   lossy,
+		Quality: quality,
 		Warn: func(err error) {
 			msg := fmt.Sprintf("dejapdf: warning: %v", err)
 			if pr != nil {
