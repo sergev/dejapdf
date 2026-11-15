@@ -23,6 +23,7 @@ import (
 	"github.com/sergev/dejapdf/internal/djvu"
 	"github.com/sergev/dejapdf/internal/iff"
 	"github.com/sergev/dejapdf/internal/pdfread"
+	"github.com/sergev/dejapdf/internal/progress"
 	"github.com/sergev/dejapdf/internal/reencode"
 	"github.com/sergev/dejapdf/internal/rewrite"
 	"github.com/sergev/dejapdf/internal/scan"
@@ -128,37 +129,40 @@ func startProfiles(cpu, tr string) (stop func(), err error) {
 	return stop, err
 }
 
+// Shares of the time taken by the phases before the main one, of what
+// the earlier phases left.
+const (
+	readShare = 0.01
+	findShare = 0.03
+)
+
 func convertFile(in, out string, quality float64, pages string, verbose, quiet, lossy bool) error {
 	start := time.Now()
+	var pr *statusLine
+	if !quiet {
+		pr = newStatusLine(filepath.Base(out))
+	}
+	defer pr.clear()
+	m := pr.meter()
+	m.Start("reading", "", readShare, 1)
 	if data, err := os.ReadFile(in); err == nil && isPDF(data) {
-		return reencodeFile(in, data, out, quality, pages, verbose, quiet, lossy, start)
+		return reencodeFile(in, data, out, quality, pages, verbose, quiet, lossy, start, pr, m)
 	}
 	doc, err := djvu.Open(in)
 	if err != nil {
 		return err
 	}
-	var pr *progress
-	if !quiet {
-		pr = newProgress(filepath.Base(out), "pages")
-	}
-	defer pr.clear()
 	opt := convert.Options{
 		Producer: "dejapdf " + version,
 		Quality:  quality,
+		Meter:    m,
 		Warn: func(page int, err error) {
 			msg := fmt.Sprintf("dejapdf: warning: %v", err)
 			if page >= 0 {
 				msg = fmt.Sprintf("dejapdf: page %d: %v", page+1, err)
 			}
-			if pr != nil {
-				pr.warn(msg)
-			} else {
-				fmt.Fprintln(os.Stderr, msg)
-			}
+			pr.warn(msg)
 		},
-	}
-	if pr != nil {
-		opt.Progress = pr.update
 	}
 	if pages != "" {
 		if opt.Pages, err = parsePages(pages, len(doc.Pages)); err != nil {
@@ -180,9 +184,11 @@ func convertFile(in, out string, quality float64, pages string, verbose, quiet, 
 		os.Remove(out)
 		return err
 	}
+	m.Finish()
 	pr.clear()
 	if verbose {
 		opt.Stats.Report(os.Stderr)
+		fmt.Fprintln(os.Stderr, m)
 	}
 	if fi, err := os.Stat(out); err == nil && !quiet {
 		fmt.Println(summary(filepath.Base(out), fi.Size(), convert.DjVuSize(doc, opt.Pages), time.Since(start)))
@@ -192,7 +198,7 @@ func convertFile(in, out string, quality float64, pages string, verbose, quiet, 
 
 // reencodeFile re-encodes the scan images of a PDF.
 func reencodeFile(in string, data []byte, out string, quality float64, pages string, verbose, quiet, lossy bool,
-	start time.Time) error {
+	start time.Time, pr *statusLine, m *progress.Meter) error {
 	r, err := pdfread.Open(data)
 	if errors.Is(err, pdfread.ErrPassword) {
 		return fmt.Errorf("%s is password-protected; remove the password first, e.g. qpdf --decrypt --password=... in.pdf out.pdf", in)
@@ -200,7 +206,8 @@ func reencodeFile(in string, data []byte, out string, quality float64, pages str
 	if err != nil {
 		return err
 	}
-	doc, err := scan.Find(r)
+	m.Start("finding images", "", findShare, 1)
+	doc, err := scan.FindStep(r, func(done, all int) { m.Set(int64(done), int64(all)) })
 	if err != nil {
 		return err
 	}
@@ -210,28 +217,12 @@ func reencodeFile(in string, data []byte, out string, quality float64, pages str
 			return err
 		}
 	}
-	var pr *progress
-	if !quiet {
-		pr = newProgress(filepath.Base(out), "images")
-	}
-	defer pr.clear()
 	opt := reencode.Options{
 		Lossy:   lossy,
 		Quality: quality,
 		Pages:   sel,
-		Warn: func(err error) {
-			msg := fmt.Sprintf("dejapdf: warning: %v", err)
-			if pr != nil {
-				pr.warn(msg)
-			} else {
-				fmt.Fprintln(os.Stderr, msg)
-			}
-		},
-	}
-	if pr != nil {
-		opt.Progress = func(done, all int) {
-			pr.update(convert.Progress{Page: done / 2, Pages: all / 2, Done: int64(done), Total: int64(all)})
-		}
+		Meter:   m,
+		Warn:    func(err error) { pr.warn(fmt.Sprintf("dejapdf: warning: %v", err)) },
 	}
 	f, err := os.Create(out)
 	if err != nil {
@@ -241,10 +232,11 @@ func reencodeFile(in string, data []byte, out string, quality float64, pages str
 	var none *reencode.NothingError
 	if errors.As(err, &none) {
 		// Written unchanged: the whole input, or its selected pages.
+		m.Start("writing", "", 1, int64(len(data)))
 		if sel == nil {
 			_, err = f.Write(data)
 		} else {
-			err = rewrite.Select(r, f, nil, sel)
+			err = rewrite.Select(r, f, nil, sel, m.Add)
 		}
 	}
 	if cerr := f.Close(); err == nil {
@@ -254,11 +246,15 @@ func reencodeFile(in string, data []byte, out string, quality float64, pages str
 		os.Remove(out)
 		return err
 	}
+	m.Finish()
 	pr.clear()
-	if none != nil {
-		if verbose {
+	if verbose {
+		if none != nil {
 			fmt.Fprintln(os.Stderr, none.Reason)
 		}
+		fmt.Fprintln(os.Stderr, m)
+	}
+	if none != nil {
 		if fi, err := os.Stat(out); err == nil && !quiet {
 			fmt.Printf("%s: %d kbytes, nothing to re-encode\n", filepath.Base(out), (fi.Size()+512)/1024)
 		}

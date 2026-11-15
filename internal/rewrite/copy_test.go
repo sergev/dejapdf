@@ -234,7 +234,7 @@ func TestSelect(t *testing.T) {
 			t.Fatal(err)
 		}
 		var out bytes.Buffer
-		if err := Select(r, &out, nil, c.sel); err != nil {
+		if err := Select(r, &out, nil, c.sel, nil); err != nil {
 			t.Fatal(err)
 		}
 		r2, err := pdfread.Open(out.Bytes())

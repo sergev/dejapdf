@@ -170,6 +170,11 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
 - `internal/pdf`: our own minimal PDF writer. It embeds already-encoded streams
   with any filter and DecodeParms; other objects go into object streams, with
   an xref stream.
+- `internal/progress`: `Meter` adds up the work done in phases (each
+  a share of what the earlier ones left, so it never goes back) for the
+  progress line and `-v`'s phase times. The work is estimated from
+  measured costs: per byte of each DjVu layer (`convert/work.go`), per
+  pixel of each pass over a scan image (`reencode/work.go`).
 - `internal/convert`: lays out each page in PDF. Pages are built in
   parallel, largest first, within a budget of colour pixels
   (`schedule.go`), and written in order; masks via `internal/stencil`. A page

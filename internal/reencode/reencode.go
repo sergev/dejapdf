@@ -23,6 +23,7 @@ import (
 	"github.com/sergev/dejapdf/internal/jbig2"
 	"github.com/sergev/dejapdf/internal/pdf"
 	"github.com/sergev/dejapdf/internal/pdfread"
+	"github.com/sergev/dejapdf/internal/progress"
 	"github.com/sergev/dejapdf/internal/raster"
 	"github.com/sergev/dejapdf/internal/rewrite"
 	"github.com/sergev/dejapdf/internal/scan"
@@ -33,16 +34,13 @@ import (
 // GroupSize is the number of images sharing one /JBIG2Globals.
 var GroupSize = 32
 
-// ProgressStep is how many passes over an image between calls to Progress.
-const ProgressStep = 4
-
 // Options control the re-encoding.
 type Options struct {
-	Warn     func(error)         // a problem with an image, which is kept
-	Progress func(done, all int) // passes done, two per image
-	Lossy    bool                // substitute alike shapes
-	Quality  float64             // background size cap, a fraction of the image; 0 means DefaultQuality
-	Pages    []int               // pages to keep, from 0 in output order; nil means all
+	Warn    func(error)     // a problem with an image, which is kept
+	Meter   *progress.Meter // told of the work done; may be nil
+	Lossy   bool            // substitute alike shapes
+	Quality float64         // background size cap, a fraction of the image; 0 means DefaultQuality
+	Pages   []int           // pages to keep, from 0 in output order; nil means all
 }
 
 // NothingError is returned, before anything is written, when the
@@ -101,22 +99,15 @@ func Reencode(r *pdfread.Reader, doc *scan.Document, out io.Writer, opt Options)
 	}
 	st := &Stats{Images: all}
 	repl := map[int]*rewrite.Stream{}
-	var mu sync.Mutex
-	done := 0
-	step := func() { // a pass over an image
-		mu.Lock()
-		defer mu.Unlock()
-		if done++; opt.Progress != nil && (done%ProgressStep == 0 || done == 2*all) {
-			opt.Progress(done, 2*all)
-		}
-	}
+	w := newWork(r, opt.Meter, ims, seps)
 	for k := 0; k < len(ims); k += GroupSize {
-		group(r, ims[k:min(k+GroupSize, len(ims))], repl, st, &opt, step)
+		group(r, ims[k:min(k+GroupSize, len(ims))], repl, st, &opt, w)
 	}
 	for k := 0; k < len(seps); k += GroupSize {
-		separate(r, seps[k:min(k+GroupSize, len(seps))], dpi, repl, st, &opt, step)
+		separate(r, seps[k:min(k+GroupSize, len(seps))], dpi, repl, st, &opt, w)
 	}
-	return st, rewrite.Select(r, out, repl, opt.Pages)
+	w.writing()
+	return st, rewrite.Select(r, out, repl, opt.Pages, opt.Meter.Add)
 }
 
 // coded is an image's replacement.
@@ -132,10 +123,10 @@ type coded struct {
 // group re-encodes images sharing one dictionary of the shapes found in
 // more than one of them.
 func group(r *pdfread.Reader, ims []*scan.Image, repl map[int]*rewrite.Stream, st *Stats, opt *Options,
-	step func()) {
+	w *work) {
 	cs := make([]*coded, len(ims))
 	parallel(len(ims), func(i int) {
-		defer step()
+		defer w.add(ims[i], bilevelCost.decode)
 		c := &coded{im: ims[i]}
 		cs[i] = c
 		v, err := raster.Decode(r, c.im)
@@ -152,10 +143,12 @@ func group(r *pdfread.Reader, ims []*scan.Image, repl map[int]*rewrite.Stream, s
 			js = append(js, c.j)
 		}
 	}
-	share(js, opt.Lossy)
+	step, shared := w.sharing(ims, bilevelCost.share)
+	shareStep(js, opt.Lossy, step)
+	shared()
 	cache := &stencil.Cache{}
 	parallel(len(cs), func(i int) {
-		defer step()
+		defer w.coded(ims[i], bilevelCost.code)
 		c := cs[i]
 		if c.err != nil {
 			return
@@ -255,6 +248,11 @@ var Refine = true
 // the images use, or refine from, in more than one image go to a
 // dictionary they share.
 func share(js []*jb2.Image, lossy bool) {
+	shareStep(js, lossy, nil)
+}
+
+// shareStep is share telling step, if not nil, how far it is.
+func shareStep(js []*jb2.Image, lossy bool, step func(done, all int)) {
 	// Equal shapes are one class.
 	seed := maphash.MakeSeed()
 	var classes []*jb2.Bitmap
@@ -293,7 +291,7 @@ func share(js []*jb2.Image, lossy bool) {
 		}
 	}
 	if lossy || Refine {
-		cl := shapes.Classify(classes)
+		cl := shapes.ClassifyStep(classes, step)
 		if lossy {
 			for k := range blits {
 				for b, bl := range blits[k] {

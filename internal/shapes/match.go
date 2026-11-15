@@ -281,6 +281,12 @@ type Class struct {
 // then in order with those of the chunk: the result does not depend on
 // the number of CPUs.
 func Classify(bms []*jb2.Bitmap) []Class {
+	return ClassifyStep(bms, nil)
+}
+
+// ClassifyStep is Classify calling step, if not nil, after each chunk
+// of shapes.
+func ClassifyStep(bms []*jb2.Bitmap, step func(done, all int)) []Class {
 	fs := make([]*feature, len(bms))
 	parallelFor(len(bms), func(i int) { fs[i] = features(bms[i]) })
 	out := make([]Class, len(bms))
@@ -334,6 +340,9 @@ func Classify(bms []*jb2.Bitmap) []Class {
 			} else {
 				reps[key{f.w, f.h, f.holes}] = append(reps[key{f.w, f.h, f.holes}], i)
 			}
+		}
+		if step != nil {
+			step(c1, len(fs))
 		}
 	}
 	return out

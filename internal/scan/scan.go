@@ -80,6 +80,11 @@ const (
 
 // Find walks all pages of r.
 func Find(r *pdfread.Reader) (*Document, error) {
+	return FindStep(r, nil)
+}
+
+// FindStep is Find calling step, if not nil, after each page.
+func FindStep(r *pdfread.Reader, step func(done, all int)) (*Document, error) {
 	pages, err := r.Pages()
 	if err != nil {
 		return nil, err
@@ -99,6 +104,9 @@ func Find(r *pdfread.Reader) (*Document, error) {
 		}
 		pg.Scanned = total >= minScan
 		doc.Pages = append(doc.Pages, pg)
+		if step != nil {
+			step(i+1, len(pages))
+		}
 	}
 	for ref := range masks {
 		if im := doc.Images[ref]; im != nil {

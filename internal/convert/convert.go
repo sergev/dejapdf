@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"io"
 	"runtime"
+	"sync/atomic"
 
 	"github.com/sergev/dejapdf/internal/djvu"
 	"github.com/sergev/dejapdf/internal/iw44"
 	"github.com/sergev/dejapdf/internal/jb2"
 	jpxenc "github.com/sergev/dejapdf/internal/jpx"
 	"github.com/sergev/dejapdf/internal/pdf"
+	"github.com/sergev/dejapdf/internal/progress"
 	"github.com/sergev/dejapdf/internal/stencil"
 )
 
@@ -33,17 +35,10 @@ type Options struct {
 	// Warn, if not nil, is told of a layer that cannot be converted,
 	// which is then left out; if nil, that is an error.
 	Warn func(page int, err error)
-	// Progress, if not nil, is called after each page is written.
-	Progress func(Progress)
+	// Meter, if not nil, is told of the work done.
+	Meter *progress.Meter
 	// Stats, if not nil, receives sizes by layer.
 	Stats *Stats
-}
-
-// Progress tells how far a conversion is.
-type Progress struct {
-	Page, Pages int   // pages written, pages to write
-	Done, Total int64 // DjVu bytes of the pages written, of all pages to write
-	Written     int64 // PDF bytes written
 }
 
 // Convert writes doc as PDF to w.
@@ -92,6 +87,16 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 	}
 	sch := newScheduler(doc, sel, weight)
 	dicts := &stencil.Cache{}
+	costs := make([]pageCost, len(sel))
+	var units int64
+	for k, i := range sel {
+		costs[k] = costOf(doc.Pages[i])
+		units += costs[k].total()
+	}
+	m := opt.Meter
+	m.Start("pages", "pages", pagesShare, units)
+	m.Count(0, len(sel))
+	var built atomic.Int64
 	for range runtime.GOMAXPROCS(0) {
 		go func() {
 			for {
@@ -100,8 +105,17 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 					return
 				}
 				i, c := sel[k], results[k]
+				var added int64
+				add := func(n int64) {
+					added += n
+					m.Add(n)
+				}
 				func() {
 					defer sch.done(k)
+					defer func() {
+						m.Add(costs[k].total() - added)
+						m.Count(int(built.Add(1)), len(sel))
+					}()
 					defer func() {
 						// A decoder bug must not take down the whole file.
 						if e := recover(); e != nil {
@@ -114,20 +128,13 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 							c <- result{blankPage(blank[i], dicts), nil}
 						}
 					}()
-					b, err := build(doc, doc.Pages[i], i, &opt, dicts, tg, blank[i])
+					b, err := build(doc, doc.Pages[i], i, &opt, dicts, tg, blank[i], costs[k], add)
 					c <- result{b, err}
 				}()
 			}
 		}()
 	}
 	var err error
-	var pr Progress
-	if opt.Progress != nil {
-		pr.Pages = len(sel)
-		for k := range sel {
-			pr.Total += weight[k]
-		}
-	}
 	for k, i := range sel {
 		r := <-results[k]
 		if err == nil && r.err != nil {
@@ -135,15 +142,12 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		}
 		if err == nil {
 			r.b.emit(p, pages[i], pages, font, opt.Stats)
-			if opt.Progress != nil {
-				pr.Page, pr.Done, pr.Written = k+1, pr.Done+weight[k], cw.n
-				opt.Progress(pr)
-			}
 		}
 	}
 	if err != nil {
 		return err
 	}
+	m.Start("writing", "", 1, 1)
 	info := pdf.Dict{}
 	cat := pdf.Dict{}
 	for _, pg := range doc.Pages {
@@ -341,7 +345,7 @@ func channel(v byte) string { return num(float64(v) / 255) }
 // if opt.Warn is set.
 // A page that cannot be read becomes a blank page of size blank.
 func build(doc *djvu.Document, pg *djvu.Page, i int, opt *Options, dicts *stencil.Cache, tg *targets,
-	blank djvu.Info) (*pageBuilder, error) {
+	blank djvu.Info, cost pageCost, add func(int64)) (*pageBuilder, error) {
 	in := pg.Info
 	err := pg.Err
 	if err == nil && (in.Width <= 0 || in.Height <= 0) {
@@ -372,6 +376,7 @@ func build(doc *djvu.Document, pg *djvu.Page, i int, opt *Options, dicts *stenci
 	if !opt.MaskOnly {
 		try(background(b, pg, opt))
 	}
+	add(cost.bg)
 	mask, err := doc.Mask(pg)
 	switch {
 	case err != nil:
@@ -379,6 +384,7 @@ func build(doc *djvu.Document, pg *djvu.Page, i int, opt *Options, dicts *stenci
 	case mask != nil:
 		try(foreground(b, pg, mask, opt))
 	}
+	add(cost.fg)
 	try(text(b, pg, opt.Stats != nil))
 	try(links(b, pg, tg, i))
 	return b, first

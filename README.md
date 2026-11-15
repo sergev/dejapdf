@@ -41,12 +41,14 @@ colour          68172        81594   1.20
 text           209424       189448   0.90
 other            4866        28244   5.80
 total         1438254      1568031   1.09
+reading 0.0s, pages 0.5s, writing 0.0s
 book.pdf: 1531 kbytes, 1.09x in 0.5s
 ```
 
 Without `-v`, only the last line is printed. While converting, when the
-output is a terminal, a progress line shows the pages done and the PDF
-size so far; the summary line replaces it.
+output is a terminal, a progress line shows the percentage done and the
+pages (or, for a PDF, the scan images) done, or the phase: reading,
+finding images, writing; the summary line replaces it.
 
 ## Results
 

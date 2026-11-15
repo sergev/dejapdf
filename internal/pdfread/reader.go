@@ -377,6 +377,9 @@ func (r *Reader) loadStm(sn int) *objStm {
 	return st
 }
 
+// Size is the length of the file.
+func (r *Reader) Size() int64 { return int64(len(r.data)) }
+
 // Raw returns a stream's data decrypted, still encoded.
 func (r *Reader) Raw(s *Stream) []byte {
 	if r.crypt == nil {

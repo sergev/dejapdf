@@ -29,6 +29,13 @@ type copier struct {
 	repl    map[int]*Stream
 	drop    map[int]bool     // pages and page tree nodes left out
 	page    map[int]pdf.Dict // pages kept, in a new page tree
+	step    func(int64)      // told the bytes of each stream copied
+}
+
+func (c *copier) stepped(n int64) {
+	if c.step != nil {
+		c.step(n)
+	}
 }
 
 // parent is the /Parent of a kept page: the new page tree's root.
@@ -52,15 +59,15 @@ func Copy(r *pdfread.Reader, out io.Writer) error {
 // Replace is Copy with the stream objects in repl, by object number,
 // replaced.
 func Replace(r *pdfread.Reader, out io.Writer, repl map[int]*Stream) error {
-	return Select(r, out, repl, nil)
+	return Select(r, out, repl, nil, nil)
 }
 
 // Select is Replace keeping only the pages given, by index from 0, in
 // that order (all if nil), in a page tree of one level. References to
 // the pages left out become null; page labels, which count pages, are
-// dropped.
-func Select(r *pdfread.Reader, out io.Writer, repl map[int]*Stream, pages []int) error {
-	c := &copier{r: r, w: pdf.NewWriter(out), refs: map[int]pdf.Ref{}, repl: repl}
+// dropped. Step, if not nil, is told the bytes of each stream copied.
+func Select(r *pdfread.Reader, out io.Writer, repl map[int]*Stream, pages []int, step func(int64)) error {
+	c := &copier{r: r, w: pdf.NewWriter(out), refs: map[int]pdf.Ref{}, repl: repl, step: step}
 	tr := r.Trailer()
 
 	// The root of the page tree goes where the writer reserved it.
@@ -153,6 +160,7 @@ func (c *copier) write(n int) {
 	if s, ok := c.repl[n]; ok {
 		if _, ok := v.(*pdfread.Stream); ok {
 			c.w.Stream(r, c.value(s.Dict).(pdf.Dict), s.Data)
+			c.stepped(int64(len(s.Data)))
 			return
 		}
 	}
@@ -161,7 +169,9 @@ func (c *copier) write(n int) {
 		d := c.value(v.Dict).(pdf.Dict)
 		delete(d, "Length")
 		dropCrypt(d)
-		c.w.Stream(r, d, c.r.Raw(v))
+		raw := c.r.Raw(v)
+		c.w.Stream(r, d, raw)
+		c.stepped(int64(len(raw)))
 	default:
 		c.w.Object(r, c.value(v))
 	}

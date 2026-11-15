@@ -12,27 +12,26 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/sergev/dejapdf/internal/convert"
+	"github.com/sergev/dejapdf/internal/progress"
 )
 
 const progressEvery = 500 * time.Millisecond // between redraws
 
-// progress draws a progress line on stdout, which must be a terminal.
+// statusLine draws a progress line on stdout, which must be a terminal.
 // Warnings go through it so that they do not break the line.
-type progress struct {
+type statusLine struct {
 	mu    sync.Mutex
 	name  string
-	unit  string // what is counted: pages, images
 	width int
 	dumb  bool
 	shown int // length of the line on screen, 0 if none
-	p     convert.Progress
+	st    progress.Status
 	tick  *time.Ticker
 	done  bool // cleared: draw no more
 }
 
-// newProgress returns nil if stdout is not a terminal.
-func newProgress(name, unit string) *progress {
+// newStatusLine returns nil if stdout is not a terminal.
+func newStatusLine(name string) *statusLine {
 	fi, err := os.Stdout.Stat()
 	if err != nil || fi.Mode()&os.ModeCharDevice == 0 {
 		return nil
@@ -41,7 +40,7 @@ func newProgress(name, unit string) *progress {
 	if err != nil || w <= 0 {
 		w = 80
 	}
-	r := &progress{name: name, unit: unit, width: w - 1, dumb: os.Getenv("TERM") == "dumb", tick: time.NewTicker(progressEvery)}
+	r := &statusLine{name: name, width: w - 1, dumb: os.Getenv("TERM") == "dumb", tick: time.NewTicker(progressEvery)}
 	go func() {
 		for range r.tick.C {
 			r.mu.Lock()
@@ -54,14 +53,26 @@ func newProgress(name, unit string) *progress {
 	return r
 }
 
-func (r *progress) update(p convert.Progress) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.p = p
+// meter returns a progress meter updating the line, if any.
+func (r *statusLine) meter() *progress.Meter {
+	if r == nil {
+		return progress.New(nil)
+	}
+	return progress.New(r.update)
 }
 
-// warn prints a message on stderr above the progress line.
-func (r *progress) warn(msg string) {
+func (r *statusLine) update(st progress.Status) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.st = st
+}
+
+// warn prints a message on stderr, above the line if there is one.
+func (r *statusLine) warn(msg string) {
+	if r == nil {
+		fmt.Fprintln(os.Stderr, msg)
+		return
+	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	shown := r.shown > 0
@@ -73,7 +84,7 @@ func (r *progress) warn(msg string) {
 }
 
 // clear removes the line, before the summary or an error.
-func (r *progress) clear() {
+func (r *statusLine) clear() {
 	if r == nil {
 		return
 	}
@@ -84,8 +95,8 @@ func (r *progress) clear() {
 	r.erase()
 }
 
-func (r *progress) draw() {
-	s := progressLine(r.name, r.unit, r.p, r.width)
+func (r *statusLine) draw() {
+	s := progressLine(r.name, r.st, r.width)
 	pad := ""
 	if n := utf8.RuneCountInString(s); n < r.shown {
 		pad = strings.Repeat(" ", r.shown-n)
@@ -94,7 +105,7 @@ func (r *progress) draw() {
 	r.shown = utf8.RuneCountInString(s)
 }
 
-func (r *progress) erase() {
+func (r *statusLine) erase() {
 	if r.shown == 0 {
 		return
 	}
@@ -106,20 +117,15 @@ func (r *progress) erase() {
 	r.shown = 0
 }
 
-// progressLine is like "book.pdf: 45%, pages 12/27", the name cut
-// to fit in width.
-func progressLine(name, unit string, p convert.Progress, width int) string {
-	f := 0.0
+// progressLine is like "book.pdf: 45%, pages 12/27" in the main phase,
+// "book.pdf: 2%, reading" in others; the name cut to fit in width.
+func progressLine(name string, st progress.Status, width int) string {
+	tail := fmt.Sprintf(": %d%%", int(min(max(st.Frac, 0), 1)*100))
 	switch {
-	case p.Total > 0:
-		f = float64(p.Done) / float64(p.Total)
-	case p.Pages > 0:
-		f = float64(p.Page) / float64(p.Pages)
-	}
-	f = min(max(f, 0), 1)
-	tail := fmt.Sprintf(": %d%%", int(f*100))
-	if p.Pages > 0 {
-		tail += fmt.Sprintf(", %s %d/%d", unit, p.Page, p.Pages)
+	case st.Unit != "":
+		tail += fmt.Sprintf(", %s %d/%d", st.Unit, st.Count, st.Of)
+	case st.Phase != "":
+		tail += ", " + st.Phase
 	}
 	if n, room := utf8.RuneCountInString(name), width-len(tail); n > room {
 		if room < 2 {
