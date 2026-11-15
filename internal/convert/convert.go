@@ -13,6 +13,7 @@ import (
 	"github.com/sergev/dejapdf/internal/jb2"
 	jpxenc "github.com/sergev/dejapdf/internal/jpx"
 	"github.com/sergev/dejapdf/internal/pdf"
+	"github.com/sergev/dejapdf/internal/stencil"
 )
 
 // DefaultQuality is the default JPX size relative to IW44. Re-encoding
@@ -90,7 +91,7 @@ func Convert(doc *djvu.Document, w io.Writer, opt Options) error {
 		weight[k] = chunkSize(doc.Pages[i].Form)
 	}
 	sch := newScheduler(doc, sel, weight)
-	dicts := &sharedDicts{}
+	dicts := &stencil.Cache{}
 	for range runtime.GOMAXPROCS(0) {
 		go func() {
 			for {
@@ -190,7 +191,7 @@ type pageBuilder struct {
 	objs    []object
 	xobj    pdf.Dict // name to local
 	content []byte
-	shared  *sharedDicts
+	shared  *stencil.Cache
 	font    bool       // the content uses the hidden-text font
 	annots  []pdf.Dict // pageNum values refer to pages
 	pat     pdf.Dict   // pattern name to local
@@ -226,15 +227,15 @@ func (b *pageBuilder) emit(p *pdf.Writer, r pdf.Ref, pages []pdf.Ref, font *text
 			return refs[v]
 		case pageNum:
 			return pages[v]
-		case *shared:
-			if v.ref == 0 {
-				data := v.data()
-				v.ref = p.AddStream(pdf.Dict{}, data)
+		case *stencil.Globals:
+			if v.Ref == 0 {
+				data := v.Data()
+				v.Ref = p.AddStream(pdf.Dict{}, data)
 				if st != nil {
 					st.PDF[Mask] += int64(len(data))
 				}
 			}
-			return v.ref
+			return v.Ref
 		case pdf.Dict:
 			for k, e := range v {
 				v[k] = value(e)
@@ -339,7 +340,7 @@ func channel(v byte) string { return num(float64(v) / 255) }
 // build prepares a page. A layer that fails is left out with a warning,
 // if opt.Warn is set.
 // A page that cannot be read becomes a blank page of size blank.
-func build(doc *djvu.Document, pg *djvu.Page, i int, opt *Options, dicts *sharedDicts, tg *targets,
+func build(doc *djvu.Document, pg *djvu.Page, i int, opt *Options, dicts *stencil.Cache, tg *targets,
 	blank djvu.Info) (*pageBuilder, error) {
 	in := pg.Info
 	err := pg.Err
@@ -416,7 +417,7 @@ func background(b *pageBuilder, pg *djvu.Page, opt *Options) error {
 // FGjp, or in black.
 func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) error {
 	whole := func(c [3]byte, keep func(int) bool) {
-		if d, data := b.maskImage(mask, 0, 0, mask.W, mask.H, keep); d != nil {
+		if d, data := stencil.Code(mask, 0, 0, mask.W, mask.H, keep, b.shared); d != nil {
 			b.fill(c)
 			b.draw(b.add("Sm", b.obj(d, data)), mask.W, mask.H)
 		}
@@ -463,7 +464,7 @@ func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) er
 				whole(c, keep)
 				continue
 			}
-			if d, data := b.maskImage(mask, r[0], r[1], r[2]-r[0], r[3]-r[1], keep); d != nil {
+			if d, data := stencil.Code(mask, r[0], r[1], r[2]-r[0], r[3]-r[1], keep, b.shared); d != nil {
 				b.fill(c)
 				b.drawAt(b.add("Sm", b.obj(d, data)), r[0], r[1], r[2]-r[0], r[3]-r[1])
 			}
@@ -507,7 +508,7 @@ func foreground(b *pageBuilder, pg *djvu.Page, mask *jb2.Image, opt *Options) er
 // but Poppler blends such an image into the background along the mask's
 // edges (docs/Portable_Document_Format.md §8).
 func (b *pageBuilder) fgPattern(mask *jb2.Image, img local, iw, ih int) {
-	sd, sdata := b.maskImage(mask, 0, 0, mask.W, mask.H, nil)
+	sd, sdata := stencil.Code(mask, 0, 0, mask.W, mask.H, nil, b.shared)
 	if sd == nil {
 		return
 	}
@@ -596,7 +597,7 @@ func num(f float64) string {
 }
 
 // blankPage starts a page of the given size.
-func blankPage(in djvu.Info, dicts *sharedDicts) *pageBuilder {
+func blankPage(in djvu.Info, dicts *stencil.Cache) *pageBuilder {
 	return &pageBuilder{in: in, xobj: pdf.Dict{}, shared: dicts,
 		w: float64(in.Width) * 72 / float64(in.DPI),
 		h: float64(in.Height) * 72 / float64(in.DPI)}

@@ -1,7 +1,9 @@
 // Copyright (c) 2026 Serge Vakulenko
 // SPDX-License-Identifier: MIT
 
-package convert
+// Package stencil codes a jb2.Image as a JBIG2 stencil image, its
+// shared dictionary optionally as /JBIG2Globals.
+package stencil
 
 import (
 	"encoding/binary"
@@ -20,52 +22,54 @@ const (
 	sbDSOffset = 3
 )
 
-// minRefined is the fewest refined shapes worth a refinement dictionary;
+// MinRefined is the fewest refined shapes worth a refinement dictionary;
 // tests lower it.
-var minRefined = 100
+var MinRefined = 100
 
-// shared is a Djbz dictionary coded once as a JBIG2Globals stream.
+// Globals is a shared dictionary coded once as a JBIG2Globals stream.
 // Its data is coded in the background: pages need only its numbering.
-type shared struct {
+type Globals struct {
+	Ref pdf.Ref // where the caller wrote it, 0 until then
+
 	ids  []int           // symbol number of each shape, -1 for an empty one
 	syms []*jbig2.Bitmap // the symbols by number
 	segs int             // segments in data
-	ref  pdf.Ref
 
 	once  sync.Once
 	done  chan struct{}
 	coded []byte
 }
 
-// data waits for the coded segments.
-func (s *shared) data() []byte {
+// Data waits for the coded segments.
+func (s *Globals) Data() []byte {
 	<-s.done
 	return s.coded
 }
 
-// sharedDicts caches the document's coded Djbz dictionaries.
-type sharedDicts struct {
+// Cache holds a document's coded shared dictionaries.
+type Cache struct {
 	mu sync.Mutex
-	m  map[*jb2.Dict]*shared
+	m  map[*jb2.Dict]*Globals
 }
 
-func (sd *sharedDicts) get(d *jb2.Dict) *shared {
-	sd.mu.Lock()
-	s, ok := sd.m[d]
+// Get returns d coded, laying it out on first use.
+func (c *Cache) Get(d *jb2.Dict) *Globals {
+	c.mu.Lock()
+	s, ok := c.m[d]
 	if !ok {
-		s = &shared{}
-		if sd.m == nil {
-			sd.m = map[*jb2.Dict]*shared{}
+		s = &Globals{}
+		if c.m == nil {
+			c.m = map[*jb2.Dict]*Globals{}
 		}
-		sd.m[d] = s
+		c.m[d] = s
 	}
-	sd.mu.Unlock()
+	c.mu.Unlock()
 	s.once.Do(func() { s.layout(d) })
 	return s
 }
 
 // layout numbers d's symbols and starts coding them.
-func (s *shared) layout(d *jb2.Dict) {
+func (s *Globals) layout(d *jb2.Dict) {
 	var want []int
 	for i, b := range d.Shapes {
 		if b.W > 0 && b.H > 0 {
@@ -151,7 +155,7 @@ func codeShapes(want []int, shape func(int) *jb2.Bitmap, ref func(int) jb2.Ref,
 	}
 	// A few refinements code smaller as direct symbols: the refinement
 	// contexts would start cold.
-	if len(refd) < minRefined {
+	if len(refd) < MinRefined {
 		direct, refd = want, nil
 	}
 	n := uint32(first)
@@ -224,12 +228,13 @@ func pack(b *jb2.Bitmap) *jbig2.Bitmap {
 	return m
 }
 
-// maskImage returns the blits i with keep(i) (all if keep is nil) as a
-// w×h JBIG2 stencil whose bottom-left corner is mask pixel (x0, y0):
-// dictionary and data, or nil if nothing would be drawn. Shapes of a Djbz
-// go to its shared globals; the page's own shapes, and those they refine,
-// go to page dictionaries (docs/JBIG2_Coding.md §10).
-func (b *pageBuilder) maskImage(mask *jb2.Image, x0, y0, w, h int, keep func(int) bool) (pdf.Dict, []byte) {
+// Code returns the blits i with keep(i) (all if keep is nil) as a w×h
+// JBIG2 stencil whose bottom-left corner is mask pixel (x0, y0):
+// dictionary and data, or nil if nothing would be drawn. Shapes of the
+// shared dictionary go to its globals from c (to the page if c is nil);
+// the page's own shapes go to page dictionaries (docs/JBIG2_Coding.md
+// §10). /DecodeParms /JBIG2Globals is a *Globals for the caller to write.
+func Code(mask *jb2.Image, x0, y0, w, h int, keep func(int) bool, c *Cache) (pdf.Dict, []byte) {
 	empty := func(i int) bool { s := mask.Shape(i); return s.W == 0 || s.H == 0 }
 	var blits []int
 	useGlob := false
@@ -237,7 +242,7 @@ func (b *pageBuilder) maskImage(mask *jb2.Image, x0, y0, w, h int, keep func(int
 	for i, bl := range mask.Blits {
 		if (keep == nil || keep(i)) && !empty(bl.Shape) {
 			blits = append(blits, i)
-			if bl.Shape < mask.NDict {
+			if bl.Shape < mask.NDict && c != nil {
 				useGlob = true
 			} else {
 				need[bl.Shape] = true
@@ -249,15 +254,15 @@ func (b *pageBuilder) maskImage(mask *jb2.Image, x0, y0, w, h int, keep func(int
 	}
 	if mask.Dict == nil && len(mask.Shapes) == 1 && len(mask.Blits) == 1 && x0 == 0 && y0 == 0 {
 		// One bitmap (an Smmr mask): a generic region.
-		return maskDict(w, h), jbig2.GenericPage(pack(mask.RenderSome(w, h, nil)), 0)
+		return dict(w, h), jbig2.GenericPage(pack(mask.RenderSome(w, h, nil)), 0)
 	}
-	var glob *shared
+	var glob *Globals
 	var ext func(int) int
 	var extSyms []*jbig2.Bitmap
 	var extSegs []uint32
 	n := uint32(0)
 	if useGlob {
-		glob = b.shared.get(mask.Dict)
+		glob = c.Get(mask.Dict)
 		ext = func(i int) int {
 			if i < mask.NDict {
 				return glob.ids[i]
@@ -291,14 +296,14 @@ func (b *pageBuilder) maskImage(mask *jb2.Image, x0, y0, w, h int, keep func(int
 	tr := jbig2.Segment{Number: n + 1 + uint32(set.nsegs), Type: jbig2.TypeTextRegion, Refs: set.refs, Page: 1,
 		Data: jbig2.TextRegion(w, h, ins, len(set.syms), sbStrips, sbDSOffset)}
 	segs = tr.Append(segs)
-	d := maskDict(w, h)
+	d := dict(w, h)
 	if useGlob {
 		d["DecodeParms"] = pdf.Dict{"JBIG2Globals": glob}
 	}
 	return d, segs
 }
 
-func maskDict(w, h int) pdf.Dict {
+func dict(w, h int) pdf.Dict {
 	return pdf.Dict{
 		"Subtype":   pdf.Name("Image"),
 		"Width":     w,

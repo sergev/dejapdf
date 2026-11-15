@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Serge Vakulenko
 // SPDX-License-Identifier: MIT
 
-package convert
+package stencil
 
 import (
 	"math/rand"

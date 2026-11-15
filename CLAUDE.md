@@ -12,7 +12,7 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T7–T16.
+Todo.md as tasks T8–T16.
 
 ## Commands
 
@@ -80,13 +80,17 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   CMYK) on every scanned book.
 - `internal/jpeg`: Go's image/jpeg decoder (BSD) with libjpeg's integer
   IDCT, returning component planes at their own resolution.
+- `internal/stencil`: codes a `jb2.Image` (or a subset of its blits) as
+  a JBIG2 stencil: symbol and refinement dictionaries plus a text region,
+  or a generic region for one bitmap; shared dictionaries as
+  `/JBIG2Globals` coded once in the background (`Cache`), or inline.
 - `internal/pdf`: our own minimal PDF writer. It embeds already-encoded streams
   with any filter and DecodeParms; other objects go into object streams, with
   an xref stream.
 - `internal/convert`: lays out each page in PDF. Pages are built in
   parallel, largest first, within a budget of colour pixels
-  (`schedule.go`), and written in order; shared dictionaries are coded
-  in the background. A page has:
+  (`schedule.go`), and written in order; masks via `internal/stencil`. A page
+  has:
   - background JPX stretched to the page;
   - mask as a stencil (`/ImageMask true`; JBIG2 decodes black as 0, so no
     `/Decode`; a raw 1 = black mask needs `/Decode [1 0]`);

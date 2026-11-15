@@ -41,15 +41,6 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T7. Factor out mask coding
-
-- [ ] Move `maskImage`/`codeShapes` and friends from `internal/convert`
-  to a package that codes any `jb2.Image` as a JBIG2 stencil, with or
-  without globals; `internal/convert` calls it
-
-Done when: the DjVu path's output is byte-identical to before on the
-corpus and the books; all tests pass.
-
 ## T8. Connected components
 
 - [ ] Split a bitmap into 8-connected components; each one becomes a
@@ -63,7 +54,7 @@ on every page of the G4 books; tests on synthetic bitmaps.
 
 ## T9. Re-encode bilevel scans (lossless)
 
-- [ ] Replace the image stream in place with a JBIG2 stencil from T7/T8:
+- [ ] Replace the image stream in place with a JBIG2 stencil (`internal/stencil`, T8):
   same object number, `Width`/`Height` kept, `/Filter /JBIG2Decode`
 - [ ] Get the polarity right: JBIG2 decodes 1 as black, so an image mask
   needs no `/Decode`, while a 1-bit DeviceGray image needs `/Decode [1 0]`;

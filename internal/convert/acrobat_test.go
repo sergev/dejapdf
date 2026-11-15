@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/sergev/dejapdf/internal/djvu"
+	"github.com/sergev/dejapdf/internal/stencil"
 )
 
 // Adobe Reader 9 (acroread), where installed, prints every corpus page
@@ -27,8 +28,8 @@ func TestAcrobat(t *testing.T) {
 	if testing.Short() {
 		t.Skip("slow")
 	}
-	defer func(n int) { minRefined = n }(minRefined)
-	minRefined = 1
+	defer func(n int) { stencil.MinRefined = n }(stencil.MinRefined)
+	stencil.MinRefined = 1
 	files, _ := filepath.Glob(filepath.Join(corpus, "*.djvu"))
 	dir := t.TempDir()
 	for _, f := range files {
