@@ -26,8 +26,8 @@ dejapdf -dump input.djvu
 | `-cpuprofile file` | write a CPU profile, for `go tool pprof` |
 | `-trace file` | write an execution trace, for `go tool trace` |
 
-`-q` sets the byte budget of the JPEG 2000 re-encoding of the colour layers;
-the mask and text are lossless and do not depend on it.
+`-q` trades colour quality for size; the black-and-white text layer is
+lossless and does not depend on it.
 
 ```
 $ dejapdf -v book.djvu book.pdf
@@ -52,27 +52,10 @@ with the default options, come out 1.06–1.18× the DjVu size, in 0.5–12 s
 each. Every PDF passes `qpdf --check`. For comparison, `ddjvu -format=pdf`
 makes 9.8–97× the DjVu size on the same books.
 
-## How a page maps to PDF
-
-| DjVu | PDF |
-|---|---|
-| `Sjbz` text mask (JB2) | JBIG2 stencil mask (`/ImageMask true`) |
-| `Djbz` shared shape dictionary | `/JBIG2Globals`, shared across pages |
-| `Smmr` mask (G4) | JBIG2 generic region |
-| `BG44` background (IW44) | JPEG 2000 image (`JPXDecode`), stretched to the page |
-| `FG44` foreground colour (IW44) | the stencil filled with a pattern of the JPEG 2000 image |
-| `FGbz` colour palette | one stencil mask per colour |
-| `BGjp`, `FGjp` (JPEG) | passed through as `DCTDecode` |
-| `TXTz` hidden text | invisible text: the PDF stays searchable |
-| `NAVM` table of contents | PDF outline (bookmarks) |
-| `ANTz` annotations | link annotations |
-| `DIRM` page titles, metadata | page labels, Info dictionary and XMP |
-
-JB2 shapes and their positions are carried over to JBIG2 as they are, so
-no re-classification happens and no new character-substitution errors are
-introduced. Shapes that JB2 refines from another shape of the same size stay
-refinements; the rest are coded directly, because Adobe Reader fails on
-size-changing refinements ([docs/JBIG2_Coding.md](docs/JBIG2_Coding.md) §8).
+The PDF keeps what the DjVu has: hidden text (so it stays searchable),
+the table of contents as bookmarks, links, page labels and metadata. The
+text layer is carried over losslessly, so no new character substitution
+errors appear.
 
 The PDFs are checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe
 Reader 9 and Adobe Acrobat 26.
@@ -132,13 +115,9 @@ needs `pdf2djvu`, which Homebrew lacks, so regenerate it on Linux.
 
 ## Testing
 
-`go test ./...` runs the unit tests and checks the output against external
-tools, which are run but never linked: `ddjvu`, `djvused`, `djvudump`
-(djvulibre-bin), `jbig2dec`, `qpdf`, `mutool`, `pdftoppm`, `opj_decompress`,
-`gs`, and `acroread` (Adobe Reader 9 for Linux) when installed. A test skips
-when its tool is missing. Masks must be pixel-identical to
-`ddjvu -mode=mask`, and the JBIG2 streams must decode bit-exact with
-`jbig2dec`. `make fuzz` runs the fuzz targets of the decoders.
+`go test ./...` runs the unit tests and checks the output against the
+external tools listed above; a test skips when its tool is missing.
+`make fuzz` runs the fuzz targets of the decoders.
 
 To check the hidden text, annotations and outline of your own books against
 `djvused`, name them in `DJVU_BOOKS`:
