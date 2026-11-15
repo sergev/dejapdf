@@ -12,7 +12,7 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T11–T16.
+Todo.md as tasks T12–T16.
 
 ## Commands
 
@@ -75,7 +75,10 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   same object number (`shapes.Split`, then `stencil.Code`), with a
   `/Decode` from `raster.Bitmap.Decode`; groups of 32 images share a
   `/JBIG2Globals` of the shapes found in more than one; an image, or a
-  group, that would not shrink is kept. MuPDF renders an image whose
+  group, that would not shrink is kept. Lossless: alike shapes of the
+  same size are coded as refinements of their representative. `-lossy`
+  (`Options.Lossy`): they are replaced by it (PDP11 Handbook 5×
+  smaller, against 1.66× lossless). MuPDF renders an image whose
   ink was raw sample 1 one gray level off when subsampling (it averages
   before `/Decode`); identical from half the image's resolution up.
   Tests: jbig2dec on every replaced image, and the object graphs of
@@ -98,7 +101,16 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   IDCT, returning component planes at their own resolution.
 - `internal/shapes`: splits a bilevel bitmap into 8-connected
   components (runs joined by union-find) as a `jb2.Image`: exact
-  duplicates merged, components over `MaxSide` (1024) tiled.
+  duplicates merged, components over `MaxSide` (1024) tiled. `Classify`
+  groups alike shapes (`match.go`): sizes within 2 pixels (1 up to 24,
+  none for marks up to 10 and for narrow shapes like l, I, 1), the same
+  holes, each within a pixel of the other with centroids aligned, a
+  weighted XOR under the perimeter, and no thick XOR patch (a serif, a
+  flag, a tail). Each shape joins its best earlier representative,
+  in parallel by chunks, independent of the CPU count. Tuned on
+  `testdata/pdf/digits.pdf` (look-alike characters, three scan
+  qualities): TestLookalikes reads every glyph before and after
+  substitution.
 - `internal/stencil`: codes a `jb2.Image` (or a subset of its blits) as
   a JBIG2 stencil: symbol and refinement dictionaries plus a text region,
   or a generic region for one bitmap; shared dictionaries as
@@ -140,7 +152,8 @@ The article PDFs are committed: regenerate them after editing an article.
   from the `pdf2djvu.djvu` pages with img2pdf, tiff2pdf, qpdf, gs and mutool:
   CCITT G4/G3, Flate, LZW, RunLength, ASCII85/ASCIIHex chains, JPEG (gray,
   RGB, CMYK), Indexed, ImageMask, inline
-  image, OCR text layer, rotation, encryption, an incremental update. Goldens:
+  image, OCR text layer, rotation, encryption, an incremental update;
+  `digits.pdf`, look-alike characters for shape matching. Goldens:
   `*.images` (`pdfimages -list`) and `npages.txt`.
 - Real scanned books in `~/Documents` (not redistributable, never committed)
   for size measurements and `DJVU_BOOKS='glob' go test ./internal/djvu -run TestBooks`.

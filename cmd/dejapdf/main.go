@@ -39,6 +39,7 @@ func main() {
 	quality := flag.Float64("q", convert.DefaultQuality, "colour layer size as a multiple of the DjVu size")
 	pages := flag.String("p", "", "pages to convert, like 1-10,15 (default all)")
 	verbose := flag.Bool("v", false, "show a size report by layer")
+	lossy := flag.Bool("lossy", false, "PDF input: substitute alike shapes in bilevel scans")
 	quiet := flag.Bool("quiet", false, "print nothing but warnings and errors")
 	cpuProfile := flag.String("cpuprofile", "", "write a CPU profile to `file`")
 	traceFile := flag.String("trace", "", "write an execution trace to `file`")
@@ -66,7 +67,7 @@ func main() {
 	}
 	stop, err := startProfiles(*cpuProfile, *traceFile)
 	if err == nil {
-		err = convertFile(flag.Arg(0), flag.Arg(1), *quality, *pages, *verbose, *quiet)
+		err = convertFile(flag.Arg(0), flag.Arg(1), *quality, *pages, *verbose, *quiet, *lossy)
 		stop()
 	}
 	if err != nil {
@@ -114,10 +115,10 @@ func startProfiles(cpu, tr string) (stop func(), err error) {
 	return stop, err
 }
 
-func convertFile(in, out string, quality float64, pages string, verbose, quiet bool) error {
+func convertFile(in, out string, quality float64, pages string, verbose, quiet, lossy bool) error {
 	start := time.Now()
 	if data, err := os.ReadFile(in); err == nil && isPDF(data) {
-		return reencodeFile(data, out, verbose, quiet, start)
+		return reencodeFile(data, out, verbose, quiet, lossy, start)
 	}
 	doc, err := djvu.Open(in)
 	if err != nil {
@@ -177,7 +178,7 @@ func convertFile(in, out string, quality float64, pages string, verbose, quiet b
 }
 
 // reencodeFile re-encodes the scan images of a PDF.
-func reencodeFile(data []byte, out string, verbose, quiet bool, start time.Time) error {
+func reencodeFile(data []byte, out string, verbose, quiet, lossy bool, start time.Time) error {
 	r, err := pdfread.Open(data)
 	if err != nil {
 		return err
@@ -192,6 +193,7 @@ func reencodeFile(data []byte, out string, verbose, quiet bool, start time.Time)
 	}
 	defer pr.clear()
 	opt := reencode.Options{
+		Lossy: lossy,
 		Warn: func(err error) {
 			msg := fmt.Sprintf("dejapdf: warning: %v", err)
 			if pr != nil {

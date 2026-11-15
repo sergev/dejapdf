@@ -225,6 +225,33 @@ d = open(sys.argv[1], "rb").read()
 d = re.sub(rb"><[0-9A-F]{32}>\]", b"><" + b"1" * 32 + b">]", d)
 open(sys.argv[1], "wb").write(d)' "$out/incremental.pdf"
 
+# Look-alike characters for shape matching: one character per row, 13 pt
+# apart from 36 pt, rows as in internal/shapes TestLookalikes; Times 7
+# and 10, Helvetica 9, Courier 9; scanned clean, dark and rough.
+python3 -I - > digits.ps <<'EOF'
+rows = "0 O o D Q C G 1 l I i j ! | 7 T 3 8 6 9 5 S s 2 Z z B E F P R c e a n h u b d p q g , . : ; ' - r f t".split()
+print("%!PS")
+for f, s in [("Times-Roman", 7), ("Times-Roman", 10), ("Helvetica", 9), ("Courier", 9)]:
+    print(f"/{f} findfont {s} scalefont setfont")
+    for i, c in enumerate(rows):
+        c = c.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+        print(f"36 {756 - 13 * i} moveto ({' '.join([c] * 40)}) show")
+    print("showpage")
+EOF
+gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pgmraw -r1200 -dTextAlphaBits=4 -o d-%d.pgm digits.ps
+for q in clean dark rough; do
+    case $q in
+    clean) op='-threshold 50%' ;;
+    dark) op='-blur 0x1 -threshold 65%' ;;
+    rough) op='-seed 1 -attenuate 0.6 +noise Gaussian -threshold 45%' ;;
+    esac
+    for n in 1 2 3 4; do
+        magick d-$n.pgm -filter Triangle -resize 25% $op $tif -density 300 -units PixelsPerInch \
+            -compress Group4 d-$q-$n.tif
+    done
+done
+i2p -o "$out/digits.pdf" d-clean-?.tif d-dark-?.tif d-rough-?.tif
+
 # Oracle outputs.
 cd "$out"
 for f in *.pdf; do

@@ -13,6 +13,7 @@ import (
 	"io"
 	"math"
 	"runtime"
+	"slices"
 	"sync"
 
 	"github.com/sergev/dejapdf/internal/jb2"
@@ -33,6 +34,7 @@ var GroupSize = 32
 type Options struct {
 	Warn     func(error)         // a problem with an image, which is kept
 	Progress func(done, all int) // images done
+	Lossy    bool                // substitute alike shapes
 }
 
 // Stats tell what was done.
@@ -99,7 +101,7 @@ func group(r *pdfread.Reader, ims []*scan.Image, repl map[int]*rewrite.Stream, s
 			js = append(js, c.j)
 		}
 	}
-	share(js)
+	share(js, opt.Lossy)
 	cache := &stencil.Cache{}
 	parallel(len(cs), func(i int) {
 		c := cs[i]
@@ -192,17 +194,18 @@ func number(v float64) any {
 	return v
 }
 
-// share moves the shapes found in more than one image into a dictionary
-// the images share.
-func share(js []*jb2.Image) {
+// Refine has lossless re-encoding code shapes like a representative
+// as its refinements.
+var Refine = true
+
+// share lays out the shapes of the group: alike ones, found by
+// shapes.Classify, are substituted (lossy) or refined (Refine); those
+// the images use, or refine from, in more than one image go to a
+// dictionary they share.
+func share(js []*jb2.Image, lossy bool) {
+	// Equal shapes are one class.
 	seed := maphash.MakeSeed()
-	type class struct {
-		b      *jb2.Bitmap
-		images int // in how many images
-		last   int // the last image counted
-		dict   int // index in the dictionary, or -1
-	}
-	var classes []*class
+	var classes []*jb2.Bitmap
 	byHash := map[uint64][]int{}
 	ids := make([][]int, len(js)) // shape to class, by image
 	for k, j := range js {
@@ -211,53 +214,135 @@ func share(js []*jb2.Image) {
 			h := maphash.Bytes(seed, s.Pix) ^ uint64(s.W)<<32 ^ uint64(s.H)
 			id := -1
 			for _, c := range byHash[h] {
-				if b := classes[c].b; b.W == s.W && b.H == s.H && bytes.Equal(b.Pix, s.Pix) {
+				if b := classes[c]; b.W == s.W && b.H == s.H && bytes.Equal(b.Pix, s.Pix) {
 					id = c
 					break
 				}
 			}
 			if id < 0 {
 				id = len(classes)
-				classes = append(classes, &class{b: s, last: -1, dict: -1})
+				classes = append(classes, s)
 				byHash[h] = append(byHash[h], id)
-			}
-			if c := classes[id]; c.last != k {
-				c.images++
-				c.last = k
 			}
 			ids[k][i] = id
 		}
 	}
-	d := &jb2.Dict{}
-	for _, c := range classes {
-		if c.images > 1 {
-			c.dict = len(d.Shapes)
-			d.Shapes = append(d.Shapes, c.b)
-			d.Refs = append(d.Refs, jb2.Ref{Shape: -1})
+	ref := make([]int, len(classes)) // the class a class refines, or -1
+	for i := range ref {
+		ref[i] = -1
+	}
+	// Blits by class, per image.
+	type blit struct{ class, x, y int }
+	blits := make([][]blit, len(js))
+	for k, j := range js {
+		blits[k] = make([]blit, len(j.Blits))
+		for b, bl := range j.Blits {
+			blits[k][b] = blit{ids[k][bl.Shape], bl.X, bl.Y}
 		}
 	}
-	if len(d.Shapes) == 0 {
-		return
-	}
-	for k, j := range js {
-		// New numbering: the dictionary, then the image's other shapes.
-		num := make([]int, len(j.Shapes))
-		var own []*jb2.Bitmap
-		for i, s := range j.Shapes {
-			if c := classes[ids[k][i]]; c.dict >= 0 {
-				num[i] = c.dict
-			} else {
-				num[i] = len(d.Shapes) + len(own)
-				own = append(own, s)
+	if lossy || Refine {
+		cl := shapes.Classify(classes)
+		if lossy {
+			for k := range blits {
+				for b, bl := range blits[k] {
+					// Blit.Y is the bottom row, from the bottom.
+					if x := cl[bl.class]; x.Rep != bl.class {
+						s, rep := classes[bl.class], classes[x.Rep]
+						blits[k][b] = blit{x.Rep, bl.x + x.DX, bl.y + s.H - x.DY - rep.H}
+					}
+				}
+			}
+		} else {
+			for c, x := range cl {
+				if s, rep := classes[c], classes[x.Rep]; x.Rep != c && s.W == rep.W && s.H == rep.H {
+					ref[c] = x.Rep
+				}
 			}
 		}
-		for b := range j.Blits {
-			j.Blits[b].Shape = num[j.Blits[b].Shape]
+	}
+
+	// Which images use each class.
+	images := make([]int, len(classes))
+	last := make([]int, len(classes))
+	for i := range last {
+		last[i] = -1
+	}
+	use := func(c, k int) {
+		if last[c] != k {
+			last[c] = k
+			images[c]++
 		}
-		j.Dict, j.NDict, j.Shapes = d, len(d.Shapes), own
+	}
+	for k := range blits {
+		for _, bl := range blits[k] {
+			use(bl.class, k)
+			if r := ref[bl.class]; r >= 0 {
+				use(r, k)
+			}
+		}
+	}
+	d := &jb2.Dict{}
+	dict := make([]int, len(classes)) // index in the dictionary, or -1
+	for c := range classes {
+		dict[c] = -1
+		if images[c] > 1 {
+			dict[c] = len(d.Shapes)
+			d.Shapes = append(d.Shapes, classes[c])
+		}
+	}
+	d.Refs = make([]jb2.Ref, len(d.Shapes))
+	for c, i := range dict {
+		if i >= 0 {
+			d.Refs[i] = jb2.Ref{Shape: -1}
+			if r := ref[c]; r >= 0 {
+				d.Refs[i] = jb2.Ref{Shape: dict[r]}
+			}
+		}
+	}
+	for k, j := range js {
+		// Numbering: the dictionary, then the image's other classes in
+		// class order.
+		num := map[int]int{}
+		var own []int
+		add := func(c int) {
+			if _, ok := num[c]; ok {
+				return
+			}
+			if dict[c] >= 0 {
+				num[c] = dict[c]
+			} else {
+				num[c] = -1 // numbered below
+				own = append(own, c)
+			}
+		}
+		for _, bl := range blits[k] {
+			add(bl.class)
+			if r := ref[bl.class]; r >= 0 {
+				add(r)
+			}
+		}
+		slices.Sort(own)
+		nd := 0
+		if len(d.Shapes) > 0 {
+			nd = len(d.Shapes)
+			j.Dict = d
+		}
+		j.NDict = nd
+		j.Shapes = make([]*jb2.Bitmap, len(own))
 		j.Refs = make([]jb2.Ref, len(own))
-		for i := range j.Refs {
+		for i, c := range own {
+			num[c] = nd + i
+		}
+		for i, c := range own {
+			j.Shapes[i] = classes[c]
 			j.Refs[i] = jb2.Ref{Shape: -1}
+			if r := ref[c]; r >= 0 {
+				j.Refs[i] = jb2.Ref{Shape: num[r]}
+			}
+		}
+		j.Blits = j.Blits[:len(blits[k])]
+		for b, bl := range blits[k] {
+			j.Blits[b] = jb2.Blit{Shape: num[bl.class], X: bl.x, Y: bl.y}
 		}
 	}
 }

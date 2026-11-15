@@ -33,19 +33,37 @@ func TestJbig2dec(t *testing.T) {
 	for _, path := range append(files, books...) {
 		t.Run(filepath.Base(path), func(t *testing.T) {
 			t.Parallel()
-			check(t, path)
+			check(t, path, false)
 		})
 	}
 }
 
-func check(t *testing.T, path string) {
+// TestLossy is TestJbig2dec with alike shapes substituted: each image
+// decodes to its original within 2 pixels, both ways.
+func TestLossy(t *testing.T) {
+	for _, tool := range []string{"jbig2dec", "qpdf"} {
+		if _, err := exec.LookPath(tool); err != nil {
+			t.Skip("no " + tool)
+		}
+	}
+	files, _ := filepath.Glob("../../testdata/pdf/*.pdf")
+	books, _ := filepath.Glob(os.Getenv("PDF_BOOKS"))
+	for _, path := range append(files, books...) {
+		t.Run(filepath.Base(path), func(t *testing.T) {
+			t.Parallel()
+			check(t, path, true)
+		})
+	}
+}
+
+func check(t *testing.T, path string, lossy bool) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
 	}
 	r, doc := open(t, data)
 	var out bytes.Buffer
-	st, err := Reencode(r, doc, &out, Options{Warn: func(err error) { t.Error(err) }})
+	st, err := Reencode(r, doc, &out, Options{Lossy: lossy, Warn: func(err error) { t.Error(err) }})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +113,12 @@ func check(t *testing.T, path string) {
 			if got, want := decodeArray(r2, im2.Dict), bm.Decode; got != want {
 				t.Errorf("object %d: /Decode %v, want %v", im2.Ref, got, want)
 			}
-			if got := jbig2dec(t, dir, r2, im2); !bytes.Equal(got, pbm(bm)) {
+			got := jbig2dec(t, dir, r2, im2)
+			if lossy {
+				if d := farthest(got, bm); d > 2 {
+					t.Errorf("object %d (page %d): a pixel %d away from the original", im2.Ref, i+1, d)
+				}
+			} else if !bytes.Equal(got, pbm(bm)) {
 				t.Errorf("object %d (page %d): jbig2dec output differs", im2.Ref, i+1)
 			}
 			n++
@@ -360,4 +383,44 @@ func TestWide(t *testing.T) {
 func encode(b *raster.Bitmap) []byte {
 	data, _ := code(shapes.Split(b), nil)
 	return data
+}
+
+// farthest is how far (in the 8-neighbour metric, up to 3) a pixel of
+// either image is from the nearest of the other: got, a PBM, and b.
+func farthest(got []byte, b *raster.Bitmap) int {
+	want := pbm(b)
+	if len(got) != len(want) {
+		return 99
+	}
+	hdr := len(want) - b.H*((b.W+7)/8)
+	stride := (b.W + 7) / 8
+	at := func(p []byte, x, y int) bool {
+		return x >= 0 && y >= 0 && x < b.W && y < b.H && p[hdr+y*stride+x/8]>>(7-x%8)&1 != 0
+	}
+	// dist is whether every ink pixel of p lies within d of one of q.
+	within := func(p, q []byte, d int) bool {
+		for y := range b.H {
+			for x := range b.W {
+				if !at(p, x, y) || at(q, x, y) {
+					continue
+				}
+				near := false
+				for dy := -d; dy <= d && !near; dy++ {
+					for dx := -d; dx <= d && !near; dx++ {
+						near = at(q, x+dx, y+dy)
+					}
+				}
+				if !near {
+					return false
+				}
+			}
+		}
+		return true
+	}
+	for d := 0; d < 3; d++ {
+		if within(got, want, d) && within(want, got, d) {
+			return d
+		}
+	}
+	return 3
 }

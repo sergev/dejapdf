@@ -15,11 +15,14 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/sergev/dejapdf/internal/stencil"
 )
 
 // Adobe Reader 9 (acroread), where installed, prints each re-encoded
 // test file as it prints the original, page for page, and the books of
-// $ACRO_BOOKS. Reader fails or hangs on a stream it cannot decode.
+// $ACRO_BOOKS; refinement dictionaries forced on. Reader fails or hangs
+// on a stream it cannot decode.
 func TestAcrobat(t *testing.T) {
 	for _, tool := range []string{"acroread", "gs"} {
 		if _, err := exec.LookPath(tool); err != nil {
@@ -29,6 +32,8 @@ func TestAcrobat(t *testing.T) {
 	if testing.Short() {
 		t.Skip("slow")
 	}
+	defer func(n int) { stencil.MinRefined = n }(stencil.MinRefined)
+	stencil.MinRefined = 1
 	files, _ := filepath.Glob("../../testdata/pdf/*.pdf")
 	books, _ := filepath.Glob(os.Getenv("ACRO_BOOKS"))
 	dir := t.TempDir()

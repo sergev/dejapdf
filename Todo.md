@@ -41,22 +41,6 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T11. Shape matching
-
-- [ ] Cluster similar components: size within a pixel or two, weighted XOR
-  distance, same number of holes (Euler number) as a guard against
-  confusing digits
-- [ ] Lossless mode: code cluster members as refinements of the cluster
-  representative, only where Acrobat accepts it (same size, zero offset);
-  measure whether this beats T9
-- [ ] Lossy mode (`-lossy`): replace members by the representative
-- [ ] A test page of digits and look-alike letters (6/8, 3/8, 1/l/I, 0/O)
-  at several scan qualities
-
-Done when: lossy PDP11 Handbook is about 4× smaller than the original, the
-digits page shows no substitution between different characters, and a
-by-eye check of 10 random pages finds no errors.
-
 ## T12. Separate text from background
 
 - [ ] Adaptive threshold (Sauvola or similar) on gray and colour scans;
@@ -102,8 +86,10 @@ hand; the OCR text layer still selects over the right words;
 ## T15. Command line
 
 - [ ] `dejapdf in.pdf out.pdf` works since T9 (magic bytes, `-v`,
-  `-quiet`, progress by image); make `-p` and `-q` work as for DjVu;
-  add `-lossy`
+  `-quiet`, progress by image; `-lossy` since T11); make `-p` and `-q`
+  work as for DjVu
+- [ ] Decide whether `-lossy` becomes the default, after running it on
+  all scanned books
 - [ ] Refuse with a clear message: password-protected files, PDFs with
   nothing to re-encode (and say so)
 - [ ] Run all scanned books (the 40 files that `-dump` calls scanned):
