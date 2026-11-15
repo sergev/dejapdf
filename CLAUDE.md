@@ -12,11 +12,11 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T1–T15.
+Todo.md as tasks T2–T15.
 
 ## Commands
 
-Standard Go tooling (`make build`, `make test`, `make lint`, `make fuzz`, `make corpus`).
+Standard Go tooling (`make build`, `make test`, `make lint`, `make fuzz`, `make corpus`, `make corpus-pdf`).
 Fuzz with few workers (`-parallel 4`): one per CPU can exhaust memory.
 
 ```
@@ -86,6 +86,11 @@ The article PDFs are committed: regenerate them after editing an article.
 - `testdata/corpus`: made by `make corpus` from `testdata/src/pages.ps`, with
   djvudump/djvused goldens; committed, so regenerating is rarely needed. Needs
   `pdf2djvu` (not in Homebrew) and `minidjvu` (for `shared-dict.djvu`).
+- `testdata/pdf`: scanned PDFs made by `make corpus-pdf` (`testdata/mkpdf.sh`)
+  from the `pdf2djvu.djvu` pages with img2pdf, tiff2pdf, qpdf, gs and mutool:
+  CCITT G4/G3, Flate, JPEG (gray, RGB, CMYK), Indexed, ImageMask, inline
+  image, OCR text layer, rotation, encryption, an incremental update. Goldens:
+  `*.images` (`pdfimages -list`) and `npages.txt`.
 - Real scanned books in `~/Documents` (not redistributable, never committed)
   for size measurements and `DJVU_BOOKS='glob' go test ./internal/djvu -run TestBooks`.
 - On macOS, Acrobat can be driven by AppleScript `do script` (Acrobat

@@ -1,7 +1,7 @@
 # Copyright (c) 2026 Serge Vakulenko
 # SPDX-License-Identifier: MIT
 
-.PHONY: all build install test lint fuzz corpus docs docs-pdf clean
+.PHONY: all build install test lint fuzz corpus corpus-pdf docs docs-pdf clean
 
 BINDIR ?= $(HOME)/.local/bin
 
@@ -38,6 +38,10 @@ fuzz:
 # Regenerate testdata/corpus; needs djvulibre-bin and ghostscript.
 corpus:
 	testdata/mkcorpus.sh
+
+# Regenerate testdata/pdf: scanned PDFs made from the corpus pages.
+corpus-pdf:
+	testdata/mkpdf.sh
 
 # docs: the SVG figures and the articles' PDFs; docs-pdf: only the PDFs
 # (pandoc with typst). The PDFs are committed.
