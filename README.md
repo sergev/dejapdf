@@ -78,9 +78,9 @@ everything else (text layer, bookmarks, links, metadata) as it is:
 By default, characters of the same shape are drawn from one bitmap, with a
 guard against look-alikes such as 6 and 8; `-lossless` keeps every shape
 exact instead (bilevel scans then decode to exactly the original bitmap). A file is
-never made larger: if re-encoding saves nothing, it is copied as is. A
-password-protected PDF, or one with nothing to re-encode, is refused with
-the reason, and no output is written.
+never made larger: if re-encoding saves nothing, it is copied as is. One
+with nothing to re-encode is written unchanged (`-v` tells why). A
+password-protected PDF is refused.
 
 The 40 scanned PDFs of one collection, with the default options: 30
 distinct books re-encoded below; 6 were refused (their scans already

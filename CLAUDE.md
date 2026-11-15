@@ -104,7 +104,7 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   one-level page tree, inherited attributes copied into each page,
   references to the others null, page labels dropped). A document with
   nothing to re-encode returns `NothingError`, with the reason, before
-  writing; the command line writes no output then, and writes the
+  writing; the command line writes it unchanged then, and writes the
   input as it was when re-encoding would not make it smaller.
 - `internal/scan`: finds the scan images of a PDF by walking each page's
   content (`pdfread.Content`) through forms, soft-mask groups and

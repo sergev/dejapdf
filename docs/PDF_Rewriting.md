@@ -99,8 +99,8 @@ Then:
 | gray or colour | separate into layers |
 
 `dejapdf -dump file.pdf` prints this plan by page. A document with no image
-to re-encode is refused with the reasons counted ("the scan images are
-kept: 408 already jbig2; 1 inline image"), and no output is written.
+to re-encode is written unchanged; `-v` prints the reasons counted ("the
+scan images are kept: 408 already jbig2; 1 inline image").
 
 ## 3. Decoding the images
 

@@ -35,13 +35,14 @@ type separated struct {
 // place: the background, then the text in each colour as a JBIG2
 // stencil. The stencils of a group share one dictionary.
 func separate(r *pdfread.Reader, ims []*scan.Image, dpi map[*scan.Image]float64, repl map[int]*rewrite.Stream,
-	st *Stats, opt *Options) {
+	st *Stats, opt *Options, step func()) {
 	q := opt.Quality
 	if q <= 0 {
 		q = DefaultQuality
 	}
 	ss := make([]*separated, len(ims))
 	parallel(len(ims), func(i int) {
+		defer step()
 		s := &separated{im: ims[i], dpi: dpi[ims[i]]}
 		ss[i] = s
 		if o, ok := r.Get(int(s.im.Ref)).(*pdfread.Stream); ok {
@@ -72,6 +73,7 @@ func separate(r *pdfread.Reader, ims []*scan.Image, dpi map[*scan.Image]float64,
 	share(js, opt.Lossy)
 	cache := &stencil.Cache{}
 	parallel(len(ss), func(i int) {
+		defer step()
 		if s := ss[i]; s.err == nil {
 			s.layout(cache)
 			s.j = nil

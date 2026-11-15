@@ -33,10 +33,13 @@ import (
 // GroupSize is the number of images sharing one /JBIG2Globals.
 var GroupSize = 32
 
+// ProgressStep is how many passes over an image between calls to Progress.
+const ProgressStep = 4
+
 // Options control the re-encoding.
 type Options struct {
 	Warn     func(error)         // a problem with an image, which is kept
-	Progress func(done, all int) // images done
+	Progress func(done, all int) // passes done, two per image
 	Lossy    bool                // substitute alike shapes
 	Quality  float64             // background size cap, a fraction of the image; 0 means DefaultQuality
 	Pages    []int               // pages to keep, from 0 in output order; nil means all
@@ -98,21 +101,20 @@ func Reencode(r *pdfread.Reader, doc *scan.Document, out io.Writer, opt Options)
 	}
 	st := &Stats{Images: all}
 	repl := map[int]*rewrite.Stream{}
+	var mu sync.Mutex
 	done := 0
-	progress := func(n int) {
-		if done += n; opt.Progress != nil {
-			opt.Progress(done, all)
+	step := func() { // a pass over an image
+		mu.Lock()
+		defer mu.Unlock()
+		if done++; opt.Progress != nil && (done%ProgressStep == 0 || done == 2*all) {
+			opt.Progress(done, 2*all)
 		}
 	}
 	for k := 0; k < len(ims); k += GroupSize {
-		g := ims[k:min(k+GroupSize, len(ims))]
-		group(r, g, repl, st, &opt)
-		progress(len(g))
+		group(r, ims[k:min(k+GroupSize, len(ims))], repl, st, &opt, step)
 	}
 	for k := 0; k < len(seps); k += GroupSize {
-		g := seps[k:min(k+GroupSize, len(seps))]
-		separate(r, g, dpi, repl, st, &opt)
-		progress(len(g))
+		separate(r, seps[k:min(k+GroupSize, len(seps))], dpi, repl, st, &opt, step)
 	}
 	return st, rewrite.Select(r, out, repl, opt.Pages)
 }
@@ -129,9 +131,11 @@ type coded struct {
 
 // group re-encodes images sharing one dictionary of the shapes found in
 // more than one of them.
-func group(r *pdfread.Reader, ims []*scan.Image, repl map[int]*rewrite.Stream, st *Stats, opt *Options) {
+func group(r *pdfread.Reader, ims []*scan.Image, repl map[int]*rewrite.Stream, st *Stats, opt *Options,
+	step func()) {
 	cs := make([]*coded, len(ims))
 	parallel(len(ims), func(i int) {
+		defer step()
 		c := &coded{im: ims[i]}
 		cs[i] = c
 		v, err := raster.Decode(r, c.im)
@@ -151,6 +155,7 @@ func group(r *pdfread.Reader, ims []*scan.Image, repl map[int]*rewrite.Stream, s
 	share(js, opt.Lossy)
 	cache := &stencil.Cache{}
 	parallel(len(cs), func(i int) {
+		defer step()
 		c := cs[i]
 		if c.err != nil {
 			return

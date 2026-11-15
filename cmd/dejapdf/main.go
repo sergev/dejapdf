@@ -23,6 +23,7 @@ import (
 	"github.com/sergev/dejapdf/internal/iff"
 	"github.com/sergev/dejapdf/internal/pdfread"
 	"github.com/sergev/dejapdf/internal/reencode"
+	"github.com/sergev/dejapdf/internal/rewrite"
 	"github.com/sergev/dejapdf/internal/scan"
 )
 
@@ -127,7 +128,7 @@ func convertFile(in, out string, quality float64, pages string, verbose, quiet, 
 	}
 	var pr *progress
 	if !quiet {
-		pr = newProgress(filepath.Base(out))
+		pr = newProgress(filepath.Base(out), "pages")
 	}
 	defer pr.clear()
 	opt := convert.Options{
@@ -200,7 +201,7 @@ func reencodeFile(in string, data []byte, out string, quality float64, pages str
 	}
 	var pr *progress
 	if !quiet {
-		pr = newProgress(filepath.Base(out))
+		pr = newProgress(filepath.Base(out), "images")
 	}
 	defer pr.clear()
 	opt := reencode.Options{
@@ -217,24 +218,41 @@ func reencodeFile(in string, data []byte, out string, quality float64, pages str
 		},
 	}
 	if pr != nil {
-		opt.Progress = func(done, all int) { pr.update(convert.Progress{Page: done, Pages: all}) }
+		opt.Progress = func(done, all int) {
+			pr.update(convert.Progress{Page: done / 2, Pages: all / 2, Done: int64(done), Total: int64(all)})
+		}
 	}
 	f, err := os.Create(out)
 	if err != nil {
 		return err
 	}
 	st, err := reencode.Reencode(r, doc, f, opt)
+	var none *reencode.NothingError
+	if errors.As(err, &none) {
+		// Written unchanged: the whole input, or its selected pages.
+		if sel == nil {
+			_, err = f.Write(data)
+		} else {
+			err = rewrite.Select(r, f, nil, sel)
+		}
+	}
 	if cerr := f.Close(); err == nil {
 		err = cerr
 	}
 	if err != nil {
 		os.Remove(out)
-		if _, ok := err.(*reencode.NothingError); ok {
-			return fmt.Errorf("%s: %w; no output written", in, err)
-		}
 		return err
 	}
 	pr.clear()
+	if none != nil {
+		if verbose {
+			fmt.Fprintln(os.Stderr, none.Reason)
+		}
+		if fi, err := os.Stat(out); err == nil && !quiet {
+			fmt.Printf("%s: %d kbytes, nothing to re-encode\n", filepath.Base(out), (fi.Size()+512)/1024)
+		}
+		return nil
+	}
 	// Never grow a file: the whole of it, re-encoded, not smaller than
 	// it was is written as it was.
 	if fi, err := os.Stat(out); err == nil && sel == nil && fi.Size() >= int64(len(data)) {
