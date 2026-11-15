@@ -16,6 +16,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sergev/dejapdf/internal/pdfread"
+	"github.com/sergev/dejapdf/internal/scan"
 	"github.com/sergev/dejapdf/internal/stencil"
 )
 
@@ -83,8 +85,26 @@ func TestAcrobat(t *testing.T) {
 		for i := range len(doc.Pages) {
 			a, _ := os.ReadFile(filepath.Join(dir, fmt.Sprintf("a-%d.pgm", i+1)))
 			b, _ := os.ReadFile(filepath.Join(dir, fmt.Sprintf("b-%d.pgm", i+1)))
-			if !bytes.Equal(a, b) {
-				t.Errorf("%s page %d: Reader prints it differently", name, i+1)
+			if !hasLayers(r, doc, i) {
+				if !bytes.Equal(a, b) {
+					t.Errorf("%s page %d: Reader prints it differently", name, i+1)
+				}
+				continue
+			}
+			// Layers: alike, blurred as rendered at 50 dpi (Reader's
+			// print is at 100).
+			w, h, ga := readPGM(a)
+			w2, h2, gb := readPGM(b)
+			if ga == nil || w != w2 || h != h2 {
+				t.Errorf("%s page %d: prints of %d and %d bytes", name, i+1, len(a), len(b))
+				continue
+			}
+			p := blurPSNR(blur(blur(ga, w, h), w, h), blur(blur(gb, w, h), w, h))
+			t.Logf("%s page %d: %.1f dB", name, i+1, p)
+			// 2 dB less: the print shows the strokes of a 96 dpi scan
+			// heavier.
+			if p < minPSNR-2 {
+				t.Errorf("%s page %d: Reader prints it %.1f dB from the original", name, i+1, p)
 			}
 		}
 		for _, k := range pages {
@@ -120,4 +140,15 @@ func acroread(dir, pdf string) error {
 func exists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+// hasLayers reports whether page i has an image to split into layers.
+func hasLayers(r *pdfread.Reader, doc *scan.Document, i int) bool {
+	p := &doc.Pages[i]
+	for _, u := range p.Uses {
+		if a, _ := doc.Plan(r, p, u); a == scan.Separate {
+			return true
+		}
+	}
+	return false
 }

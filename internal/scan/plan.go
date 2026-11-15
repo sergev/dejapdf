@@ -71,6 +71,8 @@ func (d *Document) Plan(r *pdfread.Reader, p *Page, u Use) (Action, string) {
 		return JBIG2, ""
 	case p.TextOver > 0:
 		return Keep, "text drawn over it"
+	case im.Comps == 4:
+		return Keep, "CMYK: viewers convert it each their own way"
 	}
 	return Separate, ""
 }

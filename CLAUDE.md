@@ -12,7 +12,7 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T14–T16.
+Todo.md as tasks T15–T16.
 
 ## Commands
 
@@ -86,13 +86,22 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   Tests: jbig2dec on every replaced image, and the object graphs of
   input and output compared (equal but for numbering and the images'
   filters; streams byte for byte).
+  Gray and colour scans (T14, `separate.go`): each becomes a form
+  XObject, `/BBox [0 0 1 1]`, with the same object number: the
+  background (`background.go`, or a fill), then one JBIG2 stencil per
+  palette colour cropped to its marks and inset by 1e-5 against edge
+  snapping; stencils of 32 images share globals. Tests: forms decode
+  (opj_decompress, jbig2dec); pages render in MuPDF, and print in
+  Reader, alike blurred (26 dB at 50 dpi). Etudes 9.1× (the text
+  layer, copied, is 2.1 MB of it), 15× with `-lossy`.
 - `internal/scan`: finds the scan images of a PDF by walking each page's
   content (`pdfread.Content`) through forms, soft-mask groups and
   annotation appearances: every image drawn with its matrix, dpi and
   page coverage, as `pdfimages -list` reports them. A page is scanned
   when its images cover 70% of it; a document when half its pages are.
   `Plan` decides per image: JBIG2 (bilevel), separate (gray, colour) or
-  keep, with the reason. `dejapdf -dump file.pdf` prints it by page.
+  keep, with the reason (CMYK is kept: viewers convert it each their
+  own way, and we would fix one conversion). `dejapdf -dump file.pdf` prints it by page.
 - `internal/raster`: decodes scan images to a bitmap (1 = painted or
   darker) or 8-bit gray, RGB or CMYK pixels, applying the colour space,
   /Decode, palettes and stencil polarity: CCITT (G4, G3 1-D), Flate,
@@ -100,15 +109,20 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   upsampling and YCbCr rounding. Equal to `pdfimages -png` (`-tiff` for
   CMYK) on every scanned book.
 - `internal/segment`: separates the text of gray and colour scans
-  (T12): `Mask` thresholds with Sauvola (window 1/6 inch, plus anything
+  (T12): `Mask` works on the mean of luminance and the darkest channel
+  (bright coloured ink stands out), thresholds with Sauvola (window 1/6 inch, plus anything
   darker than half the paper), fills dark holes (strokes wider than the
   window), and drops specks, marks less than 30 levels darker than
   their tile's paper, and pictures: tiles with dark paper or mid-tones
   away from the ink (photos), thick blobs over a square inch (shadows,
   page edges), and Bloomberg's halftone mask (Leptonica's method,
   written anew; textures too). Small marks at the edge of a picture's
-  box, on clean paper, stay: captions. `Colors` gives each mark its
-  core colour: black if near black, else a k-means palette of up to 8.
+  box, on clean paper, stay: captions. Tile paper levels leave out the
+  ink and a halo of dpi/150. `Colors` gives each mark its colour:
+  lightness from its 25th–50th percentile pixels, hue from the mark and
+  its halo summed against the paper (JPEG chroma subsampling spreads a
+  stroke's colour but keeps its sum); k-means palette of up to 8,
+  merging close centres (luma at half weight), each mark the nearest.
   Light text on dark or coloured ground stays in the background.
   `Background` (T13) reduces the scan and fills what the mask hides:
   pixels within r0 of the mask are left out, those within r1 count

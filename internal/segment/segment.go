@@ -41,6 +41,21 @@ func Gray(p *raster.Pixmap) []byte {
 	return g
 }
 
+// inkGray is the gray Mask works on: for colour, the mean of the
+// luminance and the darkest channel, so that bright coloured ink (green,
+// yellow) stands out from white paper as dark ink does.
+func inkGray(p *raster.Pixmap) []byte {
+	g := Gray(p)
+	if p.N == 1 {
+		return g
+	}
+	for i := range g {
+		c := pixel(p, i)
+		g[i] = byte((int(g[i]) + int(min(c[0], c[1], c[2])) + 1) / 2)
+	}
+	return g
+}
+
 // cmykRGB is the naive conversion.
 func cmykRGB(c []byte) (byte, byte, byte) {
 	k := 255 - int(c[3])
@@ -105,7 +120,7 @@ func Threshold(gray []byte, w, h, r int, dark byte) *raster.Bitmap {
 // Mask returns the text and line art of a scan at dpi: thresholded,
 // without specks, photos and halftones.
 func Mask(p *raster.Pixmap, dpi float64) *raster.Bitmap {
-	g := Gray(p)
+	g := inkGray(p)
 	pap := paper(g)
 	b := Threshold(g, p.W, p.H, max(4, int(dpi/12)), byte(pap/2))
 	fillHoles(b, g, pap)
@@ -143,8 +158,9 @@ func clean(b *raster.Bitmap, g []byte, pap int, dpi float64) {
 
 	cs := shapes.Components(b)
 	// The paper of each tile: percentiles of what is not ink nor its
-	// halo (not the mean: the inside of hollow strokes is dark).
-	near := dilate(b, cs, 1)
+	// halo, the blur of the scan (not the mean: the inside of hollow
+	// strokes is dark).
+	near := dilate(b, cs, max(1, int(dpi/150+0.5)))
 	hist := make([][256]int32, tw*th)
 	n := make([]int, tw*th)
 	for y := range b.H {

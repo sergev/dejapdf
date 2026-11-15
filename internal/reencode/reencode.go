@@ -3,7 +3,8 @@
 
 // Package reencode re-encodes the scan images of a PDF in place, by
 // object number, and copies everything else as it is: bilevel images
-// losslessly as JBIG2.
+// losslessly as JBIG2; gray and colour ones as a form of a JPX
+// background and JBIG2 stencils in the colours of the text.
 package reencode
 
 import (
@@ -40,7 +41,7 @@ type Options struct {
 
 // Stats tell what was done.
 type Stats struct {
-	Images   int   // bilevel scan images found
+	Images   int   // scan images found
 	Replaced int   // of them, replaced
 	Before   int64 // size of the replaced images' streams
 	After    int64 // size of their replacements, globals included
@@ -49,24 +50,43 @@ type Stats struct {
 // Reencode writes the document of r, with the scan images of doc
 // re-encoded, to out.
 func Reencode(r *pdfread.Reader, doc *scan.Document, out io.Writer, opt Options) (*Stats, error) {
-	var ims []*scan.Image
+	var ims, seps []*scan.Image
+	dpi := map[*scan.Image]float64{}
 	seen := map[pdf.Ref]bool{}
 	for i := range doc.Pages {
 		p := &doc.Pages[i]
 		for _, u := range p.Uses {
-			if a, _ := doc.Plan(r, p, u); a == scan.JBIG2 && !seen[u.Image.Ref] {
-				seen[u.Image.Ref] = true
+			a, _ := doc.Plan(r, p, u)
+			if seen[u.Image.Ref] || (a != scan.JBIG2 && a != scan.Separate) {
+				continue
+			}
+			seen[u.Image.Ref] = true
+			if a == scan.JBIG2 {
 				ims = append(ims, u.Image)
+			} else {
+				seps = append(seps, u.Image)
+				dpi[u.Image] = max(u.DPIX, u.DPIY)
 			}
 		}
 	}
-	st := &Stats{Images: len(ims)}
+	all := len(ims) + len(seps)
+	st := &Stats{Images: all}
 	repl := map[int]*rewrite.Stream{}
-	for k := 0; k < len(ims); k += GroupSize {
-		group(r, ims[k:min(k+GroupSize, len(ims))], repl, st, &opt)
-		if opt.Progress != nil {
-			opt.Progress(min(k+GroupSize, len(ims)), len(ims))
+	done := 0
+	progress := func(n int) {
+		if done += n; opt.Progress != nil {
+			opt.Progress(done, all)
 		}
+	}
+	for k := 0; k < len(ims); k += GroupSize {
+		g := ims[k:min(k+GroupSize, len(ims))]
+		group(r, g, repl, st, &opt)
+		progress(len(g))
+	}
+	for k := 0; k < len(seps); k += GroupSize {
+		g := seps[k:min(k+GroupSize, len(seps))]
+		separate(r, g, dpi, repl, st, &opt)
+		progress(len(g))
 	}
 	return st, rewrite.Replace(r, out, repl)
 }

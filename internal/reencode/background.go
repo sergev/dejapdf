@@ -24,6 +24,7 @@ type layer struct {
 	data    []byte
 	fill    segment.Color
 	uniform bool
+	k       int // the image reduced by
 }
 
 // background codes the background of a scan at dpi with text mask m:
@@ -60,5 +61,5 @@ func background(p *raster.Pixmap, m *raster.Bitmap, dpi float64, budget int) (*l
 		"ColorSpace": pdf.Name(cs),
 		"Filter":     pdf.Name("JPXDecode"),
 	}
-	return &layer{dict: d, data: data}, nil
+	return &layer{dict: d, data: data, k: k}, nil
 }

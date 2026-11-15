@@ -204,7 +204,7 @@ func TestPlan(t *testing.T) {
 	want := map[string]string{
 		"g4": "JBIG2", "g4-book": "JBIG2 JBIG2", "g3": "JBIG2", "g3-align": "JBIG2",
 		"g3-2d": "keep", "imagemask": "JBIG2", "flate1": "JBIG2", "flate8": "separate",
-		"jpeg-gray": "separate", "jpeg-rgb": "separate", "jpeg-cmyk": "separate",
+		"jpeg-gray": "separate", "jpeg-rgb": "separate", "jpeg-cmyk": "keep",
 		"indexed": "separate", "inline": "keep", "ocr": "JBIG2 separate JBIG2",
 		"rotated": "JBIG2 separate JBIG2", "links": "JBIG2 separate separate JBIG2",
 		"incremental": "JBIG2 JBIG2", "filters": "separate separate",

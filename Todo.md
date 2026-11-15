@@ -41,28 +41,14 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T14. Re-encode gray and colour scans
-
-- [ ] Replace the image XObject in place with a form XObject,
-  `/BBox [0 0 1 1]`, whose content draws the background JPX and the
-  coloured stencils exactly as `internal/convert` lays out a DjVu page
-  (palette stencils, pattern fill for a foreground image)
-- [ ] Interpolation, cropping and the inset against viewer edge snapping
-  carry over from the DjVu path
-- [ ] Keep the original when the replacement is not smaller
-
-Done when: the Etudes book is at least 10× smaller; pages render correctly
-in MuPDF, Poppler, pdf.js, Ghostscript, TestAcrobat and Acrobat 26 by
-hand; the OCR text layer still selects over the right words;
-`qpdf --check` passes.
-
 ## T15. Command line
 
 - [ ] `dejapdf in.pdf out.pdf` works since T9 (magic bytes, `-v`,
   `-quiet`, progress by image; `-lossy` since T11); make `-p` and `-q`
   work as for DjVu
 - [ ] Decide whether `-lossy` becomes the default, after running it on
-  all scanned books
+  all scanned books (at least for gray and colour scans, whose mask is
+  ours: Etudes is 9.1× lossless, 15× lossy; T14 asked for 10×)
 - [ ] Refuse with a clear message: password-protected files, PDFs with
   nothing to re-encode (and say so)
 - [ ] Run all scanned books (the 40 files that `-dump` calls scanned):

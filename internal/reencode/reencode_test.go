@@ -6,6 +6,7 @@ package reencode
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -68,7 +69,7 @@ func check(t *testing.T, path string, lossy bool) {
 		t.Fatal(err)
 	}
 	if st.Images == 0 {
-		t.Skip("no bilevel scans")
+		t.Skip("no scans")
 	}
 	if out.Len() > len(data) {
 		t.Errorf("grew from %d to %d", len(data), out.Len())
@@ -83,45 +84,63 @@ func check(t *testing.T, path string, lossy bool) {
 		}
 	}
 
-	// Pages and their image uses correspond, in order.
+	// Each replaced image, found by the object graph.
 	r2, doc2 := open(t, out.Bytes())
 	if len(doc2.Pages) != len(doc.Pages) {
 		t.Fatalf("%d pages, want %d", len(doc2.Pages), len(doc.Pages))
 	}
-	objs := sameGraph(t, r, r2)
+	objs, m := sameGraph(t, r, r2)
 	done := map[pdf.Ref]bool{}
 	n := 0
 	for i := range doc.Pages {
-		p, p2 := &doc.Pages[i], &doc2.Pages[i]
-		if len(p.Uses) != len(p2.Uses) {
-			t.Fatalf("page %d: %d images, want %d", i+1, len(p2.Uses), len(p.Uses))
-		}
-		for k, u := range p.Uses {
-			im, im2 := u.Image, p2.Uses[k].Image
-			if im2.Enc != "jbig2" || im.Enc == "jbig2" || done[im2.Ref] {
+		p := &doc.Pages[i]
+		sep := false
+		for _, u := range p.Uses {
+			im := u.Image
+			ref2, ok := m[im.Ref]
+			if !ok || im.Ref == 0 {
 				continue
 			}
-			done[im2.Ref] = true
+			s2, _ := r2.Get(int(ref2)).(*pdfread.Stream)
+			if s2 == nil {
+				continue
+			}
+			if s2.Dict["Subtype"] == pdf.Name("Form") {
+				sep = true
+				if !done[ref2] {
+					done[ref2] = true
+					checkForm(t, dir, r2, s2)
+					n++
+				}
+				continue
+			}
+			if s2.Dict["Filter"] != pdf.Name("JBIG2Decode") || im.Enc == "jbig2" || done[ref2] {
+				continue
+			}
+			done[ref2] = true
 			v, err := raster.Decode(r, im)
 			if err != nil {
 				t.Fatal(err)
 			}
 			bm := v.(*raster.Bitmap)
-			if im2.Width != im.Width || im2.Height != im.Height || im2.Stencil != im.Stencil {
-				t.Errorf("object %d: changed from %dx%d stencil %v", im2.Ref, im.Width, im.Height, im.Stencil)
+			if s2.Dict["Width"] != im.Width || s2.Dict["Height"] != im.Height || (s2.Dict["ImageMask"] == true) != im.Stencil {
+				t.Errorf("object %d: changed from %dx%d stencil %v", ref2, im.Width, im.Height, im.Stencil)
 			}
-			if got, want := decodeArray(r2, im2.Dict), bm.Decode; got != want {
-				t.Errorf("object %d: /Decode %v, want %v", im2.Ref, got, want)
+			if got, want := decodeArray(r2, s2.Dict), bm.Decode; got != want {
+				t.Errorf("object %d: /Decode %v, want %v", ref2, got, want)
 			}
-			got := jbig2dec(t, dir, r2, im2)
+			got := jbig2dec(t, dir, r2, ref2)
 			if lossy {
 				if d := farthest(got, bm); d > 2 {
-					t.Errorf("object %d (page %d): a pixel %d away from the original", im2.Ref, i+1, d)
+					t.Errorf("object %d (page %d): a pixel %d away from the original", ref2, i+1, d)
 				}
 			} else if !bytes.Equal(got, pbm(bm)) {
-				t.Errorf("object %d (page %d): jbig2dec output differs", im2.Ref, i+1)
+				t.Errorf("object %d (page %d): jbig2dec output differs", ref2, i+1)
 			}
 			n++
+		}
+		if sep {
+			samePage(t, dir, path, name, i+1)
 		}
 	}
 	if n != st.Replaced {
@@ -162,11 +181,11 @@ func decodeArray(r *pdfread.Reader, d pdf.Dict) [2]float64 {
 }
 
 // jbig2dec decodes an image's JBIG2 stream, with its globals, to PBM.
-func jbig2dec(t *testing.T, dir string, r *pdfread.Reader, im *scan.Image) []byte {
+func jbig2dec(t *testing.T, dir string, r *pdfread.Reader, ref pdf.Ref) []byte {
 	t.Helper()
-	s := r.Get(int(im.Ref)).(*pdfread.Stream)
+	s := r.Get(int(ref)).(*pdfread.Stream)
 	args := []string{"-q", "-e", "-t", "pbm"}
-	out := filepath.Join(dir, fmt.Sprintf("%d.pbm", im.Ref))
+	out := filepath.Join(dir, fmt.Sprintf("%d.pbm", ref))
 	args = append(args, "-o", out)
 	if p, ok := r.Resolve(s.Dict["DecodeParms"]).(pdf.Dict); ok {
 		if g, ok := r.Resolve(p["JBIG2Globals"]).(*pdfread.Stream); ok {
@@ -174,12 +193,12 @@ func jbig2dec(t *testing.T, dir string, r *pdfread.Reader, im *scan.Image) []byt
 			if err != nil {
 				t.Fatal(err)
 			}
-			name := filepath.Join(dir, fmt.Sprintf("%d.glob", im.Ref))
+			name := filepath.Join(dir, fmt.Sprintf("%d.glob", ref))
 			os.WriteFile(name, gd, 0o644)
 			args = append(args, name)
 		}
 	}
-	name := filepath.Join(dir, fmt.Sprintf("%d.jb2", im.Ref))
+	name := filepath.Join(dir, fmt.Sprintf("%d.jb2", ref))
 	os.WriteFile(name, r.Raw(s), 0o644)
 	if b, err := exec.Command("jbig2dec", append(args, name)...).CombinedOutput(); err != nil {
 		t.Fatalf("jbig2dec: %v\n%s", err, b)
@@ -204,7 +223,7 @@ func pbm(b *raster.Bitmap) []byte {
 // and r2 are the same but for numbering, and for the replaced images'
 // encoding; streams have the same data. It returns the number of
 // objects compared.
-func sameGraph(t *testing.T, r, r2 *pdfread.Reader) int {
+func sameGraph(t *testing.T, r, r2 *pdfread.Reader) (int, map[pdf.Ref]pdf.Ref) {
 	t.Helper()
 	m := map[pdf.Ref]pdf.Ref{}
 	var queue [][2]pdf.Ref
@@ -300,6 +319,13 @@ func sameGraph(t *testing.T, r, r2 *pdfread.Reader) int {
 		}
 		delete(da, "Length")
 		delete(db, "Length")
+		if db["Subtype"] == pdf.Name("Form") && da["Subtype"] == pdf.Name("Image") {
+			// A gray or colour image, now layers in a form.
+			if fmt.Sprint(da["OC"]) != fmt.Sprint(db["OC"]) && da["OC"] != nil {
+				same(da["OC"], db["OC"], path+"/OC", false)
+			}
+			continue
+		}
 		if db["Filter"] == pdf.Name("JBIG2Decode") && da["Filter"] != pdf.Name("JBIG2Decode") {
 			// A replaced image: the rest of its dictionary is kept.
 			for _, k := range []string{"Filter", "DecodeParms", "Decode", "BitsPerComponent", "DL"} {
@@ -315,7 +341,7 @@ func sameGraph(t *testing.T, r, r2 *pdfread.Reader) int {
 			fail(path, "stream data differs")
 		}
 	}
-	return len(m)
+	return len(m), m
 }
 
 // dropCrypt removes an identity /Crypt filter, which the copy drops.
@@ -423,4 +449,142 @@ func farthest(got []byte, b *raster.Bitmap) int {
 		}
 	}
 	return 3
+}
+
+// checkForm checks a gray or colour image's replacement: a unit form
+// whose JPX background opj_decompress decodes and whose stencils
+// jbig2dec decodes.
+func checkForm(t *testing.T, dir string, r *pdfread.Reader, s *pdfread.Stream) {
+	t.Helper()
+	if fmt.Sprint(r.Resolve(s.Dict["BBox"])) != "[0 0 1 1]" {
+		t.Errorf("form BBox %v", s.Dict["BBox"])
+	}
+	res, _ := r.Resolve(s.Dict["Resources"]).(pdf.Dict)
+	xobj, _ := r.Resolve(res["XObject"]).(pdf.Dict)
+	for name, v := range xobj {
+		ref, _ := v.(pdf.Ref)
+		x, _ := r.Get(int(ref)).(*pdfread.Stream)
+		if x == nil {
+			t.Errorf("form XObject %s: %v", name, v)
+			continue
+		}
+		switch x.Dict["Filter"] {
+		case pdf.Name("JBIG2Decode"):
+			if x.Dict["ImageMask"] != true {
+				t.Errorf("%s: not a stencil", name)
+			}
+			jbig2dec(t, dir, r, ref)
+		case pdf.Name("JPXDecode"):
+			if _, err := exec.LookPath("opj_decompress"); err != nil {
+				continue
+			}
+			in, out := filepath.Join(dir, "bg.jp2"), filepath.Join(dir, "bg.pgm")
+			if x.Dict["ColorSpace"] == pdf.Name("DeviceRGB") {
+				out = filepath.Join(dir, "bg.ppm")
+			}
+			os.WriteFile(in, r.Raw(x), 0o644)
+			if b, err := exec.Command("opj_decompress", "-i", in, "-o", out).CombinedOutput(); err != nil {
+				t.Errorf("%s: opj_decompress: %v\n%s", name, err, b)
+			}
+		default:
+			t.Errorf("%s: filter %v", name, x.Dict["Filter"])
+		}
+	}
+}
+
+// samePage renders page n of the original and the re-encoded file
+// with mutool, gray at 50 dpi, and checks they look alike blurred over
+// 3×3 pixels: layers in place, nothing missing, the colours right;
+// the weight of the strokes may differ.
+func samePage(t *testing.T, dir, orig, got string, n int) {
+	t.Helper()
+	if _, err := exec.LookPath("mutool"); err != nil {
+		return
+	}
+	var pix [2][]byte
+	var w, h int
+	for k, f := range []string{orig, got} {
+		out := filepath.Join(dir, fmt.Sprintf("p%d.pgm", k))
+		if b, err := exec.Command("mutool", "draw", "-q", "-r", "50", "-c", "gray", "-o", out, f,
+			fmt.Sprint(n)).CombinedOutput(); err != nil {
+			t.Fatalf("mutool: %v\n%s", err, b)
+		}
+		data, _ := os.ReadFile(out)
+		var g []byte
+		if w, h, g = readPGM(data); g == nil {
+			t.Fatalf("bad render of page %d", n)
+		}
+		pix[k] = blur(g, w, h)
+	}
+	if len(pix[0]) != len(pix[1]) {
+		t.Errorf("page %d: rendered %d and %d bytes", n, len(pix[0]), len(pix[1]))
+		return
+	}
+	psnr := blurPSNR(pix[0], pix[1])
+	t.Logf("page %d: %.1f dB", n, psnr)
+	if psnr < minPSNR {
+		t.Errorf("page %d: %.1f dB from the original", n, psnr)
+	}
+}
+
+// blurPSNR compares two blurred renders.
+func blurPSNR(a, b []byte) float64 {
+	sq := 0.0
+	for i := range a {
+		d := float64(a[i]) - float64(b[i])
+		sq += d * d
+	}
+	return 10 * math.Log10(255*255/max(sq/float64(len(a)), 1e-9))
+}
+
+// blur is the 3×3 mean.
+func blur(g []byte, w, h int) []byte {
+	out := make([]byte, len(g))
+	for y := range h {
+		for x := range w {
+			s, n := 0, 0
+			for dy := -1; dy <= 1; dy++ {
+				for dx := -1; dx <= 1; dx++ {
+					if X, Y := x+dx, y+dy; X >= 0 && Y >= 0 && X < w && Y < h {
+						s += int(g[Y*w+X])
+						n++
+					}
+				}
+			}
+			out[y*w+x] = byte(s / n)
+		}
+	}
+	return out
+}
+
+// minPSNR is how close, blurred, a page with separated layers renders
+// to the original at 50 dpi.
+const minPSNR = 26
+
+// readPGM parses a binary PGM, comments allowed.
+func readPGM(data []byte) (w, h int, pix []byte) {
+	var f [4]int
+	i := 2
+	for k := 0; k < 3 && i < len(data); {
+		switch c := data[i]; {
+		case c == '#':
+			for i < len(data) && data[i] != '\n' {
+				i++
+			}
+		case c >= '0' && c <= '9':
+			for i < len(data) && data[i] >= '0' && data[i] <= '9' {
+				f[k] = 10*f[k] + int(data[i]-'0')
+				i++
+			}
+			k++
+			continue
+		}
+		i++
+	}
+	i++ // the one blank after the maximum
+	w, h = f[0], f[1]
+	if len(data) < 2 || string(data[:2]) != "P5" || i+w*h > len(data) {
+		return 0, 0, nil
+	}
+	return w, h, data[i : i+w*h]
 }
