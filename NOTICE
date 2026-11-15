@@ -21,3 +21,7 @@ BSD-style license (internal/ccitt/LICENSE, internal/jpeg/LICENSE).
 
 * Go's image/jpeg (https://go.dev/src/image/jpeg)
   Used in: internal/jpeg (its LICENSE)
+
+The halftone mask in internal/segment follows the method of Leptonica's
+pixGenerateHalftoneMask (Dan Bloomberg; BSD-2-Clause,
+http://www.leptonica.org), written anew; no Leptonica code is included.

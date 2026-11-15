@@ -216,3 +216,32 @@ func trim(s *jb2.Bitmap) (*jb2.Bitmap, int, int) {
 	}
 	return t, x0, y0
 }
+
+// Run is a run of ink [X0, X1) in row Y.
+type Run struct{ X0, X1, Y int }
+
+// Component is an 8-connected component of a bitmap.
+type Component struct {
+	X0, Y0, X1, Y1 int // bounding box, X1 and Y1 past it
+	Area           int
+	Runs           []Run // in raster order
+}
+
+// Components returns the 8-connected components of b, in order of
+// their first run.
+func Components(b *raster.Bitmap) []Component {
+	rs, rows := findRuns(b)
+	comp, n := label(rs, rows)
+	cs := make([]Component, n)
+	for i := range cs {
+		cs[i].X0, cs[i].Y0 = b.W, b.H
+	}
+	for i, r := range rs {
+		c := &cs[comp[i]]
+		c.Runs = append(c.Runs, Run{int(r.x0), int(r.x1), int(r.y)})
+		c.Area += int(r.x1 - r.x0)
+		c.X0, c.X1 = min(c.X0, int(r.x0)), max(c.X1, int(r.x1))
+		c.Y0, c.Y1 = min(c.Y0, int(r.y)), max(c.Y1, int(r.y)+1)
+	}
+	return cs
+}

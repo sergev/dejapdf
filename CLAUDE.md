@@ -12,7 +12,7 @@ DjVu size (other tools produce ~30×). Module path: `github.com/sergev/dejapdf`.
 Checked in MuPDF, Poppler, pdf.js, Ghostscript, Adobe Reader 9
 (TestAcrobat) and, by hand, Acrobat 26 on macOS. The original design brief is
 `tmp/create-djvu-to-pdf.md`. Next: re-encoding scanned PDFs, planned in
-Todo.md as tasks T12–T16.
+Todo.md as tasks T13–T16.
 
 ## Commands
 
@@ -97,6 +97,17 @@ Data flows from DjVu decoding through re-encoding to the PDF writer:
   LZW, RunLength, and DCT through `internal/jpeg` with libjpeg's
   upsampling and YCbCr rounding. Equal to `pdfimages -png` (`-tiff` for
   CMYK) on every scanned book.
+- `internal/segment`: separates the text of gray and colour scans
+  (T12): `Mask` thresholds with Sauvola (window 1/6 inch, plus anything
+  darker than half the paper), fills dark holes (strokes wider than the
+  window), and drops specks, marks less than 30 levels darker than
+  their tile's paper, and pictures: tiles with dark paper or mid-tones
+  away from the ink (photos), thick blobs over a square inch (shadows,
+  page edges), and Bloomberg's halftone mask (Leptonica's method,
+  written anew; textures too). Small marks at the edge of a picture's
+  box, on clean paper, stay: captions. `Colors` gives each mark its
+  core colour: black if near black, else a k-means palette of up to 8.
+  Light text on dark or coloured ground stays in the background.
 - `internal/jpeg`: Go's image/jpeg decoder (BSD) with libjpeg's integer
   IDCT, returning component planes at their own resolution.
 - `internal/shapes`: splits a bilevel bitmap into 8-connected
@@ -176,6 +187,11 @@ The article PDFs are committed: regenerate them after editing an article.
     regions decode
   - `tmp/openjpeg` (BSD-2) → reference for JPEG 2000 encoder details
   - `tmp/djvu-rs` (MIT) → reference where the DjVu spec is wrong
+  - `tmp/leptonica` (BSD-2) → page segmentation (`pageseg.c`: halftone
+    mask), Sauvola, morphology; `tmp/noteshrink` (MIT) → colour palette
+    of ink; `tmp/jbig2enc` (Apache-2.0) → its text/halftone split
+  - `tmp/how-to-separate-text.md` → notes on DjVu's segmentation and
+    the open implementations
   - `tmp/mupdf` (AGPL), `tmp/poppler` (GPL) → read only, to understand how
     the viewers render (e.g. how they snap image edges); never copy from them
 - Borrowed code keeps its upstream copyright header and is credited in `NOTICE`.

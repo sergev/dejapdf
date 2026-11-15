@@ -41,20 +41,6 @@ and are left alone.
 - Acrobat constraints already learned apply to new code: refinements only
   between same-size shapes at zero offset (docs/JBIG2_Coding.md §8).
 
-## T12. Separate text from background
-
-- [ ] Adaptive threshold (Sauvola or similar) on gray and colour scans;
-  remove specks
-- [ ] Leave photos and halftones in the background: detect them from
-  component statistics (size, density, count per area)
-- [ ] Foreground colour per component, quantised to a small palette (as
-  FGbz), or plain black when the text is near black
-
-Done when: on the Etudes book and the colour scans, a by-eye comparison
-at 100% finds no lost or broken characters and no photo turned to a
-stencil; the mask of a corpus page rendered to gray matches `ddjvu
--mode=mask` closely (a small XOR count).
-
 ## T13. Background
 
 - [ ] Fill the pixels under the mask from their unmasked neighbours, so
