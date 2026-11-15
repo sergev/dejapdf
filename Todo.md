@@ -89,7 +89,36 @@ original in `mutool draw` and `pdftoppm`; every stream decodes bit-exact
 with `jbig2dec`; PDP11 Handbook is at least 1.5× smaller; `qpdf --check`
 passes; TestAcrobat and Acrobat 26 by hand show no errors.
 
-## T10. Shape matching
+## T10. McKusick: visible text over a bilevel scan
+
+`McKusick_-_Design_and_Implementation_of_the_4.4_BSD_Operating_System_-_Part_2__UNIX__(AW,_1996).pdf`
+(276 pages, 19.6 MB) draws visible vector text (`0 Tr`, black,
+non-embedded base-14 Times) over a page-size 600 dpi CCITT G4 image of
+about 7000×5000 pixels (two-page spreads, 868×606 pt). The text is the
+page's text; the image holds only what the converter did not turn into
+text: rules, figures, stray marks. `-dump` plans JBIG2 for every page.
+Re-encoding is safe only if nothing else changes.
+
+- [ ] Re-encode with T9; check that only the image streams change: every
+  other object keeps its values (renumbered), and the content streams
+  keep their data byte for byte
+- [ ] The images decode bit-exact (`jbig2dec` against `pdfimages -png`
+  of the original) at this width; check the JBIG2 encoder on 7000-pixel
+  rows and near-empty pages
+- [ ] Every page renders pixel-identical to the original in `mutool
+  draw` and `pdftoppm`; the text still selects and searches
+  (`pdftotext` output unchanged)
+- [ ] The content streams make Poppler warn ("Badly formatted number",
+  8368 times): find why, and make sure our content parsing (T5) reads
+  them as the viewers do, so the image's matrix and coverage are right
+- [ ] Check in TestAcrobat and in Acrobat 26 by hand: text over the
+  JBIG2 image, at these sizes
+
+Done when: the file is smaller, renders identically page by page in
+MuPDF and Poppler, `pdftotext` and `qpdf --check` agree with the
+original, and Acrobat shows it without errors.
+
+## T11. Shape matching
 
 - [ ] Cluster similar components: size within a pixel or two, weighted XOR
   distance, same number of holes (Euler number) as a guard against
@@ -105,7 +134,7 @@ Done when: lossy PDP11 Handbook is about 4× smaller than the original, the
 digits page shows no substitution between different characters, and a
 by-eye check of 10 random pages finds no errors.
 
-## T11. Separate text from background
+## T12. Separate text from background
 
 - [ ] Adaptive threshold (Sauvola or similar) on gray and colour scans;
   remove specks
@@ -119,7 +148,7 @@ at 100% finds no lost or broken characters and no photo turned to a
 stencil; the mask of a corpus page rendered to gray matches `ddjvu
 -mode=mask` closely (a small XOR count).
 
-## T12. Background
+## T13. Background
 
 - [ ] Fill the pixels under the mask from their unmasked neighbours, so
   text leaves no ghosts and the wavelets spend no bits on it
@@ -132,7 +161,7 @@ Done when: backgrounds of the Etudes pages show no text ghosts at 400%,
 and the whole page comes to within 20% of the `cjb2`+`c44` measurement
 above.
 
-## T13. Re-encode gray and colour scans
+## T14. Re-encode gray and colour scans
 
 - [ ] Replace the image XObject in place with a form XObject,
   `/BBox [0 0 1 1]`, whose content draws the background JPX and the
@@ -147,7 +176,7 @@ in MuPDF, Poppler, pdf.js, Ghostscript, TestAcrobat and Acrobat 26 by
 hand; the OCR text layer still selects over the right words;
 `qpdf --check` passes.
 
-## T14. Command line
+## T15. Command line
 
 - [ ] `dejapdf in.pdf out.pdf`: pick the path by the input's magic bytes;
   `-p`, `-q`, `-v`, `-quiet` and the progress line work as for DjVu;
@@ -160,7 +189,7 @@ hand; the OCR text layer still selects over the right words;
 Done when: the size table for the scanned books is in the README; CI
 passes.
 
-## T15. Docs
+## T16. Docs
 
 - [ ] An article `docs/PDF_Rewriting.md`: what we read, how scan images
   are found, segmentation, and what stays untouched; regenerate the PDFs
