@@ -1,7 +1,7 @@
 # Copyright (c) 2026 Serge Vakulenko
 # SPDX-License-Identifier: MIT
 
-.PHONY: all build install test lint fuzz corpus corpus-pdf docs docs-pdf clean
+.PHONY: all build install tag test lint fuzz corpus corpus-pdf docs docs-pdf clean
 
 BINDIR ?= $(HOME)/.local/bin
 
@@ -13,6 +13,12 @@ build:
 install: build
 	install -d $(BINDIR)
 	install -m 755 dejapdf $(BINDIR)/dejapdf
+
+# Tag a release v1.0.N, N the number of commits. Pushed
+# (git push origin v1.0.N), go install ...@latest gets it.
+tag:
+	@test -z "$$(git status --porcelain)" || { echo "uncommitted changes"; exit 1; }
+	git tag v1.0.$$(git rev-list HEAD --count)
 
 test:
 	go test ./...

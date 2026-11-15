@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"runtime/pprof"
 	"runtime/trace"
 	"strconv"
@@ -27,7 +28,17 @@ import (
 	"github.com/sergev/dejapdf/internal/scan"
 )
 
-const version = "0.0.1"
+var version = moduleVersion()
+
+// moduleVersion is the version Go stamps into the binary: the tag
+// v1.0.N (N the number of commits when tagged), or a pseudo-version
+// after it; 1.0.0 when there is none.
+func moduleVersion() string {
+	if bi, ok := debug.ReadBuildInfo(); ok && strings.HasPrefix(bi.Main.Version, "v") {
+		return bi.Main.Version[1:]
+	}
+	return "1.0.0"
+}
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: dejapdf [options] input.djvu|input.pdf output.pdf\n")
