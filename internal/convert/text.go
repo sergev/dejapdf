@@ -35,9 +35,15 @@ func text(b *pageBuilder, pg *djvu.Page, count bool) error {
 				continue
 			}
 			x1 := w.X1
-			if i+1 < len(ws) && ws[i+1].X0 > w.X1 {
-				t += " "
-				x1 = ws[i+1].X0
+			// A space of zero advance, when the next word overlaps.
+			zsp := false
+			if i+1 < len(ws) {
+				if ws[i+1].X0 > w.X1 {
+					t += " "
+					x1 = ws[i+1].X0
+				} else {
+					zsp = true
+				}
 			}
 			u := utf16.Encode([]rune(t))
 			if h := y1 - y0; h != size {
@@ -46,13 +52,21 @@ func text(b *pageBuilder, pg *djvu.Page, count bool) error {
 			}
 			// Glyphs are size/2 wide.
 			tz := (200*(x1-w.X0) + size*len(u)/2) / (size * len(u))
-			c = fmt.Appendf(c, "%d %d Td %d Tz (", w.X0-x, y0-y, tz)
+			c = fmt.Appendf(c, "%d %d Td %d Tz ", w.X0-x, y0-y, tz)
 			x, y = w.X0, y0
+			if zsp {
+				c = append(c, '[')
+			}
+			c = append(c, '(')
 			for _, v := range u {
 				c = appendEscaped(c, byte(v>>8))
 				c = appendEscaped(c, byte(v))
 			}
-			c = append(c, ")Tj\n"...)
+			if zsp {
+				c = append(c, "\x00 )500]TJ\n"...)
+			} else {
+				c = append(c, ")Tj\n"...)
+			}
 		}
 	}
 	var walk func(z *djvu.Zone)

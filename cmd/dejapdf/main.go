@@ -32,13 +32,13 @@ import (
 var version = moduleVersion()
 
 // moduleVersion is the version Go stamps into the binary: the tag
-// v1.0.N (N the number of commits when tagged), or a pseudo-version
-// after it; 1.0.0 when there is none.
+// v1.1.N (N the number of commits when tagged), or a pseudo-version
+// after it; 1.1.0 when there is none.
 func moduleVersion() string {
 	if bi, ok := debug.ReadBuildInfo(); ok && strings.HasPrefix(bi.Main.Version, "v") {
 		return bi.Main.Version[1:]
 	}
-	return "1.0.0"
+	return "1.1.0"
 }
 
 func usage() {

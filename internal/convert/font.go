@@ -119,10 +119,12 @@ func (f *textFont) get(p *pdf.Writer) pdf.Ref {
 	}
 	ttf := glyphless()
 	file := p.AddStream(pdf.Dict{"Length1": len(ttf), "Filter": pdf.Name("FlateDecode")}, pdf.Flate(ttf))
+	// Descent 0 makes macOS (PDFKit, Preview) drop the font's text:
+	// "Failed to determine ascent and decent".
 	desc := p.Add(pdf.Dict{
 		"Type": pdf.Name("FontDescriptor"), "FontName": pdf.Name(fontName),
 		"Flags": 5, "FontBBox": pdf.Array{0, 0, 500, 1000}, "ItalicAngle": 0,
-		"Ascent": 1000, "Descent": 0, "CapHeight": 1000, "StemV": 80, "FontFile2": file,
+		"Ascent": 1000, "Descent": -1, "CapHeight": 1000, "StemV": 80, "FontFile2": file,
 	})
 	gids := bytes.Repeat([]byte{0, 1}, 1<<16)
 	cidToGID := p.AddStream(pdf.Dict{"Filter": pdf.Name("FlateDecode")}, pdf.Flate(gids))
