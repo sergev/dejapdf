@@ -6,7 +6,9 @@
 // go:generate line for gen.go removed; decodeEOL accepts fill bits
 // (extra zeros) before an EOL, as T.4 allows; a row that fails to
 // decode is returned as far as it decoded, the rest white, before the
-// error, as PDF viewers do.
+// error, as PDF viewers do; rows are kept as their changing elements
+// and packed straight to bits; a 0-wide image of unknown height ends
+// at a missing EOL.
 
 // Package ccitt implements a CCITT (fax) image decoder.
 //
@@ -87,51 +89,6 @@ func reverseBitsWithinBytes(b []byte) {
 	for i, c := range b {
 		b[i] = bits.Reverse8(c)
 	}
-}
-
-// highBits writes to dst (1 bit per pixel, most significant bit first) the
-// high (0x80) bits from src (1 byte per pixel). It returns the number of bytes
-// written and read such that dst[:d] is the packed form of src[:s].
-//
-// For example, if src starts with the 8 bytes [0x7D, 0x7E, 0x7F, 0x80, 0x81,
-// 0x82, 0x00, 0xFF] then 0x1D will be written to dst[0].
-//
-// If src has (8 * len(dst)) or more bytes then only len(dst) bytes are
-// written, (8 * len(dst)) bytes are read, and invert is ignored.
-//
-// Otherwise, if len(src) is not a multiple of 8 then the final byte written to
-// dst is padded with 1 bits (if invert is true) or 0 bits. If inverted, the 1s
-// are typically temporary, e.g. they will be flipped back to 0s by an
-// invertBytes call in the highBits caller, reader.Read.
-func highBits(dst []byte, src []byte, invert bool) (d int, s int) {
-	// Pack as many complete groups of 8 src bytes as we can.
-	n := len(src) / 8
-	if n > len(dst) {
-		n = len(dst)
-	}
-	dstN := dst[:n]
-	for i := range dstN {
-		// The multiply gathers the 8 high bits into the top byte,
-		// src[0]'s first; no two products overlap.
-		x := binary.BigEndian.Uint64(src[i*8:]) & 0x8080808080808080
-		dstN[i] = byte(x * 0x0002040810204081 >> 56)
-	}
-	d, s = n, 8*n
-	dst, src = dst[d:], src[s:]
-
-	// Pack up to 7 remaining src bytes, if there's room in dst.
-	if (len(dst) > 0) && (len(src) > 0) {
-		dstByte := byte(0)
-		if invert {
-			dstByte = 0xFF >> uint(len(src))
-		}
-		for n, srcByte := range src {
-			dstByte |= (srcByte & 0x80) >> uint(n)
-		}
-		dst[0] = dstByte
-		d, s = d+1, s+len(src)
-	}
-	return d, s
 }
 
 type bitReader struct {
@@ -283,21 +240,24 @@ type reader struct {
 	// When driven through DecodeIntoGray, this field is unused.
 	rowsRemaining int
 
-	// curr and prev hold the current and previous rows. Each element is either
-	// 0x00 (black) or 0xFF (white).
-	//
-	// prev may be nil, when processing the first row.
-	curr []byte
-	prev []byte
+	// curr and prev hold the current and previous rows as their changing
+	// elements: the pixels whose color differs from the one on their left
+	// (white, left of the first pixel). havePrev is false for the first
+	// row, whose previous row is implicitly all white. cursor indexes the
+	// first change in prev to the right of wi.
+	curr, prev []int
+	havePrev   bool
+	cursor     int
 
-	// ri is the read index. curr[:ri] are those bytes of curr that have been
-	// passed along via the Read method.
+	// row is the current row packed, 1 bit per pixel, and ri the number of
+	// its bytes passed along via the Read method.
 	//
 	// When the reader is driven through DecodeIntoGray, instead of through the
-	// io.Reader interface, this field is unused.
-	ri int
+	// io.Reader interface, these fields are unused.
+	row []byte
+	ri  int
 
-	// wi is the write index. curr[:wi] are those bytes of curr that have
+	// wi is the write index: pixels [0, wi) of the current row have
 	// already been decoded via the decodeRow method.
 	//
 	// What this implementation calls wi is roughly equivalent to what the spec
@@ -348,14 +308,14 @@ func (z *reader) Read(p []byte) (int, error) {
 	for len(p) > 0 {
 		// Allocate buffers (and decode any start-of-image codes), if
 		// processing the first or second row.
-		if z.curr == nil {
+		if z.row == nil {
 			if !z.seenStartOfImage {
 				if z.readErr = z.startDecode(); z.readErr != nil {
 					break
 				}
 				z.atStartOfRow = true
 			}
-			z.curr = make([]byte, z.width)
+			z.row = make([]byte, (z.width+7)/8)
 		}
 
 		// Decode the next row, if necessary.
@@ -376,7 +336,12 @@ func (z *reader) Read(p []byte) (int, error) {
 				}
 
 				if err := z.decodeEOL(); err == errMissingEOL {
-					// No-op. It's another row of pixel data.
+					// It's another row of pixel data, unless rows are 0
+					// wide: then only an EOL can end the image.
+					if z.width == 0 {
+						z.readErr = err
+						break
+					}
 				} else if err != nil {
 					z.readErr = err
 					break
@@ -402,26 +367,26 @@ func (z *reader) Read(p []byte) (int, error) {
 			}
 
 			if z.readErr = z.decodeRow(z.rowsRemaining == 0); z.readErr != nil {
-				if z.wi <= 0 || z.wi > len(z.curr) {
+				if z.wi <= 0 || z.wi > z.width {
 					break
 				}
 				// Keep what the row decoded to; the rest is white.
-				for i := z.wi; i < len(z.curr); i++ {
-					z.curr[i] = 0xff
-				}
+				z.penColorIsWhite = true
+				z.fill(z.width)
 				z.rowErr, z.readErr = z.readErr, nil
-				z.atStartOfRow = false // pass the row along first
 			}
+			z.atStartOfRow = false // pass the row along first
+			packRow(z.row, z.curr, z.width, z.invert)
 		}
 
-		// Pack from z.curr (1 byte per pixel) to p (1 bit per pixel).
-		packD, packS := highBits(p, z.curr[z.ri:], z.invert)
-		p = p[packD:]
-		z.ri += packS
+		n := copy(p, z.row[z.ri:])
+		p = p[n:]
+		z.ri += n
 
 		// Prepare to decode the next row, if necessary.
-		if z.ri == len(z.curr) {
-			z.ri, z.curr, z.prev = 0, z.prev, z.curr
+		if z.ri == len(z.row) {
+			z.ri = 0
+			z.nextRow()
 			z.atStartOfRow = true
 			if z.rowErr != nil {
 				z.readErr = z.rowErr
@@ -430,18 +395,62 @@ func (z *reader) Read(p []byte) (int, error) {
 		}
 	}
 
-	n := len(originalP) - len(p)
-	if z.invert {
-		invertBytes(originalP[:n])
-	}
-	return n, z.readErr
+	return len(originalP) - len(p), z.readErr
 }
 
-func (z *reader) penColor() byte {
-	if z.penColorIsWhite {
-		return 0xFF
+// nextRow makes the current row the previous one.
+func (z *reader) nextRow() {
+	z.curr, z.prev = z.prev[:0], z.curr
+	z.havePrev = true
+}
+
+// fill paints pixels [wi, x) with the pen color, and moves wi to x.
+func (z *reader) fill(x int) {
+	// Pixel wi-1 is white when an even number of changes precede it.
+	if x > z.wi && (len(z.curr)%2 == 0) != z.penColorIsWhite {
+		z.curr = append(z.curr, z.wi)
 	}
-	return 0x00
+	z.wi = x
+}
+
+// packRow writes a row given by its changes to dst, 1 bit per pixel, MSB
+// first, 1 for white (for black when inverted); the padding bits are 0.
+func packRow(dst []byte, changes []int, width int, invert bool) {
+	clear(dst)
+	// The 1 bits are the white runs, [0, c0), [c1, c2) and so on, or the
+	// black runs, [c0, c1), [c2, c3) and so on.
+	start := 0
+	if invert {
+		start = 1
+	}
+	for i := start; i <= len(changes); i += 2 {
+		a, b := 0, width
+		if i > 0 {
+			a = changes[i-1]
+		}
+		if i < len(changes) {
+			b = changes[i]
+		}
+		setBits(dst, a, b)
+	}
+}
+
+// setBits sets bits [a, b) of dst, MSB first.
+func setBits(dst []byte, a, b int) {
+	if a >= b {
+		return
+	}
+	i, j := a>>3, (b-1)>>3
+	first, last := byte(0xFF)>>(a&7), byte(0xFF)<<(7-(b-1)&7)
+	if i == j {
+		dst[i] |= first & last
+		return
+	}
+	dst[i] |= first
+	for k := i + 1; k < j; k++ {
+		dst[k] = 0xFF
+	}
+	dst[j] |= last
 }
 
 func (z *reader) startDecode() error {
@@ -514,6 +523,8 @@ func (z *reader) decodeEOL() error {
 
 func (z *reader) decodeRow(finalRow bool) error {
 	z.wi = 0
+	z.curr = z.curr[:0]
+	z.cursor = 0
 	z.atStartOfRow = true
 	z.penColorIsWhite = true
 
@@ -523,7 +534,7 @@ func (z *reader) decodeRow(finalRow bool) error {
 
 	switch z.subFormat {
 	case Group3:
-		for ; z.wi < len(z.curr); z.atStartOfRow = false {
+		for ; z.wi < z.width; z.atStartOfRow = false {
 			if err := z.decodeRun(); err != nil {
 				return err
 			}
@@ -536,7 +547,7 @@ func (z *reader) decodeRow(finalRow bool) error {
 		return err
 
 	case Group4:
-		for ; z.wi < len(z.curr); z.atStartOfRow = false {
+		for ; z.wi < z.width; z.atStartOfRow = false {
 			mode, err := decode(&z.br, modeDecodeTable[:])
 			if err != nil {
 				return err
@@ -583,15 +594,10 @@ func (z *reader) decodeRun() error {
 		}
 	}
 
-	if total > (len(z.curr) - z.wi) {
+	if total > (z.width - z.wi) {
 		return errRunLengthOverflowsWidth
 	}
-	dst := z.curr[z.wi : z.wi+total]
-	penColor := z.penColor()
-	for i := range dst {
-		dst[i] = penColor
-	}
-	z.wi += total
+	z.fill(z.wi + total)
 	z.penColorIsWhite = !z.penColorIsWhite
 
 	return nil
@@ -643,42 +649,48 @@ func (z *reader) findB(whichB bool) int {
 	// The initial row is a special case. The previous row is implicitly all
 	// white, so that there are no changing pixel elements. We return b1 or b2
 	// to be at the end of the row.
-	if len(z.prev) != len(z.curr) {
-		return len(z.curr)
+	if !z.havePrev {
+		return z.width
 	}
 
-	i := z.wi
+	// k is the first change in prev to the right of i; the pixel at i is
+	// white when k is even. skip moves i past a run of color white.
+	for z.cursor < len(z.prev) && z.prev[z.cursor] <= z.wi {
+		z.cursor++
+	}
+	i, k := z.wi, z.cursor
+	skip := func(white bool) {
+		if (k%2 == 0) == white {
+			i = z.width
+			if k < len(z.prev) {
+				i = z.prev[k]
+			}
+			k++
+		}
+	}
 
 	if z.atStartOfRow {
 		// a0 is implicitly at -1, on a white pixel. b1 is the first black
 		// pixel in the previous row. b2 is the first white pixel after that.
-		for ; (i < len(z.prev)) && (z.prev[i] == 0xFF); i++ {
-		}
+		skip(true)
 		if whichB == findB2 {
-			for ; (i < len(z.prev)) && (z.prev[i] == 0x00); i++ {
-			}
+			skip(false)
 		}
 		return i
 	}
 
 	// As per figure 1 above, assume that the current pen color is white.
 	// First, walk past every contiguous black pixel in prev, starting at a0.
-	oppositeColor := ^z.penColor()
-	for ; (i < len(z.prev)) && (z.prev[i] == oppositeColor); i++ {
-	}
+	skip(!z.penColorIsWhite)
 
 	// Then walk past every contiguous white pixel.
-	penColor := ^oppositeColor
-	for ; (i < len(z.prev)) && (z.prev[i] == penColor); i++ {
-	}
+	skip(z.penColorIsWhite)
 
 	// We're now at a black pixel (or at the end of the row). That's b1.
 	if whichB == findB2 {
 		// If we're looking for b2, walk past every contiguous black pixel
 		// again.
-		oppositeColor := ^penColor
-		for ; (i < len(z.prev)) && (z.prev[i] == oppositeColor); i++ {
-		}
+		skip(!z.penColorIsWhite)
 	}
 
 	return i
@@ -704,15 +716,10 @@ var readerModes = [...]readerMode{
 
 func readerModePass(z *reader, arg int) error {
 	b2 := z.findB(findB2)
-	if (b2 < z.wi) || (len(z.curr) < b2) {
+	if (b2 < z.wi) || (z.width < b2) {
 		return errInvalidOffset
 	}
-	dst := z.curr[z.wi:b2]
-	penColor := z.penColor()
-	for i := range dst {
-		dst[i] = penColor
-	}
-	z.wi = b2
+	z.fill(b2)
 	return nil
 }
 
@@ -728,15 +735,10 @@ func readerModeH(z *reader, arg int) error {
 
 func readerModeV(z *reader, arg int) error {
 	a1 := z.findB(findB1) + arg
-	if (a1 < z.wi) || (len(z.curr) < a1) {
+	if (a1 < z.wi) || (z.width < a1) {
 		return errInvalidOffset
 	}
-	dst := z.curr[z.wi:a1]
-	penColor := z.penColor()
-	for i := range dst {
-		dst[i] = penColor
-	}
-	z.wi = a1
+	z.fill(a1)
 	z.penColorIsWhite = !z.penColorIsWhite
 	return nil
 }
@@ -772,11 +774,17 @@ func DecodeIntoGray(dst *image.Gray, r io.Reader, order Order, sf SubFormat, opt
 	width := bounds.Dx()
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		p := (y - bounds.Min.Y) * dst.Stride
-		z.curr = dst.Pix[p : p+width]
 		if err := z.decodeRow(y+1 == bounds.Max.Y); err != nil {
 			return err
 		}
-		z.curr, z.prev = nil, z.curr
+		row, white, x := dst.Pix[p:p+width], byte(0xFF), 0
+		for _, c := range append(z.curr, width) {
+			for ; x < c; x++ {
+				row[x] = white
+			}
+			white = ^white
+		}
+		z.nextRow()
 	}
 
 	if err := z.finishDecode(false); err != nil {

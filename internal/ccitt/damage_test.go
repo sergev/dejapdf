@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // Tests of what dejapdf changed: fill bits before an EOL, and the row
@@ -144,6 +145,31 @@ func TestFillBits(t *testing.T) {
 	}
 }
 
+// A 0-wide image ends: its G4 rows consume no bits, so without its
+// height only an EOL can end it.
+func TestZeroWidth(t *testing.T) {
+	eofb := []byte{0x00, 0x10, 0x01} // two EOLs
+	for _, data := range [][]byte{nil, []byte("\x9bS0"), eofb, append([]byte{0xff}, eofb...)} {
+		for _, sf := range []SubFormat{Group3, Group4} {
+			for _, h := range []int{0, 3, AutoDetectHeight} {
+				done := make(chan []byte)
+				go func() {
+					b, _ := io.ReadAll(NewReader(bytes.NewReader(data), MSB, sf, 0, h, nil))
+					done <- b
+				}()
+				select {
+				case b := <-done:
+					if len(b) != 0 {
+						t.Errorf("% x sf %d height %d: %d bytes", data, sf, h, len(b))
+					}
+				case <-time.After(5 * time.Second):
+					t.Fatalf("% x sf %d height %d: no end", data, sf, h)
+				}
+			}
+		}
+	}
+}
+
 // Damaged streams decode without panics.
 func FuzzDecode(f *testing.F) {
 	names, err := filepath.Glob("testdata/*.ccitt_group*")
@@ -158,7 +184,7 @@ func FuzzDecode(f *testing.F) {
 		f.Add(b, strings.HasSuffix(name, "4"), strings.Contains(name, "aligned"), uint16(gopherW))
 	}
 	f.Fuzz(func(t *testing.T, data []byte, g4, align bool, w uint16) {
-		if w == 0 || w > 4096 {
+		if w > 4096 {
 			return
 		}
 		sf := Group3
