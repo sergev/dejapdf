@@ -338,6 +338,10 @@ type reader struct {
 
 	// readErr is a sticky error for the Read method.
 	readErr error
+
+	// rowErr is the error of a row decoded in part, kept until the row
+	// is passed along.
+	rowErr error
 }
 
 func (z *reader) Read(p []byte) (int, error) {
@@ -345,7 +349,6 @@ func (z *reader) Read(p []byte) (int, error) {
 		return 0, z.readErr
 	}
 	originalP := p
-	partial := false
 
 	for len(p) > 0 {
 		// Allocate buffers (and decode any start-of-image codes), if
@@ -411,7 +414,8 @@ func (z *reader) Read(p []byte) (int, error) {
 				for i := z.wi; i < len(z.curr); i++ {
 					z.curr[i] = 0xff
 				}
-				partial = true
+				z.rowErr, z.readErr = z.readErr, nil
+				z.atStartOfRow = false // pass the row along first
 			}
 		}
 
@@ -424,7 +428,8 @@ func (z *reader) Read(p []byte) (int, error) {
 		if z.ri == len(z.curr) {
 			z.ri, z.curr, z.prev = 0, z.prev, z.curr
 			z.atStartOfRow = true
-			if partial {
+			if z.rowErr != nil {
+				z.readErr = z.rowErr
 				break
 			}
 		}
