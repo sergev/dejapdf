@@ -5,6 +5,7 @@ package shapes
 
 import (
 	"fmt"
+	"math/bits"
 	"os"
 	"strings"
 	"testing"
@@ -208,23 +209,65 @@ func substitute(ims []*jb2.Image) ([]*jb2.Bitmap, int, int) {
 	return out, classes, len(bms)
 }
 
-// distance is the least XOR count of a and b, b shifted a pixel.
+// distance is the least XOR count of a and b, b shifted a pixel,
+// over the larger of their sizes; rows packed 64 pixels to a word.
 func distance(a, b *jb2.Bitmap) int {
+	w, h := max(a.W, b.W), max(a.H, b.H)
+	nw := (w + 63) / 64
+	pa, pb := pack(a, nw), pack(b, nw)
+	last := ^uint64(0) >> (nw*64 - w)
 	best := 1 << 30
 	for dy := -1; dy <= 1; dy++ {
 		for dx := -1; dx <= 1; dx++ {
 			d := 0
-			for y := range max(a.H, b.H) {
-				for x := range max(a.W, b.W) {
-					if at(a, x, y) != at(b, x-dx, y-dy) {
-						d++
+			for y := range h {
+				by := y - dy
+				for i := range nw {
+					var av, bv uint64
+					if y < a.H {
+						av = pa[y*nw+i]
 					}
+					if by >= 0 && by < b.H {
+						r := pb[by*nw : (by+1)*nw]
+						switch dx { // b[x-dx] at x
+						case 0:
+							bv = r[i]
+						case 1:
+							bv = r[i] << 1
+							if i > 0 {
+								bv |= r[i-1] >> 63
+							}
+						case -1:
+							bv = r[i] >> 1
+							if i+1 < nw {
+								bv |= r[i+1] << 63
+							}
+						}
+					}
+					x := av ^ bv
+					if i == nw-1 {
+						x &= last
+					}
+					d += bits.OnesCount64(x)
 				}
 			}
 			best = min(best, d)
 		}
 	}
 	return best
+}
+
+// pack gives b's rows as nw words each, pixel x at bit x%64.
+func pack(b *jb2.Bitmap, nw int) []uint64 {
+	p := make([]uint64, b.H*nw)
+	for y := range b.H {
+		for x, v := range b.Pix[y*b.W : (y+1)*b.W] {
+			if v != 0 {
+				p[y*nw+x>>6] |= 1 << (x & 63)
+			}
+		}
+	}
+	return p
 }
 
 func at(b *jb2.Bitmap, x, y int) byte {

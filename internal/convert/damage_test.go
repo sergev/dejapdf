@@ -19,12 +19,12 @@ import (
 // Truncated and corrupted corpus files convert without panics, with
 // warnings; truncated ones still give valid PDF.
 func TestDamaged(t *testing.T) {
+	t.Parallel()
 	qpdf := true
 	if _, err := exec.LookPath("qpdf"); err != nil {
 		qpdf = false
 	}
 	rng := rand.New(rand.NewSource(1))
-	dir := t.TempDir()
 	for _, name := range []string{"bundled.djvu", "pdf2djvu.djvu", "shared-dict.djvu", "compound.djvu",
 		"jpeg.djvu", "mmr.djvu", "palette.djvu", "photo.djvu"} {
 		good, err := os.ReadFile(filepath.Join(corpus, name))
@@ -45,35 +45,45 @@ func TestDamaged(t *testing.T) {
 			cases = append(cases, b)
 			kinds = append(kinds, fmt.Sprintf("corrupt %d", k))
 		}
-		converted := 0
-		for c, b := range cases {
-			doc, err := djvu.Parse(b, nil)
-			if err != nil {
-				continue
-			}
-			warns := 0
-			opt := Options{Warn: func(int, error) { warns++ }}
-			out := io.Discard
-			path := filepath.Join(dir, "d.pdf")
-			var f *os.File
-			if qpdf && c < 6 {
-				f, _ = os.Create(path)
-				out = f
-			}
-			if err := Convert(doc, out, opt); err != nil {
-				t.Errorf("%s %s: %v", name, kinds[c], err)
-				continue
-			}
-			converted++
-			if f != nil {
-				f.Close()
-				if b, err := exec.Command("qpdf", "--check", path).CombinedOutput(); err != nil {
-					t.Errorf("%s %s: qpdf: %s", name, kinds[c], b)
-				}
+		// Cases made in order: the same corruptions every run.
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			damaged(t, name, cases, kinds, qpdf)
+		})
+	}
+}
+
+// damaged converts the damaged copies of one file.
+func damaged(t *testing.T, name string, cases [][]byte, kinds []string, qpdf bool) {
+	dir := t.TempDir()
+	converted := 0
+	for c, b := range cases {
+		doc, err := djvu.Parse(b, nil)
+		if err != nil {
+			continue
+		}
+		warns := 0
+		opt := Options{Warn: func(int, error) { warns++ }}
+		out := io.Discard
+		path := filepath.Join(dir, "d.pdf")
+		var f *os.File
+		if qpdf && c < 6 {
+			f, _ = os.Create(path)
+			out = f
+		}
+		if err := Convert(doc, out, opt); err != nil {
+			t.Errorf("%s %s: %v", name, kinds[c], err)
+			continue
+		}
+		converted++
+		if f != nil {
+			f.Close()
+			if b, err := exec.Command("qpdf", "--check", path).CombinedOutput(); err != nil {
+				t.Errorf("%s %s: qpdf: %s", name, kinds[c], b)
 			}
 		}
-		t.Logf("%s: %d of %d damaged files converted", name, converted, len(cases))
 	}
+	t.Logf("%s: %d of %d damaged files converted", name, converted, len(cases))
 }
 
 // Whole small documents through the converter. Pages over 16 megapixels
