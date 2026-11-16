@@ -10,6 +10,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime/debug"
@@ -44,7 +45,46 @@ func moduleVersion() string {
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: dejapdf [options] input.djvu|input.pdf output.pdf\n")
 	fmt.Fprintf(os.Stderr, "       dejapdf -dump input.djvu|input.pdf\n")
-	flag.PrintDefaults()
+	printFlags(os.Stderr, flagOrder)
+}
+
+// flagOrder lists the options as the usage message gives them: the
+// ones used most first. Any left out follow, in alphabetical order.
+var flagOrder = []string{"p", "q", "lossless", "v", "quiet", "dump", "version", "cpuprofile", "trace"}
+
+// printFlags prints the flags as flag.PrintDefaults does, in the order
+// given.
+func printFlags(w io.Writer, order []string) {
+	var fs []*flag.Flag
+	seen := map[string]bool{}
+	for _, name := range order {
+		if f := flag.Lookup(name); f != nil {
+			fs, seen[name] = append(fs, f), true
+		}
+	}
+	flag.VisitAll(func(f *flag.Flag) {
+		if !seen[f.Name] {
+			fs = append(fs, f)
+		}
+	})
+	for _, f := range fs {
+		line := "  -" + f.Name
+		typ, text := flag.UnquoteUsage(f)
+		if typ != "" {
+			line += " " + typ
+		}
+		// A one-letter boolean flag fits its usage on the same line.
+		if len(line) <= 4 {
+			line += "\t"
+		} else {
+			line += "\n    \t"
+		}
+		line += strings.ReplaceAll(text, "\n", "\n    \t")
+		if d := f.DefValue; d != "" && d != "0" && d != "false" {
+			line += fmt.Sprintf(" (default %v)", d)
+		}
+		fmt.Fprintln(w, line)
+	}
 }
 
 func main() {
