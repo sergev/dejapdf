@@ -111,15 +111,10 @@ func highBits(dst []byte, src []byte, invert bool) (d int, s int) {
 	}
 	dstN := dst[:n]
 	for i := range dstN {
-		src8 := src[i*8 : i*8+8]
-		dstN[i] = ((src8[0] & 0x80) >> 0) |
-			((src8[1] & 0x80) >> 1) |
-			((src8[2] & 0x80) >> 2) |
-			((src8[3] & 0x80) >> 3) |
-			((src8[4] & 0x80) >> 4) |
-			((src8[5] & 0x80) >> 5) |
-			((src8[6] & 0x80) >> 6) |
-			((src8[7] & 0x80) >> 7)
+		// The multiply gathers the 8 high bits into the top byte,
+		// src[0]'s first; no two products overlap.
+		x := binary.BigEndian.Uint64(src[i*8:]) & 0x8080808080808080
+		dstN[i] = byte(x * 0x0002040810204081 >> 56)
 	}
 	d, s = n, 8*n
 	dst, src = dst[d:], src[s:]

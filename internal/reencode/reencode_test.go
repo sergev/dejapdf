@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"math"
+	"math/bits"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -216,7 +217,8 @@ func jbig2dec(t *testing.T, dir string, r *pdfread.Reader, ref pdf.Ref) []byte {
 }
 
 func pbm(b *raster.Bitmap) []byte {
-	out := fmt.Appendf(nil, "P4\n%d %d\n", b.W, b.H)
+	hdr := fmt.Sprintf("P4\n%d %d\n", b.W, b.H)
+	out := append(make([]byte, 0, len(hdr)+b.H*((b.W+7)/8)), hdr...)
 	for y := range b.H {
 		out = append(out, b.Pix[y*b.Stride:y*b.Stride+(b.W+7)/8]...)
 	}
@@ -427,21 +429,27 @@ func farthest(got []byte, b *raster.Bitmap) int {
 	at := func(p []byte, x, y int) bool {
 		return x >= 0 && y >= 0 && x < b.W && y < b.H && p[hdr+y*stride+x/8]>>(7-x%8)&1 != 0
 	}
-	// dist is whether every ink pixel of p lies within d of one of q.
+	// within is whether every ink pixel of p lies within d of one of q;
+	// it looks only at bytes with ink of p not in q.
 	within := func(p, q []byte, d int) bool {
 		for y := range b.H {
-			for x := range b.W {
-				if !at(p, x, y) || at(q, x, y) {
-					continue
+			row := hdr + y*stride
+			for i := range stride {
+				m := p[row+i] &^ q[row+i]
+				if i == stride-1 && b.W%8 != 0 {
+					m &= 0xff << (8 - b.W%8) // no padding
 				}
-				near := false
-				for dy := -d; dy <= d && !near; dy++ {
-					for dx := -d; dx <= d && !near; dx++ {
-						near = at(q, x+dx, y+dy)
+				for ; m != 0; m &= m - 1 {
+					x := i*8 + 7 - bits.TrailingZeros8(m)
+					near := false
+					for dy := -d; dy <= d && !near; dy++ {
+						for dx := -d; dx <= d && !near; dx++ {
+							near = at(q, x+dx, y+dy)
+						}
 					}
-				}
-				if !near {
-					return false
+					if !near {
+						return false
+					}
 				}
 			}
 		}
