@@ -17,23 +17,27 @@ import "github.com/sergev/dejapdf/internal/raster"
 // RGB.
 func Background(p *raster.Pixmap, m *raster.Bitmap, k, r0, r1 int) *raster.Pixmap {
 	d := distance(m, p.W, p.H, r1)
-	far := reduce(p, k, func(i int) float64 { return float64(b2f(int(d[i]) >= r1)) })
+	far := reduce(p, k, func(y int, wt []float64) {
+		for x, di := range d[y*p.W : (y+1)*p.W] {
+			wt[x] = float64(b2f(int(di) >= r1))
+		}
+	})
 	pull(far)
 	g := Gray(p)
 	w := (p.W + k - 1) / k
-	lv := reduce(p, k, func(i int) float64 {
-		di := int(d[i])
-		if di >= r1 {
-			return 1
+	lv := reduce(p, k, func(y int, wt []float64) {
+		i0 := y * p.W
+		for x := range wt {
+			di := int(d[i0+x])
+			switch {
+			case di >= r1:
+				wt[x] = 1
+			case di <= r0, float64(g[i0+x]) < lum(far, y/k*w+x/k)-ghost:
+				wt[x] = 0
+			default:
+				wt[x] = float64(di-r0) / float64(r1-r0)
+			}
 		}
-		if di <= r0 {
-			return 0
-		}
-		x, y := i%p.W/k, i/p.W/k
-		if float64(g[i]) < lum(far, y*w+x)-ghost {
-			return 0
-		}
-		return float64(di-r0) / float64(r1-r0)
 	})
 	pull(lv)
 	out := &raster.Pixmap{W: lv.w, H: lv.h, N: lv.n, Pix: make([]byte, len(lv.v))}
@@ -64,23 +68,40 @@ func lum(l *level, c int) float64 {
 }
 
 // reduce is level 0 of the pyramid: p reduced by k, each cell the mean
-// of its pixels by weight wt, its weight their share of the cell.
-func reduce(p *raster.Pixmap, k int, wt func(int) float64) *level {
+// of its pixels by weight, its weight their share of the cell. weights
+// sets the weights of row y.
+func reduce(p *raster.Pixmap, k int, weights func(y int, wt []float64)) *level {
 	n := min(p.N, 3)
 	w, h := (p.W+k-1)/k, (p.H+k-1)/k
 	lv := &level{w: w, h: h, n: n, v: make([]float64, n*w*h), wt: make([]float64, w*h)}
+	v, cwt, pix := lv.v, lv.wt, p.Pix
+	wt := make([]float64, p.W)
 	for y := range p.H {
-		for x := range p.W {
+		weights(y, wt)
+		c, left := y/k*w, k // the cell, and its pixels left in this row
+		for x, pw := range wt {
+			if left == 0 {
+				c, left = c+1, k
+			}
+			left--
 			i := y*p.W + x
-			pw := wt(i)
 			if pw <= 0 {
 				continue
 			}
-			c := y/k*w + x/k
-			lv.wt[c] += pw
-			px := pixel(p, i)
-			for j := range n {
-				lv.v[n*c+j] += pw * float64(px[j])
+			cwt[c] += pw
+			switch p.N {
+			case 1:
+				v[c] += pw * float64(pix[i])
+			case 3:
+				s, d := pix[3*i:3*i+3], v[3*c:3*c+3]
+				d[0] += pw * float64(s[0])
+				d[1] += pw * float64(s[1])
+				d[2] += pw * float64(s[2])
+			default:
+				px := pixel(p, i)
+				for j := range n {
+					v[n*c+j] += pw * float64(px[j])
+				}
 			}
 		}
 	}
